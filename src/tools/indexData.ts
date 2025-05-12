@@ -1,3 +1,5 @@
+import { TUSHARE_CONFIG } from '../config.js';
+
 export const indexData = {
   name: "index_data",
   description: "获取指定股票指数的数据，例如上证指数、深证成指等",
@@ -23,9 +25,9 @@ export const indexData = {
     try {
       console.log(`使用Tushare API获取指数${args.code}的数据`);
       
-      // Tushare API配置
-      const TUSHARE_API_KEY = "7c8d386c326dabf9661dcbcdc317e3626dd0ec51b6cdaaa5d556f9ae";
-      const TUSHARE_API_URL = "http://api.tushare.pro";
+      // 使用全局配置中的Tushare API设置
+      const TUSHARE_API_KEY = TUSHARE_CONFIG.API_TOKEN;
+      const TUSHARE_API_URL = TUSHARE_CONFIG.API_URL;
       
       // 默认参数设置
       const today = new Date();
@@ -47,80 +49,89 @@ export const indexData = {
         fields: "ts_code,trade_date,open,high,low,close,pre_close,change,pct_chg,vol,amount"
       };
       
-      // 发送请求
-      const response = await fetch(TUSHARE_API_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(params)
-      });
+      // 设置请求超时
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), TUSHARE_CONFIG.TIMEOUT);
       
-      if (!response.ok) {
-        throw new Error(`Tushare API请求失败: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      
-      // 处理响应数据
-      if (data.code !== 0) {
-        throw new Error(`Tushare API错误: ${data.msg}`);
-      }
-      
-      // 确保data.data和data.data.items存在
-      if (!data.data || !data.data.items || data.data.items.length === 0) {
-        throw new Error(`未找到指数${args.code}的数据`);
-      }
-      
-      // 获取字段名
-      const fields = data.data.fields;
-      
-      // 将数据转换为对象数组
-      const indexData = data.data.items.map((item: any) => {
-        const result: Record<string, any> = {};
-        fields.forEach((field: string, index: number) => {
-          result[field] = item[index];
+      try {
+        // 发送请求
+        const response = await fetch(TUSHARE_API_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(params),
+          signal: controller.signal
         });
-        return result;
-      });
-      
-      // 收集涨跌数据用于生成趋势分析
-      const closePrices = indexData.map((item: Record<string, any>) => parseFloat(item.close));
-      let trend = "持平";
-      let trendAnalysis = "";
-      
-      if (closePrices.length > 1) {
-        const firstPrice = closePrices[closePrices.length - 1]; // 最早的收盘价
-        const lastPrice = closePrices[0]; // 最近的收盘价
-        const change = ((lastPrice - firstPrice) / firstPrice * 100).toFixed(2);
         
-        if (lastPrice > firstPrice) {
-          trend = `上涨 ${change}%`;
-          trendAnalysis = `在此期间，${args.code}整体呈上涨趋势，累计涨幅达${change}%。`;
-        } else if (lastPrice < firstPrice) {
-          trend = `下跌 ${Math.abs(parseFloat(change))}%`;
-          trendAnalysis = `在此期间，${args.code}整体呈下跌趋势，累计跌幅达${Math.abs(parseFloat(change))}%。`;
+        if (!response.ok) {
+          throw new Error(`Tushare API请求失败: ${response.status}`);
         }
-      }
-      
-      // 格式化输出日期范围
-      const startDate = indexData[indexData.length - 1]?.trade_date || args.start_date || defaultStartDate;
-      const endDate = indexData[0]?.trade_date || args.end_date || defaultEndDate;
-      
-      // 格式化输出
-      const formattedData = indexData.map((data: Record<string, any>) => {
-        return `## ${data.trade_date}\n**开盘**: ${data.open}  **最高**: ${data.high}  **最低**: ${data.low}  **收盘**: ${data.close}\n**涨跌**: ${data.change}  **涨跌幅**: ${data.pct_chg}%  **成交量**: ${data.vol}  **成交额**: ${data.amount}\n`;
-      }).join('\n---\n\n');
-      
-      return {
-        content: [
-          {
-            type: "text",
-            text: `# ${args.code}指数数据 (${startDate} 至 ${endDate})\n\n` +
-                 `## 期间走势: ${trend}\n${trendAnalysis}\n\n---\n\n${formattedData}`
+        
+        const data = await response.json();
+        
+        // 处理响应数据
+        if (data.code !== 0) {
+          throw new Error(`Tushare API错误: ${data.msg}`);
+        }
+        
+        // 确保data.data和data.data.items存在
+        if (!data.data || !data.data.items || data.data.items.length === 0) {
+          throw new Error(`未找到指数${args.code}的数据`);
+        }
+        
+        // 获取字段名
+        const fields = data.data.fields;
+        
+        // 将数据转换为对象数组
+        const indexData = data.data.items.map((item: any) => {
+          const result: Record<string, any> = {};
+          fields.forEach((field: string, index: number) => {
+            result[field] = item[index];
+          });
+          return result;
+        });
+        
+        // 收集涨跌数据用于生成趋势分析
+        const closePrices = indexData.map((item: Record<string, any>) => parseFloat(item.close));
+        let trend = "持平";
+        let trendAnalysis = "";
+        
+        if (closePrices.length > 1) {
+          const firstPrice = closePrices[closePrices.length - 1]; // 最早的收盘价
+          const lastPrice = closePrices[0]; // 最近的收盘价
+          const change = ((lastPrice - firstPrice) / firstPrice * 100).toFixed(2);
+          
+          if (lastPrice > firstPrice) {
+            trend = `上涨 ${change}%`;
+            trendAnalysis = `在此期间，${args.code}整体呈上涨趋势，累计涨幅达${change}%。`;
+          } else if (lastPrice < firstPrice) {
+            trend = `下跌 ${Math.abs(parseFloat(change))}%`;
+            trendAnalysis = `在此期间，${args.code}整体呈下跌趋势，累计跌幅达${Math.abs(parseFloat(change))}%。`;
           }
-        ]
-      };
+        }
+        
+        // 格式化输出日期范围
+        const startDate = indexData[indexData.length - 1]?.trade_date || args.start_date || defaultStartDate;
+        const endDate = indexData[0]?.trade_date || args.end_date || defaultEndDate;
+        
+        // 格式化输出
+        const formattedData = indexData.map((data: Record<string, any>) => {
+          return `## ${data.trade_date}\n**开盘**: ${data.open}  **最高**: ${data.high}  **最低**: ${data.low}  **收盘**: ${data.close}\n**涨跌**: ${data.change}  **涨跌幅**: ${data.pct_chg}%  **成交量**: ${data.vol}  **成交额**: ${data.amount}\n`;
+        }).join('\n---\n\n');
+        
+        return {
+          content: [
+            {
+              type: "text",
+              text: `# ${args.code}指数数据 (${startDate} 至 ${endDate})\n\n` +
+                   `## 期间走势: ${trend}\n${trendAnalysis}\n\n---\n\n${formattedData}`
+            }
+          ]
+        };
+      } finally {
+        clearTimeout(timeoutId);
+      }
     } catch (error) {
       console.error("获取指数数据失败:", error);
       

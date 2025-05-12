@@ -15,7 +15,9 @@
     "prepare": "npm run build",
     "watch": "tsc --watch",
     "inspector": "npx @modelcontextprotocol/inspector build/index.js",
-    "dev": "node build/index.js"
+    "dev": "node build/index.js",
+    "setup": "node build-setup.js",
+    "start": "node build/index.js"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "0.6.0"

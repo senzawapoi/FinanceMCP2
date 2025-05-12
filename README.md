@@ -90,17 +90,17 @@ npm install
         // ... 您可能拥有的任何其他 MCP 服务器
       ]
 }
-    ```
+```
 
 **关键配置详情：**
-    *   `"finance-data-server"`：这是您在 Cline 中引用服务器时使用的名称。
-    *   `"url"`：您的 MCP 服务器将运行的地址。`http://localhost:3100/sse` 是一个常见的默认设置。端口 `3100` 应与您的 Node.js 服务器监听的端口匹配 (如果使用Supergateway)。
-    *   `"transport"`：设置为 `"sse"` (服务器发送事件)，这是推荐的通信方法。如果您不使用Supergateway而是直接运行 `node build/index.js`，则此处应为`"stdio"`，且`url`字段应改为`"command"`，值为 `C:/path/to/FinanceMCP/build/index.js` (根据您的实际路径修改)。
-    *   `"autoapprove"`：一个工具名称列表，Cline 可以从此服务器使用这些工具而无需每次都明确请求权限。
+ *   `"finance-data-server"`：这是您在 Cline 中引用服务器时使用的名称。
+ *   `"url"`：您的 MCP 服务器将运行的地址。`http://localhost:3100/sse` 是一个常见的默认设置。端口 `3100` 应与您的 Node.js 服务器监听的端口匹配 (如果使用Supergateway)。
+ *   `"transport"`：设置为 `"sse"` (服务器发送事件)，这是推荐的通信方法。如果您不使用Supergateway而是直接运行 `node build/index.js`，则此处应为`"stdio"`，且`url`字段应改为`"command"`，值为 `C:/path/to/FinanceMCP/build/index.js` (根据您的实际路径修改)。
+ *   `"autoapprove"`：一个工具名称列表，Cline 可以从此服务器使用这些工具而无需每次都明确请求权限。
 
-    ![image](https://github.com/user-attachments/assets/2df71273-10f3-4869-b323-e7492fa86e65)
+ ![image](https://github.com/user-attachments/assets/2df71273-10f3-4869-b323-e7492fa86e65)
 
-    *图片说明：`cline_mcp_settings.json` 中 `finance-data-server` 的配置示例 (SSE模式)。*
+ *图片说明：`cline_mcp_settings.json` 中 `finance-data-server` 的配置示例 (SSE模式)。*
 
 ### 4. Tushare API Token 配置
 

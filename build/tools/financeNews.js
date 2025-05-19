@@ -1,3 +1,4 @@
+import { TUSHARE_CONFIG } from '../config.js';
 export const financeNews = {
     name: "finance_news",
     description: "获取最新财经新闻",
@@ -21,9 +22,9 @@ export const financeNews = {
             // 默认使用新浪财经作为新闻源
             const source = args?.source || 'sina';
             console.log(`使用Tushare API获取${count}条${source}财经新闻`);
-            // Tushare API配置
-            const TUSHARE_API_KEY = "7c8d386c326dabf9661dcbcdc317e3626dd0ec51b6cdaaa5d556f9ae";
-            const TUSHARE_API_URL = "http://api.tushare.pro";
+            // 使用全局配置中的Tushare API设置
+            const TUSHARE_API_KEY = TUSHARE_CONFIG.API_TOKEN;
+            const TUSHARE_API_URL = TUSHARE_CONFIG.API_URL;
             // 设置时间范围（过去24小时）
             const now = new Date();
             const endDate = now.toISOString().replace('T', ' ').substring(0, 19);
@@ -41,51 +42,60 @@ export const financeNews = {
                 },
                 fields: "datetime,title,content,channels"
             };
-            // 发送请求
-            const response = await fetch(TUSHARE_API_URL, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(params)
-            });
-            if (!response.ok) {
-                throw new Error(`Tushare API请求失败: ${response.status}`);
-            }
-            const data = await response.json();
-            // 处理响应数据
-            if (data.code !== 0) {
-                throw new Error(`Tushare API错误: ${data.msg}`);
-            }
-            // 确保data.data和data.data.items存在
-            if (!data.data || !data.data.items || data.data.items.length === 0) {
-                throw new Error("Tushare API未返回新闻数据");
-            }
-            // 提取指定数量的新闻
-            const newsItems = data.data.items.slice(0, count).map((item) => {
-                const datetime = item[0] || "未知时间";
-                const title = item[1] || "无标题";
-                const content = item[2] || "无内容";
-                const channels = item[3] || "";
+            // 设置请求超时
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), TUSHARE_CONFIG.TIMEOUT);
+            try {
+                // 发送请求
+                const response = await fetch(TUSHARE_API_URL, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(params),
+                    signal: controller.signal
+                });
+                if (!response.ok) {
+                    throw new Error(`Tushare API请求失败: ${response.status}`);
+                }
+                const data = await response.json();
+                // 处理响应数据
+                if (data.code !== 0) {
+                    throw new Error(`Tushare API错误: ${data.msg}`);
+                }
+                // 确保data.data和data.data.items存在
+                if (!data.data || !data.data.items || data.data.items.length === 0) {
+                    throw new Error("Tushare API未返回新闻数据");
+                }
+                // 提取指定数量的新闻
+                const newsItems = data.data.items.slice(0, count).map((item) => {
+                    const datetime = item[0] || "未知时间";
+                    const title = item[1] || "无标题";
+                    const content = item[2] || "无内容";
+                    const channels = item[3] || "";
+                    return {
+                        datetime,
+                        title,
+                        content,
+                        channels
+                    };
+                });
+                // 格式化输出
+                const formattedNews = newsItems.map((news) => {
+                    return `## ${news.title}\n**时间**: ${news.datetime}${news.channels ? `\n**分类**: ${news.channels}` : ''}\n\n${news.content}\n\n---\n`;
+                });
                 return {
-                    datetime,
-                    title,
-                    content,
-                    channels
+                    content: [
+                        {
+                            type: "text",
+                            text: `# 最新财经新闻 (来源: ${source})\n\n${formattedNews.join("\n")}`
+                        }
+                    ]
                 };
-            });
-            // 格式化输出
-            const formattedNews = newsItems.map((news) => {
-                return `## ${news.title}\n**时间**: ${news.datetime}${news.channels ? `\n**分类**: ${news.channels}` : ''}\n\n${news.content}\n\n---\n`;
-            });
-            return {
-                content: [
-                    {
-                        type: "text",
-                        text: `# 最新财经新闻 (来源: ${source})\n\n${formattedNews.join("\n")}`
-                    }
-                ]
-            };
+            }
+            finally {
+                clearTimeout(timeoutId);
+            }
         }
         catch (error) {
             console.error("获取财经新闻失败:", error);

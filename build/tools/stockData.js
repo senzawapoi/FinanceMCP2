@@ -1,3 +1,4 @@
+import { TUSHARE_CONFIG } from '../config.js';
 export const stockData = {
     name: "stock_data",
     description: "获取指定股票的历史行情数据",
@@ -26,9 +27,9 @@ export const stockData = {
     async run(args) {
         try {
             console.log(`使用Tushare API获取股票${args.code}的行情数据`);
-            // Tushare API配置
-            const TUSHARE_API_KEY = "7c8d386c326dabf9661dcbcdc317e3626dd0ec51b6cdaaa5d556f9ae";
-            const TUSHARE_API_URL = "http://api.tushare.pro";
+            // 使用全局配置中的Tushare API设置
+            const TUSHARE_API_KEY = TUSHARE_CONFIG.API_TOKEN;
+            const TUSHARE_API_URL = TUSHARE_CONFIG.API_URL;
             // 默认参数设置
             const today = new Date();
             const defaultEndDate = today.toISOString().slice(0, 10).replace(/-/g, '');
@@ -46,52 +47,61 @@ export const stockData = {
                 },
                 fields: args.fields || "ts_code,trade_date,open,high,low,close,vol,amount"
             };
-            // 发送请求
-            const response = await fetch(TUSHARE_API_URL, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(params)
-            });
-            if (!response.ok) {
-                throw new Error(`Tushare API请求失败: ${response.status}`);
-            }
-            const data = await response.json();
-            // 处理响应数据
-            if (data.code !== 0) {
-                throw new Error(`Tushare API错误: ${data.msg}`);
-            }
-            // 确保data.data和data.data.items存在
-            if (!data.data || !data.data.items || data.data.items.length === 0) {
-                throw new Error(`未找到股票${args.code}的行情数据`);
-            }
-            // 获取字段名
-            const fields = data.data.fields;
-            // 将数据转换为对象数组
-            const stockData = data.data.items.map((item) => {
-                const result = {};
-                fields.forEach((field, index) => {
-                    result[field] = item[index];
+            // 设置请求超时
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), TUSHARE_CONFIG.TIMEOUT);
+            try {
+                // 发送请求
+                const response = await fetch(TUSHARE_API_URL, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(params),
+                    signal: controller.signal
                 });
-                return result;
-            });
-            // 格式化输出
-            const formattedData = stockData.map((data) => {
-                let row = '';
-                for (const [key, value] of Object.entries(data)) {
-                    row += `**${key}**: ${value}  `;
+                if (!response.ok) {
+                    throw new Error(`Tushare API请求失败: ${response.status}`);
                 }
-                return `## ${data.trade_date}\n${row}\n`;
-            }).join('\n---\n\n');
-            return {
-                content: [
-                    {
-                        type: "text",
-                        text: `# ${args.code}股票行情数据\n\n${formattedData}`
+                const data = await response.json();
+                // 处理响应数据
+                if (data.code !== 0) {
+                    throw new Error(`Tushare API错误: ${data.msg}`);
+                }
+                // 确保data.data和data.data.items存在
+                if (!data.data || !data.data.items || data.data.items.length === 0) {
+                    throw new Error(`未找到股票${args.code}的行情数据`);
+                }
+                // 获取字段名
+                const fields = data.data.fields;
+                // 将数据转换为对象数组
+                const stockData = data.data.items.map((item) => {
+                    const result = {};
+                    fields.forEach((field, index) => {
+                        result[field] = item[index];
+                    });
+                    return result;
+                });
+                // 格式化输出
+                const formattedData = stockData.map((data) => {
+                    let row = '';
+                    for (const [key, value] of Object.entries(data)) {
+                        row += `**${key}**: ${value}  `;
                     }
-                ]
-            };
+                    return `## ${data.trade_date}\n${row}\n`;
+                }).join('\n---\n\n');
+                return {
+                    content: [
+                        {
+                            type: "text",
+                            text: `# ${args.code}股票行情数据\n\n${formattedData}`
+                        }
+                    ]
+                };
+            }
+            finally {
+                clearTimeout(timeoutId);
+            }
         }
         catch (error) {
             console.error("获取股票数据失败:", error);

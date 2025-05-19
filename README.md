@@ -91,16 +91,19 @@ npm install
 
 ```json
 {
-      "mcpServers": [
-        {
-          "finance-data-server": { // 您可以自定义服务器名称
-            "url": "http://localhost:3100/sse", // 确保端口 (3100) 与您的服务器匹配
-            "transport": "sse",
-            "autoapprove": ["finance_news", "stock_data", "index_data", "create_note"] // 添加所有需要的工具
-          }
-        }
-        // ... 您可能拥有的任何其他 MCP 服务器
+  "mcpServers": {
+    "finance-data-server": {          // 名字随便起，别带空格
+      "url": "http://localhost:3122/sse", // 必须指到 /sse
+      "type": "sse",                     // VS Code Cline ≥3.14 用 type
+      "disabled": false,                 // 必填！否则校验闹情绪
+      "autoApprove": [
+        "finance_news",
+        "stock_data",
+        "index_data",
+        "create_note"
       ]
+    }
+  }
 }
 ```
 

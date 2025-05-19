@@ -93,7 +93,7 @@ npm install
 {
   "mcpServers": {
     "finance-data-server": {          // 名字随便起，别带空格
-      "url": "http://localhost:3122/sse", // 必须指到 /sse
+      "url": "http://localhost:3100/sse", // 必须指到 /sse
       "type": "sse",                     // VS Code Cline ≥3.14 用 type
       "disabled": false,                 // 必填！否则校验闹情绪
       "autoApprove": [

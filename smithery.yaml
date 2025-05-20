@@ -1,14 +1,40 @@
-# Smithery configuration file: https://smithery.ai/docs/build/project-config
+# Smithery configuration file
+# 文档: https://smithery.ai/docs/build/project-config
 
-startCommand:
-  type: stdio
-  configSchema:
-    # JSON Schema defining the configuration options for the MCP.
+name: "@guangxiangdebizi/finance-mcp"        # Server 的唯一标识
+version: "0.1.0"                             # 记得每次发布手动 +0.0.1
+description: "财经数据查询 & 财经新闻 MCP"   # 随便改
+author:
+  name: "Xingyu_Chen"                  # 作者名称
+  email: "guangxiangdebizi@gmail.com"
+  url: "https://github.com/guangxiangdebizi"
+license: "MIT"
+keywords:
+  - finance
+  - tushare
+  - mcp-server
+
+dependencies:                                # 运行时依赖
+  node: ">=18"
+
+startCommand:                                # ——启动配置——
+  type: stdio                                # 走 STDIO，符合 MCP 规范
+  configSchema:                              # ——运行所需的配置（JSON Schema）——
     type: object
-    default: {}
-    description: No configuration required
-  commandFunction:
-    # A JS function that produces the CLI command based on the given config to start the MCP on stdio.
-    |-
-    (config) => ({ command: 'node', args: ['build/index.js'] })
-  exampleConfig: {}
+    properties:
+      TUSHARE_TOKEN:
+        type: string
+        description: "Your personal Tushare API token"
+    required: ["TUSHARE_TOKEN"]
+  commandFunction: |-
+    (config) => ({
+      command: "node",
+      args: ["build/index.js"],
+      env: {
+        NODE_ENV: "production",
+        TUSHARE_TOKEN: config.TUSHARE_TOKEN   # 注入到进程环境
+      }
+    })
+
+exampleConfig:                               # 让别人一眼能看懂怎么填
+  TUSHARE_TOKEN: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"

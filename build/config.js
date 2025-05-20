@@ -1,20 +1,11 @@
-/**
- * 全局配置文件
- *
- * 包含所有工具共享的配置项，如API密钥等
- */
 export const TUSHARE_CONFIG = {
     /**
-     * Tushare API Token
-     * 用户只需在此处修改一次，所有工具都会使用这个值
+     * Tushare API Token – 从环境变量或运行配置里读取
+     * 在本地调试可 .env 里写死
      */
-    API_TOKEN: "Your_API_KEY",
-    /**
-     * Tushare API 服务器地址
-     */
-    API_URL: "http://api.tushare.pro",
-    /**
-     * API请求超时时间(毫秒)
-     */
-    TIMEOUT: 10000
+    API_TOKEN: process.env.TUSHARE_TOKEN ?? "",
+    /** Tushare 服务器地址 */
+    API_URL: "https://api.tushare.pro",
+    /** 超时 ms */
+    TIMEOUT: 10000,
 };

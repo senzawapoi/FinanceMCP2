@@ -1,42 +1,49 @@
 # Smithery configuration file
-# 文档: https://smithery.ai/docs/build/project-config
+# 参考文档：https://smithery.ai/docs/build/project-config/smithery.yaml
 
-name: "@guangxiangdebizi/finance-mcp"        # Server 的唯一标识
+name: "@guangxiangdebizi/finance-mcp"        # 服务器唯一标识
 version: "0.1.0"                             # 版本号
-description: "财经数据查询 & 财经新闻 MCP"   # 描述
+description: "财经数据查询 & 财经新闻 MCP"
 author:
-  name: "Xingyu_Chen"                  # 作者名称
+  name: "Xingyu_Chen"
   email: "guangxiangdebizi@gmail.com"
   url: "https://github.com/guangxiangdebizi"
 license: "MIT"
-keywords:
-  - finance
-  - tushare
-  - mcp-server
+keywords: [finance, tushare, mcp-server]
 
-dependencies:                                # 运行时依赖
+# 运行时（Node 版本）要求，可选但建议声明
+dependencies:
   node: ">=18"
 
-# 传输配置
-transport: stdio                            # 使用标准输入输出作为传输方式
+# ---------- 构建配置（可选） ----------
+build:
+  dockerfile: Dockerfile          # 相对路径，默认为仓库根下的 Dockerfile
+  dockerBuildPath: "."            # 构建上下文，默认为仓库根
 
-# 配置Schema
-configSchema:
-  type: object
-  properties:
-    TUSHARE_TOKEN:
-      type: string
-      description: "Your personal Tushare API token"
-  required: ["TUSHARE_TOKEN"]
+# ---------- 启动配置 ----------
+startCommand:
+  type: stdio                     # 基于 STDIO 的 MCP
+  # ——配置选项的 JSON Schema——
+  configSchema:
+    type: object
+    required: ["TUSHARE_TOKEN"]
+    properties:
+      TUSHARE_TOKEN:
+        type: string
+        title: "Tushare API Token"
+        description: "Your personal Tushare API token"
 
-# 启动配置
-start:
-  command: node
-  args: ["build/index.js"]
-  env:
-    NODE_ENV: "production"
-    TUSHARE_TOKEN: "{{config.TUSHARE_TOKEN}}"
+  # ——返回实际启动命令的 JS 函数——
+  commandFunction: |-
+    (config) => ({
+      command: "node",
+      args: ["build/index.js"],
+      env: {
+        NODE_ENV: "production",
+        TUSHARE_TOKEN: config.TUSHARE_TOKEN
+      }
+    })
 
-# 示例配置
+# ---------- 示例配置，供 UI 展示 ----------
 exampleConfig:
   TUSHARE_TOKEN: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"

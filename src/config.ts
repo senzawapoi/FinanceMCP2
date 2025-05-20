@@ -17,5 +17,5 @@ export const TUSHARE_CONFIG = {
   API_URL: "https://api.tushare.pro",
 
   /** 超时 ms */
-  TIMEOUT: 10000,
+  TIMEOUT: 30000,
 };

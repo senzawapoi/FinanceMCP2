@@ -46,6 +46,7 @@ export const financeNews = {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), TUSHARE_CONFIG.TIMEOUT);
             try {
+                console.log(`请求Tushare API: ${params.api_name}，参数:`, params.params);
                 // 发送请求
                 const response = await fetch(TUSHARE_API_URL, {
                     method: "POST",
@@ -99,45 +100,11 @@ export const financeNews = {
         }
         catch (error) {
             console.error("获取财经新闻失败:", error);
-            // 提供模拟数据作为后备
-            const mockNews = [
-                {
-                    title: "央行下调支农支小再贷款利率0.25个百分点",
-                    time: new Date().toLocaleString('zh-CN'),
-                    content: "根据国务院部署，为加大金融对强农惠农政策支持，更好发挥再贷款政策工具的引导和杠杆作用，促进进一步降低\"三农\"和小微企业综合融资成本，央行决定自2023年9月25日起下调支农支小再贷款利率0.25个百分点，优惠贷款政策有所扩大。",
-                },
-                {
-                    title: "证监会持续加强资本市场监管执法",
-                    time: new Date().toLocaleString('zh-CN'),
-                    content: "证监会新闻发言人表示，近期将持续加强资本市场监管执法力度，严厉打击财务造假、内幕交易等违法行为，特别是对重大财务欺诈案件将从严从重处罚，切实保护投资者合法权益，维护市场秩序，促进资本市场健康发展。",
-                },
-                {
-                    title: "两部门发布新能源汽车下乡活动实施方案",
-                    time: new Date().toLocaleString('zh-CN'),
-                    content: "工业和信息化部、商务部联合发布《新能源汽车下乡活动实施方案》，从即日起至年底，在全国范围内组织开展新一轮新能源汽车下乡活动。对消费者购买新能源汽车给予一定的补贴，促进农村汽车消费升级。",
-                },
-                {
-                    title: "A股三大指数震荡上行 沪指涨0.53%",
-                    time: new Date().toLocaleString('zh-CN'),
-                    content: "今日A股三大指数震荡上行，截至收盘，沪指涨0.53%，报3261.62点；深证成指涨0.91%，报10930.47点；创业板指涨1.14%，报2180.38点。两市超3500只个股上涨，成交额连续两日破万亿。半导体、航运等板块涨幅居前。",
-                },
-                {
-                    title: "国家发改委：推动能耗双控向碳排放双控转变",
-                    time: new Date().toLocaleString('zh-CN'),
-                    content: "国家发改委相关负责人表示，将推动能耗双控向碳排放双控转变，加快形成有利于绿色低碳发展的能源消费强度和总量双控政策，促进能源资源高效利用。碳排放强度持续下降，为实现'双碳'目标奠定坚实基础。",
-                }
-            ];
-            // 选择指定数量的模拟新闻
-            const selectedNews = mockNews.slice(0, args?.count || 5);
-            // 格式化模拟新闻
-            const formattedMockNews = selectedNews.map(news => {
-                return `## ${news.title}\n**时间**: ${news.time}\n\n${news.content}\n\n---\n`;
-            });
             return {
                 content: [
                     {
                         type: "text",
-                        text: `# 最新财经新闻 (模拟数据)\n\n${formattedMockNews.join("\n")}\n\n> 注：由于Tushare API请求失败，显示的是模拟数据。错误: ${error instanceof Error ? error.message : String(error)}`
+                        text: `# 获取财经新闻失败\n\n无法从Tushare API获取新闻数据：${error instanceof Error ? error.message : String(error)}\n\n请检查API TOKEN权限或尝试其他新闻来源，可用来源包括：sina(新浪财经)、wallstreetcn(华尔街见闻)、10jqka(同花顺)、eastmoney(东方财富)等。`
                     }
                 ]
             };

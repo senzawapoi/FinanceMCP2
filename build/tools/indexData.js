@@ -47,6 +47,7 @@ export const indexData = {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), TUSHARE_CONFIG.TIMEOUT);
             try {
+                console.log(`请求Tushare API: ${params.api_name}，参数:`, params.params);
                 // 发送请求
                 const response = await fetch(TUSHARE_API_URL, {
                     method: "POST",
@@ -118,21 +119,6 @@ export const indexData = {
         }
         catch (error) {
             console.error("获取指数数据失败:", error);
-            // 为常见指数提供模拟数据
-            if (args.code === "000001.SH" || args.code === "399001.SZ") {
-                const isShanghai = args.code === "000001.SH";
-                const mockData = generateMockIndexData(isShanghai ? "上证指数" : "深证成指", 10);
-                return {
-                    content: [
-                        {
-                            type: "text",
-                            text: `# ${isShanghai ? "上证指数(000001.SH)" : "深证成指(399001.SZ)"} 模拟数据\n\n` +
-                                `> 注意：由于Tushare API请求失败，以下是模拟数据，仅供参考。错误: ${error instanceof Error ? error.message : String(error)}\n\n` +
-                                mockData
-                        }
-                    ]
-                };
-            }
             return {
                 content: [
                     {
@@ -144,26 +130,3 @@ export const indexData = {
         }
     }
 };
-// 生成模拟指数数据
-function generateMockIndexData(indexName, days) {
-    const data = [];
-    const basePrice = indexName === "上证指数" ? 3100 : 10500;
-    const today = new Date();
-    for (let i = 0; i < days; i++) {
-        const date = new Date(today);
-        date.setDate(date.getDate() - i);
-        const formattedDate = date.toISOString().slice(0, 10).replace(/-/g, '');
-        // 生成合理的随机价格波动
-        const change = (Math.random() * 60 - 30).toFixed(2);
-        const close = (basePrice + parseFloat(change)).toFixed(2);
-        const open = (parseFloat(close) - (Math.random() * 20 - 10)).toFixed(2);
-        const high = (Math.max(parseFloat(open), parseFloat(close)) + (Math.random() * 15)).toFixed(2);
-        const low = (Math.min(parseFloat(open), parseFloat(close)) - (Math.random() * 15)).toFixed(2);
-        const pctChg = (parseFloat(change) / basePrice * 100).toFixed(2);
-        const vol = (Math.random() * 500000 + 100000).toFixed(0);
-        const amount = (parseFloat(vol) * parseFloat(close) / 10).toFixed(2);
-        data.push(`## ${formattedDate}\n**开盘**: ${open}  **最高**: ${high}  **最低**: ${low}  **收盘**: ${close}\n` +
-            `**涨跌**: ${change}  **涨跌幅**: ${pctChg}%  **成交量**: ${vol}  **成交额**: ${amount}\n`);
-    }
-    return data.join('\n---\n\n');
-}

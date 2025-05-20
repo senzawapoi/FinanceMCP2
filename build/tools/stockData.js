@@ -51,6 +51,7 @@ export const stockData = {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), TUSHARE_CONFIG.TIMEOUT);
             try {
+                console.log(`请求Tushare API: ${params.api_name}，参数:`, params.params);
                 // 发送请求
                 const response = await fetch(TUSHARE_API_URL, {
                     method: "POST",
@@ -82,6 +83,7 @@ export const stockData = {
                     });
                     return result;
                 });
+                console.log(`成功获取到${stockData.length}条${args.code}股票数据记录`);
                 // 格式化输出
                 const formattedData = stockData.map((data) => {
                     let row = '';

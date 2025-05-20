@@ -15,6 +15,7 @@ import {
 import { financeNews } from "./tools/financeNews.js";
 import { stockData } from "./tools/stockData.js";
 import { indexData } from "./tools/indexData.js";
+import { macroEcon } from "./tools/macroEcon.js";
 
 // 模拟笔记数据
 type Note = { title: string, content: string };
@@ -69,7 +70,7 @@ server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
   };
 });
 
-// 🛠️ 工具：列出工具（包括 create_note、finance_news、stock_data 和 index_data）
+// 🛠️ 工具：列出工具（包括 create_note、finance_news、stock_data、index_data 和 macro_econ）
 server.setRequestHandler(ListToolsRequestSchema, async () => {
   return {
     tools: [
@@ -99,6 +100,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         name: indexData.name,
         description: indexData.description,
         inputSchema: indexData.parameters
+      },
+      {
+        name: macroEcon.name,
+        description: macroEcon.description,
+        inputSchema: macroEcon.parameters
       }
     ]
   };
@@ -139,6 +145,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       const start_date = request.params.arguments?.start_date ? String(request.params.arguments.start_date) : undefined;
       const end_date = request.params.arguments?.end_date ? String(request.params.arguments.end_date) : undefined;
       return await indexData.run({ code, start_date, end_date });
+    }
+
+    case "macro_econ": {
+      const indicator = String(request.params.arguments?.indicator);
+      const start_date = request.params.arguments?.start_date ? String(request.params.arguments.start_date) : undefined;
+      const end_date = request.params.arguments?.end_date ? String(request.params.arguments.end_date) : undefined;
+      return await macroEcon.run({ indicator, start_date, end_date });
     }
 
     default:

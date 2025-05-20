@@ -21,4 +21,5 @@ RUN npm ci --production --ignore-scripts
 COPY --from=builder /app/build ./build
 
 # Default command: run the MCP server
+# Note: Environment variables will be passed through from smithery.yaml
 CMD ["node", "build/index.js"]

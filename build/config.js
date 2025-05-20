@@ -3,6 +3,10 @@ import * as dotenv from 'dotenv';
 // 1. 本地开发时，从.env文件加载
 // 2. 在Smithery部署时，从配置文件中加载
 dotenv.config();
+// For logging purposes only in development
+if (process.env.NODE_ENV !== 'production') {
+    console.log('Environment variables loaded, TUSHARE_TOKEN available:', process.env.TUSHARE_TOKEN ? 'Yes' : 'No');
+}
 export const TUSHARE_CONFIG = {
     /**
      * Tushare API Token

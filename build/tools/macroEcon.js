@@ -40,33 +40,63 @@ export const macroEcon = {
             // 构建请求参数
             const params = {
                 token: TUSHARE_API_KEY,
-                params: {
-                    start_date: args.start_date || defaultStartDate,
-                    end_date: args.end_date || defaultEndDate
-                },
+                params: {}, // 这里留空，后面根据不同的API添加特定参数
                 fields: ""
             };
-            // 根据不同指标类型设置不同的API名称和字段
+            // 根据不同指标类型设置不同的API名称、参数和字段
             switch (args.indicator) {
                 case 'shibor':
-                    params.api_name = "shibor_data"; // 修正为正确的接口名
+                    params.api_name = "shibor_data";
                     params.fields = "date,on,1w,2w,1m,3m,6m,9m,1y";
+                    // shibor_data接口使用date作为日期参数
+                    params.params = {
+                        start_date: args.start_date || defaultStartDate,
+                        end_date: args.end_date || defaultEndDate
+                    };
                     break;
                 case 'lpr':
-                    params.api_name = "lpr_data"; // 修正为正确的接口名
+                    params.api_name = "lpr_data";
                     params.fields = "date,1y,5y";
+                    // lpr_data接口使用start_date和end_date作为参数
+                    params.params = {
+                        start_date: args.start_date || defaultStartDate,
+                        end_date: args.end_date || defaultEndDate
+                    };
                     break;
                 case 'gdp':
-                    params.api_name = "cn_gdp"; // 修正为正确的接口名
+                    params.api_name = "cn_gdp";
                     params.fields = "quarter,gdp,gdp_yoy,pi,pi_yoy,si,si_yoy,ti,ti_yoy";
+                    // GDP数据使用季度格式，需要转换日期格式为季度格式
+                    const startYearQuarter = dateToQuarter(args.start_date || defaultStartDate);
+                    const endYearQuarter = dateToQuarter(args.end_date || defaultEndDate);
+                    params.params = {
+                        start_q: startYearQuarter,
+                        end_q: endYearQuarter
+                    };
                     break;
                 case 'cpi':
-                    params.api_name = "cn_cpi"; // 修正为正确的接口名
+                    params.api_name = "cn_cpi";
                     params.fields = "month,nt_cpi,nt_yoy,nt_mom,nt_accu,town_cpi,town_yoy,town_mom,town_accu,cnt_cpi,cnt_yoy,cnt_mom,cnt_accu";
+                    // CPI数据使用月份格式
+                    const startMonth = dateToMonth(args.start_date || defaultStartDate);
+                    const endMonth = dateToMonth(args.end_date || defaultEndDate);
+                    params.params = {
+                        m: "", // 可选单月
+                        start_m: startMonth,
+                        end_m: endMonth
+                    };
                     break;
                 case 'ppi':
-                    params.api_name = "cn_ppi"; // 修正为正确的接口名
+                    params.api_name = "cn_ppi";
                     params.fields = "month,ppi_yoy,ppi_mom,ppi_accu,rpi_yoy,rpi_mom,rpi_accu";
+                    // PPI数据使用月份格式
+                    const startMonthPPI = dateToMonth(args.start_date || defaultStartDate);
+                    const endMonthPPI = dateToMonth(args.end_date || defaultEndDate);
+                    params.params = {
+                        m: "", // 可选单月
+                        start_m: startMonthPPI,
+                        end_m: endMonthPPI
+                    };
                     break;
             }
             // 设置请求超时
@@ -171,3 +201,31 @@ export const macroEcon = {
         }
     }
 };
+/**
+ * 将日期格式(YYYYMMDD)转换为季度格式(YYYYQN)
+ */
+function dateToQuarter(dateStr) {
+    if (!dateStr || dateStr.length < 8)
+        return "";
+    const year = dateStr.substring(0, 4);
+    const month = parseInt(dateStr.substring(4, 6));
+    // 确定季度
+    let quarter;
+    if (month >= 1 && month <= 3)
+        quarter = 1;
+    else if (month >= 4 && month <= 6)
+        quarter = 2;
+    else if (month >= 7 && month <= 9)
+        quarter = 3;
+    else
+        quarter = 4;
+    return `${year}Q${quarter}`;
+}
+/**
+ * 将日期格式(YYYYMMDD)转换为月份格式(YYYYMM)
+ */
+function dateToMonth(dateStr) {
+    if (!dateStr || dateStr.length < 8)
+        return "";
+    return dateStr.substring(0, 6);
+}

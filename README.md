@@ -1,6 +1,6 @@
 # FinanceMCP 财经数据服务器
 
-[![smithery badge](https://smithery.ai/server/@guangxiangdebizi/FinanceMCP)](https://smithery.ai/server/@guangxiangdebizi/FinanceMCP)
+[![smithery badge](https://smithery.ai/badge/@guangxiangdebizi/FinanceMCP)](https://smithery.ai/server/@guangxiangdebizi/FinanceMCP)
 
 欢迎使用 **FinanceMCP 财经数据服务器**！本项目提供一个基于模型上下文协议 (MCP) 的服务器，使语言模型（如 Claude）能够访问通过 **Tushare API** 获取的实时财经数据。这使得AI助手能够基于最新的市场信息进行财经分析和预测。
 

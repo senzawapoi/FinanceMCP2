@@ -74,9 +74,9 @@ export const macroEcon = {
             // 根据不同指标类型设置不同的API名称、参数和字段
             switch (args.indicator) {
                 case 'shibor':
-                    params.api_name = "shibor_data";
+                    params.api_name = "shibor";
                     params.fields = "date,on,1w,2w,1m,3m,6m,9m,1y";
-                    // shibor_data接口使用date作为日期参数
+                    // shibor接口使用date作为日期参数
                     params.params = {
                         start_date: args.start_date || defaultStartDate,
                         end_date: args.end_date || defaultEndDate

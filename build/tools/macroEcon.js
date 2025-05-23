@@ -7,7 +7,7 @@ export const macroEcon = {
         properties: {
             indicator: {
                 type: "string",
-                description: "指标类型，可选值：shibor(上海银行间同业拆放利率),lpr(贷款基础利率),gdp(国内生产总值),cpi(居民消费价格指数),ppi(工业品出厂价格指数),cn_m(货币供应量),cn_pmi(采购经理指数),cn_sf(社会融资规模增量),shibor_quote(Shibor银行报价),shibor_lq(Shibor均值),libor(Libor利率),hibor(Hibor利率)"
+                description: "指标类型，可选值：shibor(上海银行间同业拆放利率),lpr(贷款基础利率),gdp(国内生产总值),cpi(居民消费价格指数),ppi(工业品出厂价格指数),cn_m(货币供应量),cn_pmi(采购经理指数),cn_sf(社会融资规模增量),shibor_quote(Shibor银行报价),libor(Libor利率),hibor(Hibor利率)"
             },
             start_date: {
                 type: "string",
@@ -27,7 +27,7 @@ export const macroEcon = {
             const TUSHARE_API_KEY = TUSHARE_CONFIG.API_TOKEN;
             const TUSHARE_API_URL = TUSHARE_CONFIG.API_URL;
             // 验证指标类型
-            const validIndicators = ['shibor', 'lpr', 'gdp', 'cpi', 'ppi', 'cn_m', 'cn_pmi', 'cn_sf', 'shibor_quote', 'shibor_lq', 'libor', 'hibor'];
+            const validIndicators = ['shibor', 'lpr', 'gdp', 'cpi', 'ppi', 'cn_m', 'cn_pmi', 'cn_sf', 'shibor_quote', 'libor', 'hibor'];
             if (!validIndicators.includes(args.indicator)) {
                 throw new Error(`不支持的指标类型: ${args.indicator}。支持的类型有: ${validIndicators.join(', ')}`);
             }
@@ -36,7 +36,7 @@ export const macroEcon = {
             const defaultEndDate = today.toISOString().slice(0, 10).replace(/-/g, '');
             let defaultStartDate = '';
             // 日期格式数据：默认7天
-            const dailyIndicators = ['shibor', 'lpr', 'shibor_quote', 'shibor_lq', 'libor', 'hibor'];
+            const dailyIndicators = ['shibor', 'lpr', 'shibor_quote', 'libor', 'hibor'];
             // 月份格式数据：默认7个月
             const monthlyIndicators = ['cpi', 'ppi', 'cn_m', 'cn_pmi', 'cn_sf'];
             // 季度格式数据：默认7个季度
@@ -151,8 +151,8 @@ export const macroEcon = {
                     };
                     break;
                 case 'cn_sf':
-                    params.api_name = "cn_sf";
-                    params.fields = "month,value,rf_loans,ent_bonds,stock_financing,ins_invest,ent_inv,other_inv";
+                    params.api_name = "sf_month";
+                    params.fields = "month,inc_month,inc_cumval,stk_endval";
                     // 社融增量数据使用月份格式
                     const startMonthSF = dateToMonth(args.start_date || defaultStartDate);
                     const endMonthSF = dateToMonth(args.end_date || defaultEndDate);
@@ -166,15 +166,6 @@ export const macroEcon = {
                     params.api_name = "shibor_quote";
                     params.fields = "date,bank,on_b,on_a,1w_b,1w_a,2w_b,2w_a,1m_b,1m_a,3m_b,3m_a,6m_b,6m_a,9m_b,9m_a,1y_b,1y_a";
                     // Shibor报价数据使用日期格式
-                    params.params = {
-                        start_date: args.start_date || defaultStartDate,
-                        end_date: args.end_date || defaultEndDate
-                    };
-                    break;
-                case 'shibor_lq':
-                    params.api_name = "shibor_lq";
-                    params.fields = "date,on,1w,2w,1m,3m,6m,9m,1y";
-                    // Shibor均值数据使用日期格式
                     params.params = {
                         start_date: args.start_date || defaultStartDate,
                         end_date: args.end_date || defaultEndDate
@@ -247,7 +238,6 @@ export const macroEcon = {
                     'cn_pmi': '采购经理指数(PMI)',
                     'cn_sf': '社会融资规模增量',
                     'shibor_quote': 'Shibor银行报价数据',
-                    'shibor_lq': 'Shibor均值数据',
                     'libor': 'Libor利率',
                     'hibor': 'Hibor利率'
                 };
@@ -271,7 +261,7 @@ export const macroEcon = {
                         return `## ${data.date} - ${data.bank}\n**隔夜**: 买价${data.on_b}% 卖价${data.on_a}%  **1周**: 买价${data['1w_b']}% 卖价${data['1w_a']}%\n**1月**: 买价${data['1m_b']}% 卖价${data['1m_a']}%  **3月**: 买价${data['3m_b']}% 卖价${data['3m_a']}%\n**6月**: 买价${data['6m_b']}% 卖价${data['6m_a']}%  **1年**: 买价${data['1y_b']}% 卖价${data['1y_a']}%\n`;
                     }).join('\n---\n\n');
                 }
-                else if (args.indicator === 'shibor_lq' || args.indicator === 'libor' || args.indicator === 'hibor') {
+                else if (args.indicator === 'libor' || args.indicator === 'hibor') {
                     // 其他利率数据展示
                     formattedData = econData.map((data) => {
                         let row = '';
@@ -305,7 +295,7 @@ export const macroEcon = {
                 else if (args.indicator === 'cn_sf') {
                     // 社融增量数据展示
                     formattedData = econData.map((data) => {
-                        return `## ${data.month}\n**社融总量**: ${data.value}亿元\n**人民币贷款**: ${data.rf_loans}亿元  **企业债券**: ${data.ent_bonds}亿元\n**股票融资**: ${data.stock_financing}亿元  **保险投资**: ${data.ins_invest}亿元\n`;
+                        return `## ${data.month}\n**当月增量**: ${data.inc_month}亿元  **累计增量**: ${data.inc_cumval}亿元\n**存量期末值**: ${data.stk_endval}万亿元\n`;
                     }).join('\n---\n\n');
                 }
                 else {

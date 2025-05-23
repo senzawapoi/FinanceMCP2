@@ -1,13 +1,17 @@
 import { TUSHARE_CONFIG } from '../config.js';
 export const stockData = {
     name: "stock_data",
-    description: "获取指定股票的历史行情数据",
+    description: "获取指定股票的历史行情数据，支持A股、美股、港股和外汇",
     parameters: {
         type: "object",
         properties: {
             code: {
                 type: "string",
-                description: "股票代码，如'000001.SZ'表示平安银行"
+                description: "股票代码，如'000001.SZ'表示平安银行(A股)，'AAPL'表示苹果(美股)，'00700.HK'表示腾讯(港股)，'USDCNY'表示美元人民币(外汇)"
+            },
+            market_type: {
+                type: "string",
+                description: "市场类型，可选值：cn(A股),us(美股),hk(港股),fx(外汇)，默认为cn"
             },
             start_date: {
                 type: "string",
@@ -26,7 +30,9 @@ export const stockData = {
     },
     async run(args) {
         try {
-            console.log(`使用Tushare API获取股票${args.code}的行情数据`);
+            // 默认市场类型为A股
+            const marketType = args.market_type || 'cn';
+            console.log(`使用Tushare API获取${marketType}市场股票${args.code}的行情数据`);
             // 使用全局配置中的Tushare API设置
             const TUSHARE_API_KEY = TUSHARE_CONFIG.API_TOKEN;
             const TUSHARE_API_URL = TUSHARE_CONFIG.API_URL;
@@ -36,17 +42,40 @@ export const stockData = {
             const oneMonthAgo = new Date();
             oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
             const defaultStartDate = oneMonthAgo.toISOString().slice(0, 10).replace(/-/g, '');
+            // 验证市场类型
+            const validMarkets = ['cn', 'us', 'hk', 'fx'];
+            if (!validMarkets.includes(marketType)) {
+                throw new Error(`不支持的市场类型: ${marketType}。支持的类型有: ${validMarkets.join(', ')}`);
+            }
             // 构建请求参数
             const params = {
-                api_name: "daily",
                 token: TUSHARE_API_KEY,
                 params: {
                     ts_code: args.code,
                     start_date: args.start_date || defaultStartDate,
                     end_date: args.end_date || defaultEndDate
                 },
-                fields: args.fields || "ts_code,trade_date,open,high,low,close,vol,amount"
+                fields: ""
             };
+            // 根据不同市场类型设置不同的API名称、参数和字段
+            switch (marketType) {
+                case 'cn':
+                    params.api_name = "daily";
+                    params.fields = args.fields || "ts_code,trade_date,open,high,low,close,vol,amount";
+                    break;
+                case 'us':
+                    params.api_name = "us_daily";
+                    params.fields = args.fields || "ts_code,trade_date,open,high,low,close,pre_close,change,pct_change,vol,amount";
+                    break;
+                case 'hk':
+                    params.api_name = "hk_daily";
+                    params.fields = args.fields || "ts_code,trade_date,open,high,low,close,pre_close,change,pct_change,vol,amount";
+                    break;
+                case 'fx':
+                    params.api_name = "fx_daily";
+                    params.fields = args.fields || "ts_code,trade_date,open,high,low,close";
+                    break;
+            }
             // 设置请求超时
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), TUSHARE_CONFIG.TIMEOUT);
@@ -71,7 +100,7 @@ export const stockData = {
                 }
                 // 确保data.data和data.data.items存在
                 if (!data.data || !data.data.items || data.data.items.length === 0) {
-                    throw new Error(`未找到股票${args.code}的行情数据`);
+                    throw new Error(`未找到${marketType}市场股票${args.code}的行情数据`);
                 }
                 // 获取字段名
                 const fields = data.data.fields;
@@ -84,19 +113,38 @@ export const stockData = {
                     return result;
                 });
                 console.log(`成功获取到${stockData.length}条${args.code}股票数据记录`);
-                // 格式化输出
-                const formattedData = stockData.map((data) => {
-                    let row = '';
-                    for (const [key, value] of Object.entries(data)) {
-                        row += `**${key}**: ${value}  `;
-                    }
-                    return `## ${data.trade_date}\n${row}\n`;
-                }).join('\n---\n\n');
+                // 生成市场类型标题
+                const marketTitleMap = {
+                    'cn': 'A股',
+                    'us': '美股',
+                    'hk': '港股',
+                    'fx': '外汇'
+                };
+                // 格式化输出（根据不同市场类型构建不同的格式）
+                let formattedData = '';
+                if (marketType === 'fx') {
+                    // 外汇数据展示
+                    formattedData = stockData.map((data) => {
+                        return `## ${data.trade_date}\n**开盘**: ${data.open}  **最高**: ${data.high}  **最低**: ${data.low}  **收盘**: ${data.close}\n`;
+                    }).join('\n---\n\n');
+                }
+                else {
+                    // 股票数据展示
+                    formattedData = stockData.map((data) => {
+                        let row = '';
+                        for (const [key, value] of Object.entries(data)) {
+                            if (key !== 'ts_code' && key !== 'trade_date') {
+                                row += `**${key}**: ${value}  `;
+                            }
+                        }
+                        return `## ${data.trade_date}\n${row}\n`;
+                    }).join('\n---\n\n');
+                }
                 return {
                     content: [
                         {
                             type: "text",
-                            text: `# ${args.code}股票行情数据\n\n${formattedData}`
+                            text: `# ${args.code} ${marketTitleMap[marketType]}行情数据\n\n${formattedData}`
                         }
                     ]
                 };
@@ -111,7 +159,7 @@ export const stockData = {
                 content: [
                     {
                         type: "text",
-                        text: `# 获取股票${args.code}数据失败\n\n无法从Tushare API获取数据：${error instanceof Error ? error.message : String(error)}\n\n请检查股票代码是否正确，格式应为"000001.SZ"（股票代码+市场代码）`
+                        text: `# 获取股票${args.code}数据失败\n\n无法从Tushare API获取数据：${error instanceof Error ? error.message : String(error)}\n\n请检查股票代码和市场类型是否正确：\n- A股格式："000001.SZ"\n- 美股格式："AAPL"\n- 港股格式："00700.HK"\n- 外汇格式："USDCNY"`
                     }
                 ]
             };

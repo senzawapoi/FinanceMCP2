@@ -1,17 +1,17 @@
 import { TUSHARE_CONFIG } from '../config.js';
 export const stockData = {
     name: "stock_data",
-    description: "获取指定股票的历史行情数据，支持A股、美股、港股、外汇、期货、基金",
+    description: "获取指定股票的历史行情数据，支持A股、美股、港股、外汇、期货、基金、债券逆回购、可转债、期权",
     parameters: {
         type: "object",
         properties: {
             code: {
                 type: "string",
-                description: "股票代码，如'000001.SZ'表示平安银行(A股)，'AAPL'表示苹果(美股)，'00700.HK'表示腾讯(港股)，'USDCNY'表示美元人民币(外汇)，'CU2501.SHF'表示铜期货，'159919.SZ'表示沪深300ETF(基金)"
+                description: "股票代码，如'000001.SZ'表示平安银行(A股)，'AAPL'表示苹果(美股)，'00700.HK'表示腾讯(港股)，'USDCNY'表示美元人民币(外汇)，'CU2501.SHF'表示铜期货，'159919.SZ'表示沪深300ETF(基金)，'204001.SH'表示GC001国债逆回购，'113008.SH'表示可转债，'10001313.SH'表示期权合约"
             },
             market_type: {
                 type: "string",
-                description: "市场类型（必需），可选值：cn(A股),us(美股),hk(港股),fx(外汇),futures(期货),fund(基金)"
+                description: "市场类型（必需），可选值：cn(A股),us(美股),hk(港股),fx(外汇),futures(期货),fund(基金),repo(债券逆回购),convertible_bond(可转债),options(期权)"
             },
             start_date: {
                 type: "string",
@@ -34,7 +34,7 @@ export const stockData = {
             console.log('接收到的参数:', args);
             // 检查market_type参数
             if (!args.market_type) {
-                throw new Error('请指定market_type参数：cn(A股)、us(美股)、hk(港股)、fx(外汇)、futures(期货)、fund(基金)');
+                throw new Error('请指定market_type参数：cn(A股)、us(美股)、hk(港股)、fx(外汇)、futures(期货)、fund(基金)、repo(债券逆回购)、convertible_bond(可转债)、options(期权)');
             }
             const marketType = args.market_type.trim().toLowerCase();
             console.log(`使用的市场类型: ${marketType}`);
@@ -49,7 +49,7 @@ export const stockData = {
             oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
             const defaultStartDate = oneMonthAgo.toISOString().slice(0, 10).replace(/-/g, '');
             // 验证市场类型
-            const validMarkets = ['cn', 'us', 'hk', 'fx', 'futures', 'fund'];
+            const validMarkets = ['cn', 'us', 'hk', 'fx', 'futures', 'fund', 'repo', 'convertible_bond', 'options'];
             if (!validMarkets.includes(marketType)) {
                 throw new Error(`不支持的市场类型: ${marketType}。支持的类型有: ${validMarkets.join(', ')}`);
             }
@@ -88,6 +88,18 @@ export const stockData = {
                 case 'fund':
                     params.api_name = "fund_daily";
                     params.fields = args.fields || "ts_code,trade_date,open,high,low,close,pre_close,change,pct_chg,vol,amount";
+                    break;
+                case 'repo':
+                    params.api_name = "repo_daily";
+                    params.fields = args.fields || "ts_code,trade_date,name,rate,amount";
+                    break;
+                case 'convertible_bond':
+                    params.api_name = "cb_daily";
+                    params.fields = args.fields || "ts_code,trade_date,pre_close,open,high,low,close,change,pct_chg,vol,amount,bond_value,bond_over_rate,cb_value,cb_over_rate";
+                    break;
+                case 'options':
+                    params.api_name = "opt_daily";
+                    params.fields = args.fields || "ts_code,trade_date,exchange,pre_settle,pre_close,open,high,low,close,settle,vol,amount,oi";
                     break;
             }
             console.log(`选择的API接口: ${params.api_name}`);
@@ -136,7 +148,10 @@ export const stockData = {
                     'hk': '港股',
                     'fx': '外汇',
                     'futures': '期货',
-                    'fund': '基金'
+                    'fund': '基金',
+                    'repo': '债券逆回购',
+                    'convertible_bond': '可转债',
+                    'options': '期权'
                 };
                 // 格式化输出（根据不同市场类型构建不同的格式）
                 let formattedData = '';
@@ -150,6 +165,31 @@ export const stockData = {
                     // 期货数据展示
                     formattedData = stockData.map((data) => {
                         return `## ${data.trade_date}\n**开盘**: ${data.open}  **最高**: ${data.high}  **最低**: ${data.low}  **收盘**: ${data.close}  **结算**: ${data.settle}\n**涨跌1**: ${data.change1}  **涨跌2**: ${data.change2}  **成交量**: ${data.vol}  **持仓量**: ${data.oi}\n`;
+                    }).join('\n---\n\n');
+                }
+                else if (marketType === 'repo') {
+                    // 债券逆回购数据展示
+                    formattedData = stockData.map((data) => {
+                        return `## ${data.trade_date}\n**品种**: ${data.name}  **利率**: ${data.rate}%  **成交金额**: ${data.amount}万元\n`;
+                    }).join('\n---\n\n');
+                }
+                else if (marketType === 'convertible_bond') {
+                    // 可转债数据展示
+                    formattedData = stockData.map((data) => {
+                        let row = `## ${data.trade_date}\n**开盘**: ${data.open}  **最高**: ${data.high}  **最低**: ${data.low}  **收盘**: ${data.close}\n**涨跌**: ${data.change}  **涨跌幅**: ${data.pct_chg}%  **成交量**: ${data.vol}手  **成交金额**: ${data.amount}万元\n`;
+                        if (data.bond_value) {
+                            row += `**纯债价值**: ${data.bond_value}  **纯债溢价率**: ${data.bond_over_rate}%\n`;
+                        }
+                        if (data.cb_value) {
+                            row += `**转股价值**: ${data.cb_value}  **转股溢价率**: ${data.cb_over_rate}%\n`;
+                        }
+                        return row;
+                    }).join('\n---\n\n');
+                }
+                else if (marketType === 'options') {
+                    // 期权数据展示
+                    formattedData = stockData.map((data) => {
+                        return `## ${data.trade_date}\n**交易所**: ${data.exchange}  **昨结算**: ${data.pre_settle}  **前收盘**: ${data.pre_close}\n**开盘**: ${data.open}  **最高**: ${data.high}  **最低**: ${data.low}  **收盘**: ${data.close}  **结算**: ${data.settle}\n**成交量**: ${data.vol}手  **成交金额**: ${data.amount}万元  **持仓量**: ${data.oi}手\n`;
                     }).join('\n---\n\n');
                 }
                 else {
@@ -183,7 +223,7 @@ export const stockData = {
                 content: [
                     {
                         type: "text",
-                        text: `# 获取股票${args.code}数据失败\n\n无法从Tushare API获取数据：${error instanceof Error ? error.message : String(error)}\n\n请检查股票代码和市场类型是否正确：\n- A股格式："000001.SZ"\n- 美股格式："AAPL"\n- 港股格式："00700.HK"\n- 外汇格式："USDCNY"\n- 期货格式："CU2501.SHF"\n- 基金格式："159919.SZ"`
+                        text: `# 获取股票${args.code}数据失败\n\n无法从Tushare API获取数据：${error instanceof Error ? error.message : String(error)}\n\n请检查股票代码和市场类型是否正确：\n- A股格式："000001.SZ"\n- 美股格式："AAPL"\n- 港股格式："00700.HK"\n- 外汇格式："USDCNY"\n- 期货格式："CU2501.SHF"\n- 基金格式："159919.SZ"\n- 债券逆回购格式："204001.SH"\n- 可转债格式："113008.SH"\n- 期权格式："10001313.SH"`
                     }
                 ]
             };

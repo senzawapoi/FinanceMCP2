@@ -2,17 +2,17 @@ import { TUSHARE_CONFIG } from '../config.js';
 
 export const stockData = {
   name: "stock_data",
-  description: "获取指定股票的历史行情数据，支持A股、美股、港股和外汇",
+  description: "获取指定股票的历史行情数据，支持A股、美股、港股、外汇、期货、基金",
   parameters: {
     type: "object",
     properties: {
       code: {
         type: "string",
-        description: "股票代码，如'000001.SZ'表示平安银行(A股)，'AAPL'表示苹果(美股)，'00700.HK'表示腾讯(港股)，'USDCNY'表示美元人民币(外汇)"
+        description: "股票代码，如'000001.SZ'表示平安银行(A股)，'AAPL'表示苹果(美股)，'00700.HK'表示腾讯(港股)，'USDCNY'表示美元人民币(外汇)，'CU2501.SHF'表示铜期货，'159919.SZ'表示沪深300ETF(基金)"
       },
       market_type: {
         type: "string",
-        description: "市场类型（必需），可选值：cn(A股),us(美股),hk(港股),fx(外汇)"
+        description: "市场类型（必需），可选值：cn(A股),us(美股),hk(港股),fx(外汇),futures(期货),fund(基金)"
       },
       start_date: {
         type: "string",
@@ -36,7 +36,7 @@ export const stockData = {
       
       // 检查market_type参数
       if (!args.market_type) {
-        throw new Error('请指定market_type参数：cn(A股)、us(美股)、hk(港股)、fx(外汇)');
+        throw new Error('请指定market_type参数：cn(A股)、us(美股)、hk(港股)、fx(外汇)、futures(期货)、fund(基金)');
       }
       
       const marketType = args.market_type.trim().toLowerCase();
@@ -56,7 +56,7 @@ export const stockData = {
       const defaultStartDate = oneMonthAgo.toISOString().slice(0, 10).replace(/-/g, '');
 
       // 验证市场类型
-      const validMarkets = ['cn', 'us', 'hk', 'fx'];
+      const validMarkets = ['cn', 'us', 'hk', 'fx', 'futures', 'fund'];
       if (!validMarkets.includes(marketType)) {
         throw new Error(`不支持的市场类型: ${marketType}。支持的类型有: ${validMarkets.join(', ')}`);
       }
@@ -92,6 +92,16 @@ export const stockData = {
         case 'fx':
           params.api_name = "fx_daily";
           params.fields = args.fields || "ts_code,trade_date,open,high,low,close";
+          break;
+          
+        case 'futures':
+          params.api_name = "fut_daily";
+          params.fields = args.fields || "ts_code,trade_date,open,high,low,close,settle,change1,change2,vol,amount,oi";
+          break;
+          
+        case 'fund':
+          params.api_name = "fund_daily";
+          params.fields = args.fields || "ts_code,trade_date,open,high,low,close,pre_close,change,pct_chg,vol,amount";
           break;
       }
       
@@ -150,7 +160,9 @@ export const stockData = {
           'cn': 'A股',
           'us': '美股',
           'hk': '港股',
-          'fx': '外汇'
+          'fx': '外汇',
+          'futures': '期货',
+          'fund': '基金'
         };
         
         // 格式化输出（根据不同市场类型构建不同的格式）
@@ -160,6 +172,11 @@ export const stockData = {
           // 外汇数据展示
           formattedData = stockData.map((data: Record<string, any>) => {
             return `## ${data.trade_date}\n**开盘**: ${data.open}  **最高**: ${data.high}  **最低**: ${data.low}  **收盘**: ${data.close}\n`;
+          }).join('\n---\n\n');
+        } else if (marketType === 'futures') {
+          // 期货数据展示
+          formattedData = stockData.map((data: Record<string, any>) => {
+            return `## ${data.trade_date}\n**开盘**: ${data.open}  **最高**: ${data.high}  **最低**: ${data.low}  **收盘**: ${data.close}  **结算**: ${data.settle}\n**涨跌1**: ${data.change1}  **涨跌2**: ${data.change2}  **成交量**: ${data.vol}  **持仓量**: ${data.oi}\n`;
           }).join('\n---\n\n');
         } else {
           // 股票数据展示
@@ -192,7 +209,7 @@ export const stockData = {
         content: [
           {
             type: "text",
-            text: `# 获取股票${args.code}数据失败\n\n无法从Tushare API获取数据：${error instanceof Error ? error.message : String(error)}\n\n请检查股票代码和市场类型是否正确：\n- A股格式："000001.SZ"\n- 美股格式："AAPL"\n- 港股格式："00700.HK"\n- 外汇格式："USDCNY"`
+            text: `# 获取股票${args.code}数据失败\n\n无法从Tushare API获取数据：${error instanceof Error ? error.message : String(error)}\n\n请检查股票代码和市场类型是否正确：\n- A股格式："000001.SZ"\n- 美股格式："AAPL"\n- 港股格式："00700.HK"\n- 外汇格式："USDCNY"\n- 期货格式："CU2501.SHF"\n- 基金格式："159919.SZ"`
           }
         ]
       };

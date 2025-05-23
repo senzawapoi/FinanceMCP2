@@ -1,7 +1,7 @@
 # Smithery configuration file
 # 参考文档：https://smithery.ai/docs/build/project-config/smithery.yaml
 
-name: "@guangxiangdebizi/finance-mcp"        # 服务器唯一标识
+name: "@guangxiangdebizi/FinanceMCP"        # 服务器唯一标识
 version: "0.1.0"                             # 版本号
 description: "财经数据查询 & 财经新闻 MCP"
 author:

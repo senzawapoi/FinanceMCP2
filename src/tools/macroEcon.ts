@@ -2,13 +2,13 @@ import { TUSHARE_CONFIG } from '../config.js';
 
 export const macroEcon = {
   name: "macro_econ",
-  description: "获取宏观经济数据，包括Shibor利率、LPR利率、GDP、CPI、PPI等",
+  description: "获取宏观经济数据，包括Shibor利率、LPR利率、GDP、CPI、PPI、货币供应量、PMI、社融增量等",
   parameters: {
     type: "object",
     properties: {
       indicator: {
         type: "string",
-        description: "指标类型，可选值：shibor(上海银行间同业拆放利率),lpr(贷款基础利率),gdp(国内生产总值),cpi(居民消费价格指数),ppi(工业品出厂价格指数)"
+        description: "指标类型，可选值：shibor(上海银行间同业拆放利率),lpr(贷款基础利率),gdp(国内生产总值),cpi(居民消费价格指数),ppi(工业品出厂价格指数),cn_m(货币供应量),cn_pmi(采购经理指数),cn_sf(社会融资规模增量)"
       },
       start_date: {
         type: "string",
@@ -38,7 +38,7 @@ export const macroEcon = {
       const defaultStartDate = oneYearAgo.toISOString().slice(0, 10).replace(/-/g, '');
 
       // 验证指标类型
-      const validIndicators = ['shibor', 'lpr', 'gdp', 'cpi', 'ppi'];
+      const validIndicators = ['shibor', 'lpr', 'gdp', 'cpi', 'ppi', 'cn_m', 'cn_pmi', 'cn_sf'];
       if (!validIndicators.includes(args.indicator)) {
         throw new Error(`不支持的指标类型: ${args.indicator}。支持的类型有: ${validIndicators.join(', ')}`);
       }
@@ -109,6 +109,45 @@ export const macroEcon = {
             end_m: endMonthPPI
           };
           break;
+          
+        case 'cn_m':
+          params.api_name = "cn_m";
+          params.fields = "month,m0,m0_yoy,m0_mom,m1,m1_yoy,m1_mom,m2,m2_yoy,m2_mom";
+          // 货币供应量数据使用月份格式
+          const startMonthM = dateToMonth(args.start_date || defaultStartDate);
+          const endMonthM = dateToMonth(args.end_date || defaultEndDate);
+          params.params = {
+            m: "",  // 可选单月
+            start_m: startMonthM,
+            end_m: endMonthM
+          };
+          break;
+          
+        case 'cn_pmi':
+          params.api_name = "cn_pmi";
+          params.fields = "month,man_pmi,man_index,man_pro,man_ode,man_inv,man_emp,man_sup,ser_pmi,ser_pro,ser_ode,ser_emp,ser_fin,com_pmi";
+          // PMI数据使用月份格式
+          const startMonthPMI = dateToMonth(args.start_date || defaultStartDate);
+          const endMonthPMI = dateToMonth(args.end_date || defaultEndDate);
+          params.params = {
+            m: "",  // 可选单月
+            start_m: startMonthPMI,
+            end_m: endMonthPMI
+          };
+          break;
+          
+        case 'cn_sf':
+          params.api_name = "cn_sf";
+          params.fields = "month,value,rf_loans,ent_bonds,stock_financing,ins_invest,ent_inv,other_inv";
+          // 社融增量数据使用月份格式
+          const startMonthSF = dateToMonth(args.start_date || defaultStartDate);
+          const endMonthSF = dateToMonth(args.end_date || defaultEndDate);
+          params.params = {
+            m: "",  // 可选单月
+            start_m: startMonthSF,
+            end_m: endMonthSF
+          };
+          break;
       }
       
       // 设置请求超时
@@ -162,7 +201,10 @@ export const macroEcon = {
           'lpr': 'LPR贷款基础利率',
           'gdp': '国内生产总值(GDP)',
           'cpi': '居民消费价格指数(CPI)',
-          'ppi': '工业品出厂价格指数(PPI)'
+          'ppi': '工业品出厂价格指数(PPI)',
+          'cn_m': '货币供应量',
+          'cn_pmi': '采购经理指数(PMI)',
+          'cn_sf': '社会融资规模增量'
         };
         
         // 格式化数据（根据不同指标类型构建不同的格式）
@@ -183,6 +225,21 @@ export const macroEcon = {
           // 季度型数据展示
           formattedData = econData.map((data: Record<string, any>) => {
             return `## ${data.quarter}\n**GDP总值**: ${data.gdp}亿元  **同比增长**: ${data.gdp_yoy}%\n**第一产业**: ${data.pi}亿元  **同比**: ${data.pi_yoy}%\n**第二产业**: ${data.si}亿元  **同比**: ${data.si_yoy}%\n**第三产业**: ${data.ti}亿元  **同比**: ${data.ti_yoy}%\n`;
+          }).join('\n---\n\n');
+        } else if (args.indicator === 'cn_m') {
+          // 货币供应量数据展示
+          formattedData = econData.map((data: Record<string, any>) => {
+            return `## ${data.month}\n**M0**: ${data.m0}亿元  **同比**: ${data.m0_yoy}%  **环比**: ${data.m0_mom}%\n**M1**: ${data.m1}亿元  **同比**: ${data.m1_yoy}%  **环比**: ${data.m1_mom}%\n**M2**: ${data.m2}亿元  **同比**: ${data.m2_yoy}%  **环比**: ${data.m2_mom}%\n`;
+          }).join('\n---\n\n');
+        } else if (args.indicator === 'cn_pmi') {
+          // PMI数据展示
+          formattedData = econData.map((data: Record<string, any>) => {
+            return `## ${data.month}\n**制造业PMI**: ${data.man_pmi}  **制造业指数**: ${data.man_index}\n**服务业PMI**: ${data.ser_pmi}  **综合PMI**: ${data.com_pmi}\n**制造业生产**: ${data.man_pro}  **制造业新订单**: ${data.man_ode}\n`;
+          }).join('\n---\n\n');
+        } else if (args.indicator === 'cn_sf') {
+          // 社融增量数据展示
+          formattedData = econData.map((data: Record<string, any>) => {
+            return `## ${data.month}\n**社融总量**: ${data.value}亿元\n**人民币贷款**: ${data.rf_loans}亿元  **企业债券**: ${data.ent_bonds}亿元\n**股票融资**: ${data.stock_financing}亿元  **保险投资**: ${data.ins_invest}亿元\n`;
           }).join('\n---\n\n');
         } else {
           // 月度型数据展示 (CPI, PPI)

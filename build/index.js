@@ -109,10 +109,11 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         }
         case "stock_data": {
             const code = String(request.params.arguments?.code);
+            const market_type = String(request.params.arguments?.market_type);
             const start_date = request.params.arguments?.start_date ? String(request.params.arguments.start_date) : undefined;
             const end_date = request.params.arguments?.end_date ? String(request.params.arguments.end_date) : undefined;
             const fields = request.params.arguments?.fields ? String(request.params.arguments.fields) : undefined;
-            return await stockData.run({ code, start_date, end_date, fields });
+            return await stockData.run({ code, market_type, start_date, end_date, fields });
         }
         case "index_data": {
             const code = String(request.params.arguments?.code);

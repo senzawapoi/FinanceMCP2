@@ -29,18 +29,45 @@ export const macroEcon = {
       const TUSHARE_API_KEY = TUSHARE_CONFIG.API_TOKEN;
       const TUSHARE_API_URL = TUSHARE_CONFIG.API_URL;
       
-      // 默认参数设置
-      const today = new Date();
-      const defaultEndDate = today.toISOString().slice(0, 10).replace(/-/g, '');
-      
-      const oneYearAgo = new Date();
-      oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
-      const defaultStartDate = oneYearAgo.toISOString().slice(0, 10).replace(/-/g, '');
-
       // 验证指标类型
       const validIndicators = ['shibor', 'lpr', 'gdp', 'cpi', 'ppi', 'cn_m', 'cn_pmi', 'cn_sf', 'shibor_quote', 'shibor_lq', 'libor', 'hibor'];
       if (!validIndicators.includes(args.indicator)) {
         throw new Error(`不支持的指标类型: ${args.indicator}。支持的类型有: ${validIndicators.join(', ')}`);
+      }
+
+      // 根据指标类型设置不同的默认时间范围
+      const today = new Date();
+      const defaultEndDate = today.toISOString().slice(0, 10).replace(/-/g, '');
+      
+      let defaultStartDate = '';
+      
+      // 日期格式数据：默认7天
+      const dailyIndicators = ['shibor', 'lpr', 'shibor_quote', 'shibor_lq', 'libor', 'hibor'];
+      // 月份格式数据：默认7个月
+      const monthlyIndicators = ['cpi', 'ppi', 'cn_m', 'cn_pmi', 'cn_sf'];
+      // 季度格式数据：默认7个季度
+      const quarterlyIndicators = ['gdp'];
+      
+      if (dailyIndicators.includes(args.indicator)) {
+        // 7天前
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        defaultStartDate = sevenDaysAgo.toISOString().slice(0, 10).replace(/-/g, '');
+      } else if (monthlyIndicators.includes(args.indicator)) {
+        // 7个月前
+        const sevenMonthsAgo = new Date();
+        sevenMonthsAgo.setMonth(sevenMonthsAgo.getMonth() - 7);
+        defaultStartDate = sevenMonthsAgo.toISOString().slice(0, 10).replace(/-/g, '');
+      } else if (quarterlyIndicators.includes(args.indicator)) {
+        // 7个季度前（约21个月）
+        const sevenQuartersAgo = new Date();
+        sevenQuartersAgo.setMonth(sevenQuartersAgo.getMonth() - 21);
+        defaultStartDate = sevenQuartersAgo.toISOString().slice(0, 10).replace(/-/g, '');
+      } else {
+        // 其他情况默认1个月
+        const oneMonthAgo = new Date();
+        oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+        defaultStartDate = oneMonthAgo.toISOString().slice(0, 10).replace(/-/g, '');
       }
       
       // 构建请求参数

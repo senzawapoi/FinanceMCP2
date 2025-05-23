@@ -12,7 +12,7 @@ export const stockData = {
       },
       market_type: {
         type: "string",
-        description: "市场类型，可选值：cn(A股),us(美股),hk(港股),fx(外汇)，默认为cn"
+        description: "市场类型（必需），可选值：cn(A股),us(美股),hk(港股),fx(外汇)"
       },
       start_date: {
         type: "string",
@@ -27,12 +27,20 @@ export const stockData = {
         description: "需要的字段，可选值包括：open,high,low,close,vol等，多个字段用逗号分隔"
       }
     },
-    required: ["code"]
+    required: ["code", "market_type"]
   },
-  async run(args: { code: string; market_type?: string; start_date?: string; end_date?: string; fields?: string }) {
+  async run(args: { code: string; market_type: string; start_date?: string; end_date?: string; fields?: string }) {
     try {
-      // 默认市场类型为A股
-      const marketType = args.market_type || 'cn';
+      // 添加调试日志
+      console.log('接收到的参数:', args);
+      
+      // 检查market_type参数
+      if (!args.market_type) {
+        throw new Error('请指定market_type参数：cn(A股)、us(美股)、hk(港股)、fx(外汇)');
+      }
+      
+      const marketType = args.market_type.trim().toLowerCase();
+      console.log(`使用的市场类型: ${marketType}`);
       console.log(`使用Tushare API获取${marketType}市场股票${args.code}的行情数据`);
       
       // 使用全局配置中的Tushare API设置
@@ -86,6 +94,9 @@ export const stockData = {
           params.fields = args.fields || "ts_code,trade_date,open,high,low,close";
           break;
       }
+      
+      console.log(`选择的API接口: ${params.api_name}`);
+      console.log(`使用的字段: ${params.fields}`);
       
       // 设置请求超时
       const controller = new AbortController();

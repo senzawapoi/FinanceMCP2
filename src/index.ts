@@ -15,6 +15,7 @@ import { financeNews } from "./tools/financeNews.js";
 import { stockData } from "./tools/stockData.js";
 import { indexData } from "./tools/indexData.js";
 import { macroEcon } from "./tools/macroEcon.js";
+import { companyPerformance } from "./tools/companyPerformance.js";
 
 // 模拟笔记数据
 type Note = { title: string, content: string };
@@ -69,7 +70,7 @@ server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
   };
 });
 
-// 🛠️ 工具：列出工具（包括 create_note、finance_news、stock_data、index_data 和 macro_econ）
+// 🛠️ 工具：列出工具（包括 create_note、finance_news、stock_data、index_data、macro_econ 和 company_performance）
 server.setRequestHandler(ListToolsRequestSchema, async () => {
   return {
     tools: [
@@ -104,6 +105,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         name: macroEcon.name,
         description: macroEcon.description,
         inputSchema: macroEcon.parameters
+      },
+      {
+        name: companyPerformance.name,
+        description: companyPerformance.description,
+        inputSchema: companyPerformance.parameters
       }
     ]
   };
@@ -152,6 +158,17 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       const start_date = request.params.arguments?.start_date ? String(request.params.arguments.start_date) : undefined;
       const end_date = request.params.arguments?.end_date ? String(request.params.arguments.end_date) : undefined;
       return await macroEcon.run({ indicator, start_date, end_date });
+    }
+
+    case "company_performance": {
+      const ts_code = String(request.params.arguments?.ts_code);
+      const data_type = String(request.params.arguments?.data_type);
+      const period = request.params.arguments?.period ? String(request.params.arguments.period) : undefined;
+      const start_date = request.params.arguments?.start_date ? String(request.params.arguments.start_date) : undefined;
+      const end_date = request.params.arguments?.end_date ? String(request.params.arguments.end_date) : undefined;
+      const report_type = request.params.arguments?.report_type ? String(request.params.arguments.report_type) : undefined;
+      const fields = request.params.arguments?.fields ? String(request.params.arguments.fields) : undefined;
+      return await companyPerformance.run({ ts_code, data_type, period, start_date, end_date, report_type, fields });
     }
 
     default:

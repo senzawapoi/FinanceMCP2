@@ -8,6 +8,7 @@ import { stockData } from "./tools/stockData.js";
 import { indexData } from "./tools/indexData.js";
 import { macroEcon } from "./tools/macroEcon.js";
 import { companyPerformance } from "./tools/companyPerformance.js";
+import { fundData } from "./tools/fundData.js";
 const notes = {
     "1": { title: "First Note", content: "This is note 1" },
     "2": { title: "Second Note", content: "This is note 2" }
@@ -90,6 +91,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
                 name: companyPerformance.name,
                 description: companyPerformance.description,
                 inputSchema: companyPerformance.parameters
+            },
+            {
+                name: fundData.name,
+                description: fundData.description,
+                inputSchema: fundData.parameters
             }
         ]
     };
@@ -142,6 +148,21 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             const report_type = request.params.arguments?.report_type ? String(request.params.arguments.report_type) : undefined;
             const fields = request.params.arguments?.fields ? String(request.params.arguments.fields) : undefined;
             return await companyPerformance.run({ ts_code, data_type, period, start_date, end_date, report_type, fields });
+        }
+        case "fund_data": {
+            const ts_code = request.params.arguments?.ts_code ? String(request.params.arguments.ts_code) : undefined;
+            const data_type = String(request.params.arguments?.data_type);
+            const market = request.params.arguments?.market ? String(request.params.arguments.market) : undefined;
+            const start_date = request.params.arguments?.start_date ? String(request.params.arguments.start_date) : undefined;
+            const end_date = request.params.arguments?.end_date ? String(request.params.arguments.end_date) : undefined;
+            const ann_date = request.params.arguments?.ann_date ? String(request.params.arguments.ann_date) : undefined;
+            const nav_date = request.params.arguments?.nav_date ? String(request.params.arguments.nav_date) : undefined;
+            const period = request.params.arguments?.period ? String(request.params.arguments.period) : undefined;
+            const symbol = request.params.arguments?.symbol ? String(request.params.arguments.symbol) : undefined;
+            const name = request.params.arguments?.name ? String(request.params.arguments.name) : undefined;
+            const status = request.params.arguments?.status ? String(request.params.arguments.status) : undefined;
+            const fields = request.params.arguments?.fields ? String(request.params.arguments.fields) : undefined;
+            return await fundData.run({ ts_code, data_type, market, start_date, end_date, ann_date, nav_date, period, symbol, name, status, fields });
         }
         default:
             throw new Error("Unknown tool");

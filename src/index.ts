@@ -69,9 +69,13 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   switch (request.params.name) {
     case "finance_news": {
-      const count = request.params.arguments?.count ? Number(request.params.arguments.count) : undefined;
+      const news_type = request.params.arguments?.news_type ? String(request.params.arguments.news_type) : undefined;
       const source = request.params.arguments?.source ? String(request.params.arguments.source) : undefined;
-      return await financeNews.run({ count, source });
+      const count = request.params.arguments?.count ? Number(request.params.arguments.count) : undefined;
+      const hours = request.params.arguments?.hours ? Number(request.params.arguments.hours) : undefined;
+      const start_date = request.params.arguments?.start_date ? String(request.params.arguments.start_date) : undefined;
+      const end_date = request.params.arguments?.end_date ? String(request.params.arguments.end_date) : undefined;
+      return await financeNews.run({ news_type, source, count, hours, start_date, end_date });
     }
 
     case "stock_data": {

@@ -35,35 +35,35 @@ export const macroEcon = {
             const today = new Date();
             const defaultEndDate = today.toISOString().slice(0, 10).replace(/-/g, '');
             let defaultStartDate = '';
-            // 日期格式数据：默认7天
+            // 日期格式数据：默认30天
             const dailyIndicators = ['shibor', 'lpr', 'shibor_quote', 'libor', 'hibor'];
-            // 月份格式数据：默认7个月
+            // 月份格式数据：默认12个月
             const monthlyIndicators = ['cpi', 'ppi', 'cn_m', 'cn_pmi', 'cn_sf'];
-            // 季度格式数据：默认7个季度
+            // 季度格式数据：默认8个季度
             const quarterlyIndicators = ['gdp'];
             if (dailyIndicators.includes(args.indicator)) {
-                // 7天前
-                const sevenDaysAgo = new Date();
-                sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-                defaultStartDate = sevenDaysAgo.toISOString().slice(0, 10).replace(/-/g, '');
+                // 30天前
+                const thirtyDaysAgo = new Date();
+                thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+                defaultStartDate = thirtyDaysAgo.toISOString().slice(0, 10).replace(/-/g, '');
             }
             else if (monthlyIndicators.includes(args.indicator)) {
-                // 7个月前
-                const sevenMonthsAgo = new Date();
-                sevenMonthsAgo.setMonth(sevenMonthsAgo.getMonth() - 7);
-                defaultStartDate = sevenMonthsAgo.toISOString().slice(0, 10).replace(/-/g, '');
+                // 12个月前
+                const twelveMonthsAgo = new Date();
+                twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
+                defaultStartDate = twelveMonthsAgo.toISOString().slice(0, 10).replace(/-/g, '');
             }
             else if (quarterlyIndicators.includes(args.indicator)) {
-                // 7个季度前（约21个月）
-                const sevenQuartersAgo = new Date();
-                sevenQuartersAgo.setMonth(sevenQuartersAgo.getMonth() - 21);
-                defaultStartDate = sevenQuartersAgo.toISOString().slice(0, 10).replace(/-/g, '');
+                // 8个季度前（约24个月）
+                const eightQuartersAgo = new Date();
+                eightQuartersAgo.setMonth(eightQuartersAgo.getMonth() - 24);
+                defaultStartDate = eightQuartersAgo.toISOString().slice(0, 10).replace(/-/g, '');
             }
             else {
-                // 其他情况默认1个月
-                const oneMonthAgo = new Date();
-                oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
-                defaultStartDate = oneMonthAgo.toISOString().slice(0, 10).replace(/-/g, '');
+                // 其他情况默认3个月
+                const threeMonthsAgo = new Date();
+                threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+                defaultStartDate = threeMonthsAgo.toISOString().slice(0, 10).replace(/-/g, '');
             }
             // 构建请求参数
             const params = {
@@ -109,7 +109,6 @@ export const macroEcon = {
                     const startMonth = dateToMonth(args.start_date || defaultStartDate);
                     const endMonth = dateToMonth(args.end_date || defaultEndDate);
                     params.params = {
-                        m: "", // 可选单月
                         start_m: startMonth,
                         end_m: endMonth
                     };
@@ -121,7 +120,6 @@ export const macroEcon = {
                     const startMonthPPI = dateToMonth(args.start_date || defaultStartDate);
                     const endMonthPPI = dateToMonth(args.end_date || defaultEndDate);
                     params.params = {
-                        m: "", // 可选单月
                         start_m: startMonthPPI,
                         end_m: endMonthPPI
                     };
@@ -133,31 +131,29 @@ export const macroEcon = {
                     const startMonthM = dateToMonth(args.start_date || defaultStartDate);
                     const endMonthM = dateToMonth(args.end_date || defaultEndDate);
                     params.params = {
-                        m: "", // 可选单月
                         start_m: startMonthM,
                         end_m: endMonthM
                     };
                     break;
                 case 'cn_pmi':
                     params.api_name = "cn_pmi";
-                    params.fields = "month,man_pmi,man_index,man_pro,man_ode,man_inv,man_emp,man_sup,ser_pmi,ser_pro,ser_ode,ser_emp,ser_fin,com_pmi";
+                    // 根据Tushare文档使用正确的PMI字段
+                    params.fields = "month,pmi010000,pmi010100,pmi010200,pmi010300,pmi010400,pmi010500,pmi010600,pmi010700,pmi010800,pmi010900,pmi011000,pmi011100,pmi011200,pmi011300,pmi011400,pmi011500,pmi011600,pmi011700,pmi011800,pmi011900,pmi012000,pmi020100,pmi020101,pmi020102,pmi020200,pmi020300,pmi020400,pmi020500,pmi020600,pmi030000";
                     // PMI数据使用月份格式
                     const startMonthPMI = dateToMonth(args.start_date || defaultStartDate);
                     const endMonthPMI = dateToMonth(args.end_date || defaultEndDate);
                     params.params = {
-                        m: "", // 可选单月
                         start_m: startMonthPMI,
                         end_m: endMonthPMI
                     };
                     break;
                 case 'cn_sf':
-                    params.api_name = "sf_month";
+                    params.api_name = "cn_sf"; // 修正API名称
                     params.fields = "month,inc_month,inc_cumval,stk_endval";
                     // 社融增量数据使用月份格式
                     const startMonthSF = dateToMonth(args.start_date || defaultStartDate);
                     const endMonthSF = dateToMonth(args.end_date || defaultEndDate);
                     params.params = {
-                        m: "", // 可选单月
                         start_m: startMonthSF,
                         end_m: endMonthSF
                     };
@@ -249,16 +245,17 @@ export const macroEcon = {
                         let row = '';
                         for (const [key, value] of Object.entries(data)) {
                             if (key !== 'date') {
-                                row += `**${key}**: ${value}%  `;
+                                const displayName = getRateDisplayName(key);
+                                row += `**${displayName}**: ${value}%  `;
                             }
                         }
-                        return `## ${data.date}\n${row}\n`;
+                        return `## ${formatDate(data.date)}\n${row}\n`;
                     }).join('\n---\n\n');
                 }
                 else if (args.indicator === 'shibor_quote') {
                     // Shibor报价数据展示
                     formattedData = econData.map((data) => {
-                        return `## ${data.date} - ${data.bank}\n**隔夜**: 买价${data.on_b}% 卖价${data.on_a}%  **1周**: 买价${data['1w_b']}% 卖价${data['1w_a']}%\n**1月**: 买价${data['1m_b']}% 卖价${data['1m_a']}%  **3月**: 买价${data['3m_b']}% 卖价${data['3m_a']}%\n**6月**: 买价${data['6m_b']}% 卖价${data['6m_a']}%  **1年**: 买价${data['1y_b']}% 卖价${data['1y_a']}%\n`;
+                        return `## ${formatDate(data.date)} - ${data.bank}\n**隔夜**: 买价${data.on_b}% 卖价${data.on_a}%  **1周**: 买价${data['1w_b']}% 卖价${data['1w_a']}%\n**1月**: 买价${data['1m_b']}% 卖价${data['1m_a']}%  **3月**: 买价${data['3m_b']}% 卖价${data['3m_a']}%\n**6月**: 买价${data['6m_b']}% 卖价${data['6m_a']}%  **1年**: 买价${data['1y_b']}% 卖价${data['1y_a']}%\n`;
                     }).join('\n---\n\n');
                 }
                 else if (args.indicator === 'libor' || args.indicator === 'hibor') {
@@ -267,11 +264,12 @@ export const macroEcon = {
                         let row = '';
                         for (const [key, value] of Object.entries(data)) {
                             if (key !== 'date' && key !== 'curr') {
-                                row += `**${key}**: ${value}%  `;
+                                const displayName = getRateDisplayName(key);
+                                row += `**${displayName}**: ${value}%  `;
                             }
                         }
                         const currencyInfo = data.curr ? ` (${data.curr})` : '';
-                        return `## ${data.date}${currencyInfo}\n${row}\n`;
+                        return `## ${formatDate(data.date)}${currencyInfo}\n${row}\n`;
                     }).join('\n---\n\n');
                 }
                 else if (args.indicator === 'gdp') {
@@ -280,41 +278,41 @@ export const macroEcon = {
                         return `## ${data.quarter}\n**GDP总值**: ${data.gdp}亿元  **同比增长**: ${data.gdp_yoy}%\n**第一产业**: ${data.pi}亿元  **同比**: ${data.pi_yoy}%\n**第二产业**: ${data.si}亿元  **同比**: ${data.si_yoy}%\n**第三产业**: ${data.ti}亿元  **同比**: ${data.ti_yoy}%\n`;
                     }).join('\n---\n\n');
                 }
+                else if (args.indicator === 'cpi') {
+                    // CPI数据展示
+                    formattedData = econData.map((data) => {
+                        return `## ${formatMonth(data.month)}\n**全国CPI**: ${data.nt_cpi}  **同比**: ${data.nt_yoy}%  **环比**: ${data.nt_mom}%  **累计**: ${data.nt_accu}%\n**城市CPI**: ${data.town_cpi}  **同比**: ${data.town_yoy}%  **环比**: ${data.town_mom}%  **累计**: ${data.town_accu}%\n**农村CPI**: ${data.cnt_cpi}  **同比**: ${data.cnt_yoy}%  **环比**: ${data.cnt_mom}%  **累计**: ${data.cnt_accu}%\n`;
+                    }).join('\n---\n\n');
+                }
+                else if (args.indicator === 'ppi') {
+                    // PPI数据展示
+                    formattedData = econData.map((data) => {
+                        return `## ${formatMonth(data.month)}\n**PPI同比**: ${data.ppi_yoy}%  **PPI环比**: ${data.ppi_mom}%  **PPI累计**: ${data.ppi_accu}%\n**原料购进价格同比**: ${data.rpi_yoy}%  **环比**: ${data.rpi_mom}%  **累计**: ${data.rpi_accu}%\n`;
+                    }).join('\n---\n\n');
+                }
                 else if (args.indicator === 'cn_m') {
                     // 货币供应量数据展示
                     formattedData = econData.map((data) => {
-                        return `## ${data.month}\n**M0**: ${data.m0}亿元  **同比**: ${data.m0_yoy}%  **环比**: ${data.m0_mom}%\n**M1**: ${data.m1}亿元  **同比**: ${data.m1_yoy}%  **环比**: ${data.m1_mom}%\n**M2**: ${data.m2}亿元  **同比**: ${data.m2_yoy}%  **环比**: ${data.m2_mom}%\n`;
+                        return `## ${formatMonth(data.month)}\n**M0**: ${data.m0}亿元  **同比**: ${data.m0_yoy}%  **环比**: ${data.m0_mom}%\n**M1**: ${data.m1}亿元  **同比**: ${data.m1_yoy}%  **环比**: ${data.m1_mom}%\n**M2**: ${data.m2}亿元  **同比**: ${data.m2_yoy}%  **环比**: ${data.m2_mom}%\n`;
                     }).join('\n---\n\n');
                 }
                 else if (args.indicator === 'cn_pmi') {
-                    // PMI数据展示
+                    // PMI数据展示 - 使用正确的字段名
                     formattedData = econData.map((data) => {
-                        return `## ${data.month}\n**制造业PMI**: ${data.man_pmi}  **制造业指数**: ${data.man_index}\n**服务业PMI**: ${data.ser_pmi}  **综合PMI**: ${data.com_pmi}\n**制造业生产**: ${data.man_pro}  **制造业新订单**: ${data.man_ode}\n`;
+                        return `## ${formatMonth(data.month)}\n### 制造业PMI\n**制造业PMI**: ${data.pmi010000}  **生产指数**: ${data.pmi010100}  **新订单指数**: ${data.pmi010200}\n**新出口订单**: ${data.pmi010300}  **在手订单**: ${data.pmi010400}  **产成品库存**: ${data.pmi010500}\n**采购量指数**: ${data.pmi010600}  **进口指数**: ${data.pmi010700}  **购进价格指数**: ${data.pmi010800}\n**原材料库存**: ${data.pmi010900}  **从业人员指数**: ${data.pmi011000}  **供应商配送时间**: ${data.pmi011100}\n**生产经营活动预期**: ${data.pmi011200}\n\n### 非制造业PMI\n**商务活动指数**: ${data.pmi020100}  **建筑业**: ${data.pmi020101}  **服务业**: ${data.pmi020102}\n**新订单指数**: ${data.pmi020200}  **投入品价格**: ${data.pmi020300}  **销售价格**: ${data.pmi020400}\n**从业人员**: ${data.pmi020500}  **业务活动预期**: ${data.pmi020600}\n\n**综合PMI产出指数**: ${data.pmi030000}\n`;
                     }).join('\n---\n\n');
                 }
                 else if (args.indicator === 'cn_sf') {
                     // 社融增量数据展示
                     formattedData = econData.map((data) => {
-                        return `## ${data.month}\n**当月增量**: ${data.inc_month}亿元  **累计增量**: ${data.inc_cumval}亿元\n**存量期末值**: ${data.stk_endval}万亿元\n`;
-                    }).join('\n---\n\n');
-                }
-                else {
-                    // 月度型数据展示 (CPI, PPI)
-                    formattedData = econData.map((data) => {
-                        let row = '';
-                        for (const [key, value] of Object.entries(data)) {
-                            if (key !== 'month') {
-                                row += `**${key}**: ${value}  `;
-                            }
-                        }
-                        return `## ${data.month}\n${row}\n`;
+                        return `## ${formatMonth(data.month)}\n**当月增量**: ${data.inc_month}亿元  **累计增量**: ${data.inc_cumval}亿元\n**存量期末值**: ${data.stk_endval}万亿元\n`;
                     }).join('\n---\n\n');
                 }
                 return {
                     content: [
                         {
                             type: "text",
-                            text: `# ${titleMap[args.indicator]}数据\n\n${formattedData}`
+                            text: `# ${titleMap[args.indicator]}数据\n\n**查询时间范围**: ${args.start_date || defaultStartDate} - ${args.end_date || defaultEndDate}\n**数据条数**: ${econData.length}条\n\n---\n\n${formattedData}`
                         }
                     ]
                 };
@@ -329,13 +327,55 @@ export const macroEcon = {
                 content: [
                     {
                         type: "text",
-                        text: `# 获取${args.indicator}宏观经济数据失败\n\n无法从Tushare API获取数据：${error instanceof Error ? error.message : String(error)}\n\n请检查指标类型是否正确，支持的类型有: shibor, lpr, gdp, cpi, ppi`
+                        text: `# 获取${args.indicator}宏观经济数据失败\n\n**错误信息**: ${error instanceof Error ? error.message : String(error)}\n\n**支持的指标类型**: \n- shibor: 上海银行间同业拆放利率\n- lpr: 贷款基础利率\n- gdp: 国内生产总值\n- cpi: 居民消费价格指数\n- ppi: 工业品出厂价格指数\n- cn_m: 货币供应量\n- cn_pmi: 采购经理指数\n- cn_sf: 社会融资规模增量\n- shibor_quote: Shibor银行报价\n- libor: Libor利率\n- hibor: Hibor利率`
                     }
                 ]
             };
         }
     }
 };
+/**
+ * 获取利率字段的显示名称
+ */
+function getRateDisplayName(key) {
+    const nameMap = {
+        'on': '隔夜',
+        '1w': '1周',
+        '2w': '2周',
+        '1m': '1月',
+        '2m': '2月',
+        '3m': '3月',
+        '4m': '4月',
+        '5m': '5月',
+        '6m': '6月',
+        '9m': '9月',
+        '1y': '1年',
+        '5y': '5年',
+        '12m': '12月'
+    };
+    return nameMap[key] || key;
+}
+/**
+ * 格式化日期显示
+ */
+function formatDate(dateStr) {
+    if (!dateStr || dateStr.length !== 8)
+        return dateStr;
+    const year = dateStr.substring(0, 4);
+    const month = dateStr.substring(4, 6);
+    const day = dateStr.substring(6, 8);
+    return `${year}年${month}月${day}日`;
+}
+/**
+ * 格式化月份显示
+ */
+function formatMonth(monthStr) {
+    if (!monthStr || monthStr.length !== 6)
+        return monthStr;
+    const year = monthStr.substring(0, 4);
+    const month = monthStr.substring(4, 6);
+    return `${year}年${month}月`;
+}
 /**
  * 将日期格式(YYYYMMDD)转换为季度格式(YYYYQN)
  */

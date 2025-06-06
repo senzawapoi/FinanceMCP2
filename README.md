@@ -1,160 +1,160 @@
-# FinanceMCP 财经数据服务器
+# FinanceMCP Financial Data Server
 
 [![smithery badge](https://smithery.ai/badge/@guangxiangdebizi/FinanceMCP)](https://smithery.ai/server/@guangxiangdebizi/FinanceMCP)
 
-欢迎使用 **FinanceMCP 财经数据服务器**！本项目提供一个基于模型上下文协议 (MCP) 的服务器，使语言模型（如 Claude）能够访问通过 **Tushare API** 获取的实时财经数据。这使得AI助手能够基于最新的市场信息进行财经分析和预测。
+Welcome to **FinanceMCP Financial Data Server**! This project provides a Model Context Protocol (MCP) based server that enables language models (like Claude) to access real-time financial data through the **Tushare API**. This allows AI assistants to perform financial analysis and predictions based on the latest market information.
 
-## 🌟 功能特性
+## 🌟 Features
 
-### 📈 股票数据查询
-获取指定股票代码的历史行情数据，支持：
-* **A股**（沪深两市）- 如平安银行(000001.SZ)
-* **美股**（纳斯达克、纽交所等）- 如苹果(AAPL)
-* **港股**（香港联交所）- 如腾讯控股(00700.HK)
-* **外汇**（主要货币对）- 如美元人民币(USDCNY)
-* **期货**（商品期货、金融期货等）- 如铜期货(CU2501.SHF)
-* **基金**（ETF、LOF等）- 如沪深300ETF(159919.SZ)
-* **债券逆回购**（国债、企业债等）- 如GC001(204001.SH)
-* **可转债**（含转股价值、转股溢价率等）- 如平银转债(113008.SH)
-* **期权**（含各类股票、指数期权）- 如50ETF期权(10001313.SH)
+### 📈 Stock Data Query
+Get historical market data for specified stock codes, supporting:
+* **A-shares** (Shanghai & Shenzhen) - e.g., Ping An Bank (000001.SZ)
+* **US Stocks** (NASDAQ, NYSE, etc.) - e.g., Apple (AAPL)
+* **Hong Kong Stocks** (HKEX) - e.g., Tencent (00700.HK)
+* **Forex** (Major currency pairs) - e.g., USD/CNY (USDCNY)
+* **Futures** (Commodity & financial futures) - e.g., Copper Futures (CU2501.SHF)
+* **Funds** (ETFs, LOFs, etc.) - e.g., CSI 300 ETF (159919.SZ)
+* **Bond Repos** (Government & corporate bonds) - e.g., GC001 (204001.SH)
+* **Convertible Bonds** (Including conversion value, premium) - e.g., Ping An CB (113008.SH)
+* **Options** (Stock & index options) - e.g., 50ETF Options (10001313.SH)
 
-### 📊 指数数据查询
-获取如上证指数、深证成指等主要市场指数的数据
+### 📊 Index Data Query
+Get data for major market indices like Shanghai Composite Index, Shenzhen Component Index, etc.
 
-### 📰 财经新闻获取 ⭐️ 全面优化
-获取最新财经新闻数据，支持两种新闻类型：
+### 📰 Financial News Retrieval ⭐️ Fully Optimized
+Get the latest financial news data, supporting two types of news:
 
-#### 新闻快讯（高频短讯）
-* **支持来源**：新浪财经、华尔街见闻、同花顺、东方财富、云财经、凤凰新闻、金融界
-* **数据特点**：实时快讯、简洁明了
-* **获取限制**：单次最多1500条
-* **更新频率**：实时更新
+#### News Flash (High-frequency short news)
+* **Supported Sources**: Sina Finance, Wallstreetcn, 10jqka, Eastmoney, Yuncaijing, Phoenix News, JRJ
+* **Data Features**: Real-time flash news, concise and clear
+* **Retrieval Limit**: Maximum 1500 articles per request
+* **Update Frequency**: Real-time updates
 
-#### 长篇财经新闻（深度报道）
-* **支持来源**：新华网、凤凰财经、同花顺、新浪财经、华尔街见闻、中证网
-* **数据特点**：深度分析、内容详实
-* **获取限制**：单次最多400条
-* **内容丰富**：包含完整新闻内容
+#### Long-form Financial News (In-depth reports)
+* **Supported Sources**: Xinhua, Phoenix Finance, 10jqka, Sina Finance, Wallstreetcn, cs.com.cn
+* **Data Features**: In-depth analysis, detailed content
+* **Retrieval Limit**: Maximum 400 articles per request
+* **Rich Content**: Complete news content included
 
-#### 新闻功能特色
-* **灵活时间范围**：支持自定义时间段或按小时数获取
-* **智能格式化**：新闻内容结构化展示，包含时间、来源、分类等信息
-* **多源整合**：覆盖主流财经媒体，信息来源权威可靠
-* **内容预览**：长篇新闻提供内容预览，便于快速筛选
+#### News Feature Highlights
+* **Flexible Time Range**: Support custom time periods or retrieval by hours
+* **Smart Formatting**: News content displayed in structured format with time, source, category info
+* **Multi-source Integration**: Covers mainstream financial media with authoritative sources
+* **Content Preview**: Long-form news provides content preview for quick filtering
 
-### 🏢 公司财务表现分析
-获取上市公司全面的财务数据，包括：
-* **利润表**（营业收入、净利润、毛利率等）
-* **资产负债表**（总资产、负债、股东权益等）
-* **现金流量表**（经营、投资、筹资活动现金流）
-* **业绩预告**（净利润变动预测、业绩预告类型）
-* **业绩快报**（快速财务数据、同比增长率）
-* **财务指标**（ROE、ROA、流动比率、资产负债率等）
-* **分红送股**（现金分红、送股转股比例、重要日期）
+### 🏢 Company Financial Performance Analysis
+Get comprehensive financial data for listed companies, including:
+* **Income Statement** (Operating revenue, net profit, gross margin, etc.)
+* **Balance Sheet** (Total assets, liabilities, shareholders' equity, etc.)
+* **Cash Flow Statement** (Operating, investing, financing cash flows)
+* **Earnings Forecast** (Net profit change predictions, forecast types)
+* **Earnings Express** (Quick financial data, year-over-year growth rates)
+* **Financial Indicators** (ROE, ROA, current ratio, debt-to-asset ratio, etc.)
+* **Dividends & Stock Distribution** (Cash dividends, stock splits, key dates)
 
-### 🏦 基金数据全方位查询 ⭐️ 新功能
-* **基金列表**（基金基本信息、投资类型、管理费等）
-* **基金管理人**（基金公司信息、成立时间、注册资本等）
-* **基金经理**（基金经理履历、任职时间、管理基金等）
-* **基金净值**（单位净值、累计净值、复权净值等）
-* **基金分红**（分红方案、现金分红、除息日等）
-* **基金持仓**（重仓股票、持仓市值、持股比例等）
+### 🏦 Comprehensive Fund Data Query ⭐️ New Feature
+* **Fund List** (Basic fund info, investment types, management fees, etc.)
+* **Fund Managers** (Fund company info, establishment date, registered capital, etc.)
+* **Fund Managers Info** (Manager profiles, tenure, managed funds, etc.)
+* **Fund Net Value** (Unit NAV, cumulative NAV, adjusted NAV, etc.)
+* **Fund Dividends** (Dividend plans, cash dividends, ex-dividend dates, etc.)
+* **Fund Holdings** (Heavy positions, market value, shareholding ratios, etc.)
 
-### 📈 宏观经济数据 ⭐️ 全面优化
-获取以下宏观经济指标数据：
-* **Shibor利率**（上海银行间同业拆放利率）
-* **LPR利率**（贷款基础利率）
-* **GDP**（国内生产总值）
-* **CPI**（居民消费价格指数）
-* **PPI**（工业品出厂价格指数）
-* **货币供应量**（M0、M1、M2）
-* **PMI采购经理指数**（制造业、服务业、综合）- 包含30+详细分项指数
-* **社会融资规模增量**
-* **Shibor银行报价数据**（买价、卖价）
-* **Libor利率**（伦敦银行间同业拆放利率）
-* **Hibor利率**（香港银行间同业拆放利率）
+### 📈 Macroeconomic Data ⭐️ Fully Optimized
+Get the following macroeconomic indicator data:
+* **Shibor Rates** (Shanghai Interbank Offered Rate)
+* **LPR Rates** (Loan Prime Rate)
+* **GDP** (Gross Domestic Product)
+* **CPI** (Consumer Price Index)
+* **PPI** (Producer Price Index)
+* **Money Supply** (M0, M1, M2)
+* **PMI** (Purchasing Managers' Index for manufacturing, services, composite) - Including 30+ detailed sub-indices
+* **Total Social Financing**
+* **Shibor Bank Quotes** (Bid price, ask price)
+* **Libor Rates** (London Interbank Offered Rate)
+* **Hibor Rates** (Hong Kong Interbank Offered Rate)
 
-### 🤖 MCP 集成
-与支持MCP的客户端（如Claude）无缝集成，实现智能财经分析
+### 🤖 MCP Integration
+Seamless integration with MCP-compatible clients (like Claude) for intelligent financial analysis
 
-## 🚦 环境要求
+## 🚦 Requirements
 
-在开始使用前，请确保您已安装：
+Before getting started, please ensure you have:
 
-1. **Node.js 和 npm**：
-   * 要求 Node.js 版本 >= 18
-   * 从 [nodejs.org](https://nodejs.org/) 下载安装
+1. **Node.js and npm**:
+   * Requires Node.js version >= 18
+   * Download and install from [nodejs.org](https://nodejs.org/)
 
-2. **Tushare API Token**：
-   * 访问 [tushare.pro](https://tushare.pro/register) 注册并获取API Token
-   * 此Token将用于访问Tushare提供的金融数据
-   * 注意：部分高级数据需要积分权限
+2. **Tushare API Token**:
+   * Visit [tushare.pro](https://tushare.pro/register) to register and get an API Token
+   * This token will be used to access financial data provided by Tushare
+   * Note: Some premium data requires point permissions
 
-## 🛠️ 安装与设置
+## 🛠️ Installation & Setup
 
-### 通过 Smithery 安装 (推荐)
+### Install via Smithery (Recommended)
 
-如果您使用Claude Desktop，可以通过[Smithery](https://smithery.ai/server/@guangxiangdebizi/finance-mcp)快速安装：
+If you're using Claude Desktop, you can quickly install via [Smithery](https://smithery.ai/server/@guangxiangdebizi/finance-mcp):
 
 ```bash
 npx -y @smithery/cli install @guangxiangdebizi/finance-mcp --client claude
 ```
 
-### 手动安装
+### Manual Installation
 
-1. **获取代码**：
+1. **Get the code**:
    ```bash
    git clone https://github.com/guangxiangdebizi/FinanceMCP.git
    cd FinanceMCP
    ```
 
-2. **安装依赖**：
+2. **Install dependencies**:
    ```bash
    npm install
    ```
 
-3. **配置 Tushare API Token**：
-   * 创建`.env`文件在项目根目录
-   * 添加以下内容：
+3. **Configure Tushare API Token**:
+   * Create a `.env` file in the project root directory
+   * Add the following content:
      ```
-     TUSHARE_TOKEN=您的Tushare_API_Token
+     TUSHARE_TOKEN=Your_Tushare_API_Token
      ```
-   * 或直接在`src/config.ts`文件中设置
+   * Or set it directly in the `src/config.ts` file
 
-4. **构建项目**：
+4. **Build the project**:
    ```bash
    npm run build
    ```
 
-## 🚀 运行服务器
+## 🚀 Running the Server
 
-启动服务器有两种方式：
+There are two ways to start the server:
 
-### 方式1：使用 stdio 模式 (直接运行)
+### Method 1: Using stdio mode (Direct run)
 
 ```bash
 node build/index.js
 ```
 
-### 方式2：使用 Supergateway (推荐用于开发)
+### Method 2: Using Supergateway (Recommended for development)
 
 ```bash
 npx supergateway --stdio "node build/index.js" --port 3100
 ```
 
-## 📝 配置MCP客户端
+## 📝 Configuring MCP Clients
 
-要在Claude或其他MCP客户端中使用此服务器，需要进行以下配置：
+To use this server in Claude or other MCP clients, you need the following configuration:
 
-### Claude配置
+### Claude Configuration
 
-在Claude的配置文件中添加以下内容：
+Add the following to Claude's configuration file:
 
 ```json
 {
   "mcpServers": {
     "finance-data-server": {
-      "url": "http://localhost:3100/sse", // 如果使用Supergateway
+      "url": "http://localhost:3100/sse", // If using Supergateway
       "type": "sse",
       "disabled": false,
       "autoApprove": [
@@ -170,13 +170,13 @@ npx supergateway --stdio "node build/index.js" --port 3100
 }
 ```
 
-如果直接使用stdio模式（不使用Supergateway），则配置如下：
+If using stdio mode directly (without Supergateway), configure as follows:
 
 ```json
 {
   "mcpServers": {
     "finance-data-server": {
-      "command": "C:/path/to/FinanceMCP/build/index.js", // 修改为实际路径
+      "command": "C:/path/to/FinanceMCP/build/index.js", // Modify to actual path
       "type": "stdio",
       "disabled": false,
       "autoApprove": [
@@ -192,197 +192,197 @@ npx supergateway --stdio "node build/index.js" --port 3100
 }
 ```
 
-## 💡 使用示例
+## 💡 Usage Examples
 
-以下是使用FinanceMCP服务器的一些示例查询：
+Here are some example queries using the FinanceMCP server:
 
-### 1. 查询股票数据
+### 1. Query Stock Data
 
-您可以向Claude提问：
+You can ask Claude:
 
-**A股查询：**
-> "查询平安银行(000001.SZ)最近30天的股价数据"
+**A-share Query:**
+> "Query Ping An Bank (000001.SZ) stock price data for the last 30 days"
 
-**美股查询：**
-> "查询苹果公司(AAPL)最近一个月的股价数据"
+**US Stock Query:**
+> "Query Apple Inc. (AAPL) stock price data for the last month"
 
-**港股查询：**
-> "查询腾讯控股(00700.HK)最近的股价表现"
+**Hong Kong Stock Query:**
+> "Query Tencent Holdings (00700.HK) recent stock performance"
 
-**外汇查询：**
-> "查询美元人民币(USDCNY)最近的汇率走势"
+**Forex Query:**
+> "Query USD/CNY (USDCNY) recent exchange rate trends"
 
-**期货查询：**
-> "查询铜期货(CU2501.SHF)最近的行情数据"
+**Futures Query:**
+> "Query Copper Futures (CU2501.SHF) recent market data"
 
-**基金查询：**
-> "查询沪深300ETF(159919.SZ)最近的净值表现"
+**Fund Query:**
+> "Query CSI 300 ETF (159919.SZ) recent NAV performance"
 
-**债券逆回购查询：**
-> "查询GC001国债逆回购(204001.SH)最近的利率走势"
+**Bond Repo Query:**
+> "Query GC001 government bond repo (204001.SH) recent interest rate trends"
 
-**可转债查询：**
-> "查询平银转债(113008.SH)最近的行情数据"
+**Convertible Bond Query:**
+> "Query Ping An Convertible Bond (113008.SH) recent market data"
 
-**期权查询：**
-> "查询50ETF期权(10001313.SH)最近的行情数据"
+**Options Query:**
+> "Query 50ETF Options (10001313.SH) recent market data"
 
-这将使用`stock_data`工具获取相应市场的股票数据。
+This will use the `stock_data` tool to retrieve corresponding market stock data.
 
-### 2. 获取财经新闻 ⭐️ 全面优化
+### 2. Get Financial News ⭐️ Fully Optimized
 
-您可以向Claude提问：
+You can ask Claude:
 
-**获取快讯新闻：**
-> "获取最新的10条新浪财经快讯"
-> "获取华尔街见闻过去6小时的财经快讯"
-> "获取同花顺今天的财经新闻"
+**Get Flash News:**
+> "Get the latest 10 Sina Finance flash news"
+> "Get Wallstreetcn financial flash news from the past 6 hours"
+> "Get today's financial news from 10jqka"
 
-**获取长篇新闻：**
-> "获取新华网的长篇财经报道"
-> "获取凤凰财经的深度财经分析文章"
-> "获取过去3天中证网的长篇新闻"
+**Get Long-form News:**
+> "Get long-form financial reports from Xinhua"
+> "Get in-depth financial analysis articles from Phoenix Finance"
+> "Get long-form news from cs.com.cn from the past 3 days"
 
-**指定时间范围：**
-> "获取2024-01-01 09:00:00到2024-01-01 18:00:00期间东方财富的新闻"
+**Specify Time Range:**
+> "Get Eastmoney news from 2024-01-01 09:00:00 to 2024-01-01 18:00:00"
 
-**多源对比：**
-> "分别获取新浪财经和华尔街见闻的最新快讯，进行对比分析"
+**Multi-source Comparison:**
+> "Get the latest flash news from both Sina Finance and Wallstreetcn for comparative analysis"
 
-这将使用`finance_news`工具获取对应类型和来源的新闻。
+This will use the `finance_news` tool to retrieve corresponding news types and sources.
 
-### 3. 查询宏观经济数据
+### 3. Query Macroeconomic Data
 
-您可以向Claude提问：
-> "查询最近两年的GDP数据"
-> "查询最新的PMI采购经理指数详细数据"
+You can ask Claude:
+> "Query GDP data for the last two years"
+> "Query the latest detailed PMI Purchasing Managers Index data"
 
-这将使用`macro_econ`工具获取GDP和PMI数据。
+This will use the `macro_econ` tool to retrieve GDP and PMI data.
 
-### 4. 查询公司财务表现
+### 4. Query Company Financial Performance
 
-您可以向Claude提问：
+You can ask Claude:
 
-**查询单一财务数据：**
-> "查询平安银行(000001.SZ)最近的利润表数据"
-> "查询腾讯控股(00700.HK)的资产负债表"
-> "查询苹果公司(AAPL)的现金流量表"
+**Query Single Financial Data:**
+> "Query Ping An Bank (000001.SZ) recent income statement data"
+> "Query Tencent Holdings (00700.HK) balance sheet"
+> "Query Apple Inc. (AAPL) cash flow statement"
 
-**查询业绩预告和快报：**
-> "查询贵州茅台(600519.SH)的业绩预告"
-> "查询比亚迪(002594.SZ)的业绩快报"
+**Query Earnings Forecasts and Express:**
+> "Query Kweichow Moutai (600519.SH) earnings forecast"
+> "Query BYD (002594.SZ) earnings express"
 
-**查询财务指标：**
-> "查询招商银行(600036.SH)的财务指标，包括ROE、ROA等"
+**Query Financial Indicators:**
+> "Query China Merchants Bank (600036.SH) financial indicators including ROE, ROA, etc."
 
-**查询分红送股：**
-> "查询中国平安(601318.SH)的分红送股历史"
+**Query Dividends & Stock Distribution:**
+> "Query China Ping An (601318.SH) dividend and stock distribution history"
 
-**查询全部财务数据：**
-> "查询万科A(000002.SZ)的全部财务表现数据"
+**Query All Financial Data:**
+> "Query Vanke A (000002.SZ) comprehensive financial performance data"
 
-这将使用`company_performance`工具获取相应的财务数据。
+This will use the `company_performance` tool to retrieve corresponding financial data.
 
-### 5. 查询基金数据 ⭐️ 新功能
+### 5. Query Fund Data ⭐️ New Feature
 
-您可以向Claude提问：
+You can ask Claude:
 
-**查询基金基本信息：**
-> "查询沪深300ETF(159919.SZ)的基本信息"
-> "查询场内的所有ETF基金"
+**Query Fund Basic Information:**
+> "Query CSI 300 ETF (159919.SZ) basic information"
+> "Query all ETF funds traded on exchange"
 
-**查询基金净值：**
-> "查询易方达蓝筹精选(005827.OF)最近的净值走势"
-> "查询华夏沪深300ETF的净值表现"
+**Query Fund NAV:**
+> "Query E Fund Blue Chip Select (005827.OF) recent NAV trends"
+> "Query China AMC CSI 300 ETF NAV performance"
 
-**查询基金持仓：**
-> "查询招商中证白酒指数基金的重仓股票"
-> "查询南方中证500ETF的持仓明细"
+**Query Fund Holdings:**
+> "Query Invesco Great Wall CSI Liquor Index fund's heavy positions"
+> "Query Southern CSI 500 ETF holdings details"
 
-**查询基金分红：**
-> "查询富国天惠精选成长基金的分红历史"
+**Query Fund Dividends:**
+> "Query Fuguo Tianhui Select Growth fund dividend history"
 
-**查询基金经理：**
-> "查询张坤管理的基金"
-> "查询易方达基金的基金经理信息"
+**Query Fund Managers:**
+> "Query funds managed by Zhang Kun"
+> "Query E Fund Management fund manager information"
 
-**查询基金管理人：**
-> "查询易方达基金管理有限公司的详细信息"
+**Query Fund Management Companies:**
+> "Query detailed information about E Fund Management Co., Ltd."
 
-**查询全部基金数据：**
-> "查询华夏沪深300ETF(510330.SH)的全部数据"
+**Query All Fund Data:**
+> "Query all data for China AMC CSI 300 ETF (510330.SH)"
 
-这将使用`fund_data`工具获取相应的基金数据。
+This will use the `fund_data` tool to retrieve corresponding fund data.
 
-### 6. 结合数据进行分析
+### 6. Combined Data Analysis
 
-您可以向Claude提问更复杂的问题：
-> "结合最近的新闻和股价数据，分析平安银行(000001.SZ)的投资前景"
-> "结合宏观经济PMI数据和制造业股票表现，分析当前制造业投资机会"
+You can ask Claude more complex questions:
+> "Combine recent news and stock price data to analyze Ping An Bank (000001.SZ) investment prospects"
+> "Combine macroeconomic PMI data and manufacturing stock performance to analyze current manufacturing investment opportunities"
 
-Claude将调用多个工具获取所需数据，然后基于这些数据提供分析。
+Claude will call multiple tools to get the required data, then provide analysis based on this data.
 
-## 📊 支持的数据接口
+## 📊 Supported Data Interfaces
 
-目前项目已接入以下Tushare API接口：
+The project currently integrates the following Tushare API interfaces:
 
-| 功能 | Tushare接口 | 描述 |
-|-----|------------|-----|
-| A股数据 | daily | 获取A股日线行情数据 |
-| 美股数据 | us_daily | 获取美股日线行情数据 |
-| 港股数据 | hk_daily | 获取港股日线行情数据 |
-| 外汇数据 | fx_daily | 获取外汇日线行情数据 |
-| 期货数据 | fut_daily | 获取期货日线行情数据 |
-| 基金数据 | fund_daily | 获取基金日线行情数据 |
-| 指数数据 | index_daily | 获取指数每日行情数据 |
-| 新闻快讯 | news | 获取主流财经网站的快讯新闻 ⭐️ |
-| 长篇新闻 | major_news | 获取长篇通讯新闻 ⭐️ 新增 |
-| Shibor利率 | shibor_data | 获取上海银行间同业拆放利率 |
-| LPR利率 | lpr_data | 获取贷款基础利率 |
-| GDP | cn_gdp | 获取国内生产总值数据 |
-| CPI | cn_cpi | 获取居民消费价格指数数据 |
-| PPI | cn_ppi | 获取工业品出厂价格指数数据 |
-| 货币供应量 | cn_m | 获取货币供应量数据（M0、M1、M2） |
-| PMI指数 | cn_pmi | 获取采购经理指数数据 ⭐️ 优化 |
-| 社融增量 | cn_sf | 获取社会融资规模增量数据 |
-| Shibor报价 | shibor_quote | 获取Shibor银行报价数据（买价、卖价） |
-| Libor利率 | libor | 获取伦敦银行间同业拆放利率 |
-| Hibor利率 | hibor | 获取香港银行间同业拆放利率 |
-| 债券逆回购 | repo_daily | 获取债券逆回购日线行情数据 |
-| 可转债数据 | cb_daily | 获取可转债日线行情数据 |
-| 期权数据 | opt_daily | 获取期权日线行情数据 |
-| 利润表 | income | 获取上市公司利润表数据 |
-| 资产负债表 | balancesheet | 获取上市公司资产负债表数据 |
-| 现金流量表 | cashflow | 获取上市公司现金流量表数据 |
-| 业绩预告 | forecast | 获取上市公司业绩预告数据 |
-| 业绩快报 | express | 获取上市公司业绩快报数据 |
-| 财务指标 | fina_indicator | 获取上市公司财务指标数据 |
-| 分红送股 | dividend | 获取上市公司分红送股数据 |
-| 基金列表 | fund_basic | 获取公募基金基本信息 |
-| 基金净值 | fund_nav | 获取基金净值数据 |
-| 基金分红 | fund_div | 获取基金分红送股数据 |
-| 基金持仓 | fund_portfolio | 获取基金持仓明细数据 |
-| 基金经理 | fund_manager | 获取基金经理信息 |
-| 基金管理人 | fund_company | 获取基金管理人信息 |
+| Function | Tushare Interface | Description |
+|----------|-------------------|-------------|
+| A-share Data | daily | Get A-share daily market data |
+| US Stock Data | us_daily | Get US stock daily market data |
+| HK Stock Data | hk_daily | Get Hong Kong stock daily market data |
+| Forex Data | fx_daily | Get forex daily market data |
+| Futures Data | fut_daily | Get futures daily market data |
+| Fund Data | fund_daily | Get fund daily market data |
+| Index Data | index_daily | Get index daily market data |
+| News Flash | news | Get flash news from mainstream financial websites ⭐️ |
+| Long-form News | major_news | Get long-form news ⭐️ New |
+| Shibor Rates | shibor_data | Get Shanghai Interbank Offered Rate |
+| LPR Rates | lpr_data | Get Loan Prime Rate |
+| GDP | cn_gdp | Get Gross Domestic Product data |
+| CPI | cn_cpi | Get Consumer Price Index data |
+| PPI | cn_ppi | Get Producer Price Index data |
+| Money Supply | cn_m | Get money supply data (M0, M1, M2) |
+| PMI Index | cn_pmi | Get Purchasing Managers Index data ⭐️ Optimized |
+| Social Financing | cn_sf | Get Total Social Financing data |
+| Shibor Quotes | shibor_quote | Get Shibor bank quote data (bid, ask) |
+| Libor Rates | libor | Get London Interbank Offered Rate |
+| Hibor Rates | hibor | Get Hong Kong Interbank Offered Rate |
+| Bond Repos | repo_daily | Get bond repo daily market data |
+| Convertible Bonds | cb_daily | Get convertible bond daily market data |
+| Options Data | opt_daily | Get options daily market data |
+| Income Statement | income | Get listed company income statement data |
+| Balance Sheet | balancesheet | Get listed company balance sheet data |
+| Cash Flow Statement | cashflow | Get listed company cash flow statement data |
+| Earnings Forecast | forecast | Get listed company earnings forecast data |
+| Earnings Express | express | Get listed company earnings express data |
+| Financial Indicators | fina_indicator | Get listed company financial indicator data |
+| Dividends & Distribution | dividend | Get listed company dividend and distribution data |
+| Fund List | fund_basic | Get public fund basic information |
+| Fund NAV | fund_nav | Get fund net asset value data |
+| Fund Dividends | fund_div | Get fund dividend and distribution data |
+| Fund Holdings | fund_portfolio | Get fund holdings details |
+| Fund Managers | fund_manager | Get fund manager information |
+| Fund Management Companies | fund_company | Get fund management company information |
 
-## 🔮 未来计划
+## 🔮 Future Plans
 
-未来计划接入更多Tushare数据接口，包括但不限于：
+Future plans include integrating more Tushare data interfaces, including but not limited to:
 
-1. **基础数据**：股票列表、交易日历、停复牌信息等
-2. **更多财务数据**：财务审计意见、主营业务构成、股东信息等
-3. **更多新闻数据**：公告信息、研报数据等 ⭐️ 部分已实现
-4. **技术分析指标**：MACD、RSI、布林带等技术指标
-5. **行业数据**：行业分类、行业指数、行业对比分析等
+1. **Basic Data**: Stock lists, trading calendars, suspension/resumption info, etc.
+2. **More Financial Data**: Financial audit opinions, main business composition, shareholder info, etc.
+3. **More News Data**: Announcement info, research report data, etc. ⭐️ Partially implemented
+4. **Technical Analysis Indicators**: MACD, RSI, Bollinger Bands, and other technical indicators
+5. **Industry Data**: Industry classification, industry indices, industry comparative analysis, etc.
 
-详见`tushare-interfaces.md`文件，其中列出了更多可能接入的数据接口。
+See the `tushare-interfaces.md` file for more potential data interfaces that could be integrated.
 
-## 📄 许可证
+## 📄 License
 
-本项目采用 MIT 许可证。详见 [LICENSE](LICENSE) 文件。
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
-## 👨‍💻 作者
+## 👨‍💻 Author
 
-- 名称: Xingyu_Chen
-- 邮箱: guangxiangdebizi@gmail.com
+- Name: Xingyu_Chen
+- Email: guangxiangdebizi@gmail.com
 - GitHub: [guangxiangdebizi](https://github.com/guangxiangdebizi)

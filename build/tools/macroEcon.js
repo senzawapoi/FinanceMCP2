@@ -1,35 +1,35 @@
 import { TUSHARE_CONFIG } from '../config.js';
 export const macroEcon = {
     name: "macro_econ",
-    description: "获取宏观经济数据，包括Shibor利率、LPR利率、GDP、CPI、PPI、货币供应量、PMI、社融增量、Shibor报价、Libor、Hibor等",
+    description: "Get macroeconomic data including Shibor rates, LPR rates, GDP, CPI, PPI, money supply, PMI, social financing, Shibor quotes, Libor, Hibor, etc.",
     parameters: {
         type: "object",
         properties: {
             indicator: {
                 type: "string",
-                description: "指标类型，可选值：shibor(上海银行间同业拆放利率),lpr(贷款基础利率),gdp(国内生产总值),cpi(居民消费价格指数),ppi(工业品出厂价格指数),cn_m(货币供应量),cn_pmi(采购经理指数),cn_sf(社会融资规模增量),shibor_quote(Shibor银行报价),libor(Libor利率),hibor(Hibor利率)"
+                description: "Indicator type, options: shibor(Shanghai Interbank Offered Rate), lpr(Loan Prime Rate), gdp(Gross Domestic Product), cpi(Consumer Price Index), ppi(Producer Price Index), cn_m(Money Supply), cn_pmi(Purchasing Managers Index), cn_sf(Total Social Financing), shibor_quote(Shibor Bank Quotes), libor(Libor Rate), hibor(Hibor Rate)"
             },
             start_date: {
                 type: "string",
-                description: "起始日期，格式为YYYYMMDD，如'20230101'"
+                description: "Start date in YYYYMMDD format, e.g., '20230101'"
             },
             end_date: {
                 type: "string",
-                description: "结束日期，格式为YYYYMMDD，如'20230131'"
+                description: "End date in YYYYMMDD format, e.g., '20230131'"
             }
         },
         required: ["indicator"]
     },
     async run(args) {
         try {
-            console.log(`使用Tushare API获取${args.indicator}宏观经济数据`);
+            console.log(`Using Tushare API to get ${args.indicator} macroeconomic data`);
             // 使用全局配置中的Tushare API设置
             const TUSHARE_API_KEY = TUSHARE_CONFIG.API_TOKEN;
             const TUSHARE_API_URL = TUSHARE_CONFIG.API_URL;
             // 验证指标类型
             const validIndicators = ['shibor', 'lpr', 'gdp', 'cpi', 'ppi', 'cn_m', 'cn_pmi', 'cn_sf', 'shibor_quote', 'libor', 'hibor'];
             if (!validIndicators.includes(args.indicator)) {
-                throw new Error(`不支持的指标类型: ${args.indicator}。支持的类型有: ${validIndicators.join(', ')}`);
+                throw new Error(`Unsupported indicator type: ${args.indicator}. Supported types: ${validIndicators.join(', ')}`);
             }
             // 根据指标类型设置不同的默认时间范围
             const today = new Date();
@@ -104,7 +104,7 @@ export const macroEcon = {
                     break;
                 case 'cpi':
                     params.api_name = "cn_cpi";
-                    params.fields = "month,nt_cpi,nt_yoy,nt_mom,nt_accu,town_cpi,town_yoy,town_mom,town_accu,cnt_cpi,cnt_yoy,cnt_mom,cnt_accu";
+                    params.fields = "month,nt_val,nt_yoy,nt_mom,nt_accu,town_val,town_yoy,town_mom,town_accu,cnt_val,cnt_yoy,cnt_mom,cnt_accu";
                     // CPI数据使用月份格式
                     const startMonth = dateToMonth(args.start_date || defaultStartDate);
                     const endMonth = dateToMonth(args.end_date || defaultEndDate);
@@ -115,7 +115,7 @@ export const macroEcon = {
                     break;
                 case 'ppi':
                     params.api_name = "cn_ppi";
-                    params.fields = "month,ppi_yoy,ppi_mom,ppi_accu,rpi_yoy,rpi_mom,rpi_accu";
+                    params.fields = "month,ppi_val,ppi_yoy,ppi_mom,ppi_accu,rpi_val,rpi_yoy,rpi_mom,rpi_accu";
                     // PPI数据使用月份格式
                     const startMonthPPI = dateToMonth(args.start_date || defaultStartDate);
                     const endMonthPPI = dateToMonth(args.end_date || defaultEndDate);
@@ -191,7 +191,7 @@ export const macroEcon = {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), TUSHARE_CONFIG.TIMEOUT);
             try {
-                console.log(`请求Tushare API: ${params.api_name}，参数:`, params.params);
+                console.log(`Requesting Tushare API: ${params.api_name}, parameters:`, params.params);
                 // 发送请求
                 const response = await fetch(TUSHARE_API_URL, {
                     method: "POST",
@@ -202,16 +202,16 @@ export const macroEcon = {
                     signal: controller.signal
                 });
                 if (!response.ok) {
-                    throw new Error(`Tushare API请求失败: ${response.status}`);
+                    throw new Error(`Tushare API request failed: ${response.status}`);
                 }
                 const data = await response.json();
                 // 处理响应数据
                 if (data.code !== 0) {
-                    throw new Error(`Tushare API错误: ${data.msg}`);
+                    throw new Error(`Tushare API error: ${data.msg}`);
                 }
                 // 确保data.data和data.data.items存在
                 if (!data.data || !data.data.items || data.data.items.length === 0) {
-                    throw new Error(`未找到${args.indicator}宏观经济数据`);
+                    throw new Error(`No ${args.indicator} macroeconomic data found`);
                 }
                 // 获取字段名
                 const fields = data.data.fields;
@@ -225,17 +225,17 @@ export const macroEcon = {
                 });
                 // 生成指标表头
                 let titleMap = {
-                    'shibor': 'Shibor利率',
-                    'lpr': 'LPR贷款基础利率',
-                    'gdp': '国内生产总值(GDP)',
-                    'cpi': '居民消费价格指数(CPI)',
-                    'ppi': '工业品出厂价格指数(PPI)',
-                    'cn_m': '货币供应量',
-                    'cn_pmi': '采购经理指数(PMI)',
-                    'cn_sf': '社会融资规模增量',
-                    'shibor_quote': 'Shibor银行报价数据',
-                    'libor': 'Libor利率',
-                    'hibor': 'Hibor利率'
+                    'shibor': 'Shibor Interest Rate',
+                    'lpr': 'LPR Loan Prime Rate',
+                    'gdp': 'Gross Domestic Product (GDP)',
+                    'cpi': 'Consumer Price Index (CPI)',
+                    'ppi': 'Producer Price Index (PPI)',
+                    'cn_m': 'Money Supply',
+                    'cn_pmi': 'Purchasing Managers Index (PMI)',
+                    'cn_sf': 'Total Social Financing',
+                    'shibor_quote': 'Shibor Bank Quote Data',
+                    'libor': 'Libor Interest Rate',
+                    'hibor': 'Hibor Interest Rate'
                 };
                 // 格式化数据（根据不同指标类型构建不同的格式）
                 let formattedData = '';
@@ -281,13 +281,13 @@ export const macroEcon = {
                 else if (args.indicator === 'cpi') {
                     // CPI数据展示
                     formattedData = econData.map((data) => {
-                        return `## ${formatMonth(data.month)}\n**全国CPI**: ${data.nt_cpi}  **同比**: ${data.nt_yoy}%  **环比**: ${data.nt_mom}%  **累计**: ${data.nt_accu}%\n**城市CPI**: ${data.town_cpi}  **同比**: ${data.town_yoy}%  **环比**: ${data.town_mom}%  **累计**: ${data.town_accu}%\n**农村CPI**: ${data.cnt_cpi}  **同比**: ${data.cnt_yoy}%  **环比**: ${data.cnt_mom}%  **累计**: ${data.cnt_accu}%\n`;
+                        return `## ${formatMonth(data.month)}\n**全国CPI**: ${data.nt_val}  **同比**: ${data.nt_yoy}%  **环比**: ${data.nt_mom}%  **累计**: ${data.nt_accu}%\n**城市CPI**: ${data.town_val}  **同比**: ${data.town_yoy}%  **环比**: ${data.town_mom}%  **累计**: ${data.town_accu}%\n**农村CPI**: ${data.cnt_val}  **同比**: ${data.cnt_yoy}%  **环比**: ${data.cnt_mom}%  **累计**: ${data.cnt_accu}%\n`;
                     }).join('\n---\n\n');
                 }
                 else if (args.indicator === 'ppi') {
                     // PPI数据展示
                     formattedData = econData.map((data) => {
-                        return `## ${formatMonth(data.month)}\n**PPI同比**: ${data.ppi_yoy}%  **PPI环比**: ${data.ppi_mom}%  **PPI累计**: ${data.ppi_accu}%\n**原料购进价格同比**: ${data.rpi_yoy}%  **环比**: ${data.rpi_mom}%  **累计**: ${data.rpi_accu}%\n`;
+                        return `## ${formatMonth(data.month)}\n**PPI当月值**: ${data.ppi_val}  **同比**: ${data.ppi_yoy}%  **环比**: ${data.ppi_mom}%  **累计**: ${data.ppi_accu}%\n**原料购进价格当月值**: ${data.rpi_val}  **同比**: ${data.rpi_yoy}%  **环比**: ${data.rpi_mom}%  **累计**: ${data.rpi_accu}%\n`;
                     }).join('\n---\n\n');
                 }
                 else if (args.indicator === 'cn_m') {
@@ -312,7 +312,7 @@ export const macroEcon = {
                     content: [
                         {
                             type: "text",
-                            text: `# ${titleMap[args.indicator]}数据\n\n**查询时间范围**: ${args.start_date || defaultStartDate} - ${args.end_date || defaultEndDate}\n**数据条数**: ${econData.length}条\n\n---\n\n${formattedData}`
+                            text: `# ${titleMap[args.indicator]} data\n\n**Query time range**: ${args.start_date || defaultStartDate} - ${args.end_date || defaultEndDate}\n**Data count**: ${econData.length} records\n\n---\n\n${formattedData}`
                         }
                     ]
                 };
@@ -322,12 +322,12 @@ export const macroEcon = {
             }
         }
         catch (error) {
-            console.error("获取宏观经济数据失败:", error);
+            console.error("Failed to get macroeconomic data:", error);
             return {
                 content: [
                     {
                         type: "text",
-                        text: `# 获取${args.indicator}宏观经济数据失败\n\n**错误信息**: ${error instanceof Error ? error.message : String(error)}\n\n**支持的指标类型**: \n- shibor: 上海银行间同业拆放利率\n- lpr: 贷款基础利率\n- gdp: 国内生产总值\n- cpi: 居民消费价格指数\n- ppi: 工业品出厂价格指数\n- cn_m: 货币供应量\n- cn_pmi: 采购经理指数\n- cn_sf: 社会融资规模增量\n- shibor_quote: Shibor银行报价\n- libor: Libor利率\n- hibor: Hibor利率`
+                        text: `# Failed to get ${args.indicator} macroeconomic data\n\n**Error information**: ${error instanceof Error ? error.message : String(error)}\n\n**Supported indicator types**: \n- shibor: Shanghai Interbank Offered Rate\n- lpr: Loan Prime Rate\n- gdp: Gross Domestic Product\n- cpi: Consumer Price Index\n- ppi: Producer Price Index\n- cn_m: Money Supply\n- cn_pmi: Purchasing Managers Index\n- cn_sf: Total Social Financing\n- shibor_quote: Shibor Bank Quotes\n- libor: Libor Rate\n- hibor: Hibor Rate`
                     }
                 ]
             };

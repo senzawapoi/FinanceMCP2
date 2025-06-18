@@ -22,7 +22,7 @@ function getCurrentChinaTime() {
     const second = formatNumber(chinaTime.getUTCSeconds());
     const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
     const weekday = weekdays[chinaTime.getUTCDay()];
-    return `当前东八区时间: ${year}-${month}-${day} ${hour}:${minute}:${second} (${weekday})`;
+    return `上次一刷新时，东八区最新的时间: ${year}-${month}-${day} ${hour}:${minute}:${second} (${weekday})`;
 }
 // 🕐 时间戳工具定义
 const timestampTool = {

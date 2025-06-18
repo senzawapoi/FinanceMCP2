@@ -265,22 +265,22 @@ function formatFinancialData(results, tsCode) {
 function formatIncomeStatement(data) {
     let output = '';
     for (const item of data.slice(0, 5)) { // 显示最近5期数据
-        output += `### ${item.end_date || item.period} 期间\n`;
-        output += `**公告日期**: ${item.ann_date || 'N/A'}  **实际公告日期**: ${item.f_ann_date || 'N/A'}\n\n`;
+        output += ` ${item.end_date || item.period} 期间\n`;
+        output += `公告日期: ${item.ann_date || 'N/A'}  实际公告日期: ${item.f_ann_date || 'N/A'}\n\n`;
         if (item.total_revenue)
-            output += `**营业总收入**: ${formatNumber(item.total_revenue)} 万元\n`;
+            output += `营业总收入: ${formatNumber(item.total_revenue)} 万元\n`;
         if (item.revenue)
-            output += `**营业收入**: ${formatNumber(item.revenue)} 万元\n`;
+            output += `营业收入: ${formatNumber(item.revenue)} 万元\n`;
         if (item.total_cogs)
-            output += `**营业总成本**: ${formatNumber(item.total_cogs)} 万元\n`;
+            output += `营业总成本: ${formatNumber(item.total_cogs)} 万元\n`;
         if (item.operate_profit)
-            output += `**营业利润**: ${formatNumber(item.operate_profit)} 万元\n`;
+            output += `营业利润: ${formatNumber(item.operate_profit)} 万元\n`;
         if (item.total_profit)
-            output += `**利润总额**: ${formatNumber(item.total_profit)} 万元\n`;
+            output += `利润总额: ${formatNumber(item.total_profit)} 万元\n`;
         if (item.n_income)
-            output += `**净利润**: ${formatNumber(item.n_income)} 万元\n`;
+            output += `净利润: ${formatNumber(item.n_income)} 万元\n`;
         if (item.n_income_attr_p)
-            output += `**归属于母公司净利润**: ${formatNumber(item.n_income_attr_p)} 万元\n`;
+            output += `归属于母公司净利润: ${formatNumber(item.n_income_attr_p)} 万元\n`;
         output += '\n';
     }
     return output;
@@ -289,20 +289,20 @@ function formatIncomeStatement(data) {
 function formatBalanceSheet(data) {
     let output = '';
     for (const item of data.slice(0, 5)) {
-        output += `### ${item.end_date || item.period} 期间\n`;
-        output += `**公告日期**: ${item.ann_date || 'N/A'}  **实际公告日期**: ${item.f_ann_date || 'N/A'}\n\n`;
+        output += ` ${item.end_date || item.period} 期间\n`;
+        output += `公告日期: ${item.ann_date || 'N/A'}  实际公告日期: ${item.f_ann_date || 'N/A'}\n\n`;
         if (item.total_assets)
-            output += `**资产总计**: ${formatNumber(item.total_assets)} 万元\n`;
+            output += `资产总计: ${formatNumber(item.total_assets)} 万元\n`;
         if (item.total_cur_assets)
-            output += `**流动资产合计**: ${formatNumber(item.total_cur_assets)} 万元\n`;
+            output += `流动资产合计: ${formatNumber(item.total_cur_assets)} 万元\n`;
         if (item.total_nca)
-            output += `**非流动资产合计**: ${formatNumber(item.total_nca)} 万元\n`;
+            output += `非流动资产合计: ${formatNumber(item.total_nca)} 万元\n`;
         if (item.total_liab)
-            output += `**负债合计**: ${formatNumber(item.total_liab)} 万元\n`;
+            output += `负债合计: ${formatNumber(item.total_liab)} 万元\n`;
         if (item.total_cur_liab)
-            output += `**流动负债合计**: ${formatNumber(item.total_cur_liab)} 万元\n`;
+            output += `流动负债合计: ${formatNumber(item.total_cur_liab)} 万元\n`;
         if (item.total_hldr_eqy_exc_min_int)
-            output += `**股东权益合计**: ${formatNumber(item.total_hldr_eqy_exc_min_int)} 万元\n`;
+            output += `股东权益合计: ${formatNumber(item.total_hldr_eqy_exc_min_int)} 万元\n`;
         output += '\n';
     }
     return output;
@@ -311,18 +311,18 @@ function formatBalanceSheet(data) {
 function formatCashFlow(data) {
     let output = '';
     for (const item of data.slice(0, 5)) {
-        output += `### ${item.end_date || item.period} 期间\n`;
-        output += `**公告日期**: ${item.ann_date || 'N/A'}  **实际公告日期**: ${item.f_ann_date || 'N/A'}\n\n`;
+        output += ` ${item.end_date || item.period} 期间\n`;
+        output += `公告日期: ${item.ann_date || 'N/A'}  实际公告日期: ${item.f_ann_date || 'N/A'}\n\n`;
         if (item.n_cashflow_act)
-            output += `**经营活动现金流量净额**: ${formatNumber(item.n_cashflow_act)} 万元\n`;
+            output += `经营活动现金流量净额: ${formatNumber(item.n_cashflow_act)} 万元\n`;
         if (item.n_cashflow_inv_act)
-            output += `**投资活动现金流量净额**: ${formatNumber(item.n_cashflow_inv_act)} 万元\n`;
+            output += `投资活动现金流量净额: ${formatNumber(item.n_cashflow_inv_act)} 万元\n`;
         if (item.n_cash_flows_fnc_act)
-            output += `**筹资活动现金流量净额**: ${formatNumber(item.n_cash_flows_fnc_act)} 万元\n`;
+            output += `筹资活动现金流量净额: ${formatNumber(item.n_cash_flows_fnc_act)} 万元\n`;
         if (item.n_incr_cash_cash_equ)
-            output += `**现金及现金等价物净增加额**: ${formatNumber(item.n_incr_cash_cash_equ)} 万元\n`;
+            output += `现金及现金等价物净增加额: ${formatNumber(item.n_incr_cash_cash_equ)} 万元\n`;
         if (item.c_cash_equ_end_period)
-            output += `**期末现金及现金等价物余额**: ${formatNumber(item.c_cash_equ_end_period)} 万元\n`;
+            output += `期末现金及现金等价物余额: ${formatNumber(item.c_cash_equ_end_period)} 万元\n`;
         output += '\n';
     }
     return output;
@@ -331,20 +331,20 @@ function formatCashFlow(data) {
 function formatForecast(data) {
     let output = '';
     for (const item of data.slice(0, 10)) {
-        output += `### ${item.end_date} 期间预告\n`;
-        output += `**公告日期**: ${item.ann_date}  **预告类型**: ${getForecastType(item.type)}\n`;
+        output += ` ${item.end_date} 期间预告\n`;
+        output += `公告日期: ${item.ann_date}  预告类型: ${getForecastType(item.type)}\n`;
         if (item.p_change_min !== null && item.p_change_max !== null) {
-            output += `**净利润变动幅度**: ${item.p_change_min}% ~ ${item.p_change_max}%\n`;
+            output += `净利润变动幅度: ${item.p_change_min}% ~ ${item.p_change_max}%\n`;
         }
         if (item.net_profit_min !== null && item.net_profit_max !== null) {
-            output += `**预计净利润**: ${formatNumber(item.net_profit_min)} ~ ${formatNumber(item.net_profit_max)} 万元\n`;
+            output += `预计净利润: ${formatNumber(item.net_profit_min)} ~ ${formatNumber(item.net_profit_max)} 万元\n`;
         }
         if (item.last_parent_net)
-            output += `**上年同期净利润**: ${formatNumber(item.last_parent_net)} 万元\n`;
+            output += `上年同期净利润: ${formatNumber(item.last_parent_net)} 万元\n`;
         if (item.summary)
-            output += `**业绩预告摘要**: ${item.summary}\n`;
+            output += `业绩预告摘要: ${item.summary}\n`;
         if (item.change_reason)
-            output += `**变动原因**: ${item.change_reason}\n`;
+            output += `变动原因: ${item.change_reason}\n`;
         output += '\n';
     }
     return output;
@@ -353,29 +353,29 @@ function formatForecast(data) {
 function formatExpress(data) {
     let output = '';
     for (const item of data.slice(0, 5)) {
-        output += `### ${item.end_date} 期间快报\n`;
-        output += `**公告日期**: ${item.ann_date}\n\n`;
+        output += ` ${item.end_date} 期间快报\n`;
+        output += `公告日期: ${item.ann_date}\n\n`;
         if (item.revenue)
-            output += `**营业收入**: ${formatNumber(item.revenue)} 万元\n`;
+            output += `营业收入: ${formatNumber(item.revenue)} 万元\n`;
         if (item.operate_profit)
-            output += `**营业利润**: ${formatNumber(item.operate_profit)} 万元\n`;
+            output += `营业利润: ${formatNumber(item.operate_profit)} 万元\n`;
         if (item.total_profit)
-            output += `**利润总额**: ${formatNumber(item.total_profit)} 万元\n`;
+            output += `利润总额: ${formatNumber(item.total_profit)} 万元\n`;
         if (item.n_income)
-            output += `**净利润**: ${formatNumber(item.n_income)} 万元\n`;
+            output += `净利润: ${formatNumber(item.n_income)} 万元\n`;
         if (item.total_assets)
-            output += `**总资产**: ${formatNumber(item.total_assets)} 万元\n`;
+            output += `总资产: ${formatNumber(item.total_assets)} 万元\n`;
         if (item.total_hldr_eqy_exc_min_int)
-            output += `**股东权益**: ${formatNumber(item.total_hldr_eqy_exc_min_int)} 万元\n`;
+            output += `股东权益: ${formatNumber(item.total_hldr_eqy_exc_min_int)} 万元\n`;
         if (item.diluted_eps)
-            output += `**每股收益**: ${item.diluted_eps} 元\n`;
+            output += `每股收益: ${item.diluted_eps} 元\n`;
         if (item.diluted_roe)
-            output += `**净资产收益率**: ${item.diluted_roe}%\n`;
+            output += `净资产收益率: ${item.diluted_roe}%\n`;
         // 同比增长率
         if (item.yoy_net_profit)
-            output += `**净利润同比增长**: ${item.yoy_net_profit}%\n`;
+            output += `净利润同比增长: ${item.yoy_net_profit}%\n`;
         if (item.yoy_sales)
-            output += `**营收同比增长**: ${item.yoy_sales}%\n`;
+            output += `营收同比增长: ${item.yoy_sales}%\n`;
         output += '\n';
     }
     return output;
@@ -384,10 +384,10 @@ function formatExpress(data) {
 function formatIndicators(data) {
     let output = '';
     for (const item of data.slice(0, 5)) {
-        output += `### ${item.end_date} 期间指标\n`;
-        output += `**公告日期**: ${item.ann_date}\n\n`;
+        output += ` ${item.end_date} 期间指标\n`;
+        output += `公告日期: ${item.ann_date}\n\n`;
         // 盈利能力指标
-        output += `**盈利能力指标**:\n`;
+        output += `盈利能力指标:\n`;
         if (item.eps)
             output += `- 每股收益: ${item.eps} 元\n`;
         if (item.roe)
@@ -399,7 +399,7 @@ function formatIndicators(data) {
         if (item.grossprofit_margin)
             output += `- 销售毛利率: ${item.grossprofit_margin}%\n`;
         // 偿债能力指标
-        output += `\n**偿债能力指标**:\n`;
+        output += `\n偿债能力指标:\n`;
         if (item.current_ratio)
             output += `- 流动比率: ${item.current_ratio}\n`;
         if (item.quick_ratio)
@@ -407,7 +407,7 @@ function formatIndicators(data) {
         if (item.debt_to_assets)
             output += `- 资产负债率: ${item.debt_to_assets}%\n`;
         // 营运能力指标
-        output += `\n**营运能力指标**:\n`;
+        output += `\n营运能力指标:\n`;
         if (item.inv_turn)
             output += `- 存货周转率: ${item.inv_turn}\n`;
         if (item.ar_turn)
@@ -422,22 +422,22 @@ function formatIndicators(data) {
 function formatDividend(data) {
     let output = '';
     for (const item of data.slice(0, 10)) {
-        output += `### ${item.end_date} 分红方案\n`;
-        output += `**公告日期**: ${item.ann_date}  **实施进度**: ${item.div_proc || 'N/A'}\n`;
+        output += ` ${item.end_date} 分红方案\n`;
+        output += `公告日期: ${item.ann_date}  实施进度: ${item.div_proc || 'N/A'}\n`;
         if (item.stk_div)
-            output += `**送股比例**: 每10股送${item.stk_div}股\n`;
+            output += `送股比例: 每10股送${item.stk_div}股\n`;
         if (item.stk_bo_rate)
-            output += `**转股比例**: 每10股转${item.stk_bo_rate}股\n`;
+            output += `转股比例: 每10股转${item.stk_bo_rate}股\n`;
         if (item.cash_div)
-            output += `**现金分红**: 每10股派${item.cash_div}元\n`;
+            output += `现金分红: 每10股派${item.cash_div}元\n`;
         if (item.cash_div_tax)
-            output += `**税后分红**: 每10股派${item.cash_div_tax}元\n`;
+            output += `税后分红: 每10股派${item.cash_div_tax}元\n`;
         if (item.record_date)
-            output += `**股权登记日**: ${item.record_date}\n`;
+            output += `股权登记日: ${item.record_date}\n`;
         if (item.ex_date)
-            output += `**除权除息日**: ${item.ex_date}\n`;
+            output += `除权除息日: ${item.ex_date}\n`;
         if (item.pay_date)
-            output += `**派息日**: ${item.pay_date}\n`;
+            output += `派息日: ${item.pay_date}\n`;
         output += '\n';
     }
     return output;
@@ -446,10 +446,10 @@ function formatDividend(data) {
 function formatGenericData(data, fields) {
     let output = '';
     for (const item of data.slice(0, 5)) {
-        output += '### 数据记录\n';
+        output += ' 数据记录\n';
         for (const field of fields.slice(0, 10)) { // 只显示前10个字段
             if (item[field] !== null && item[field] !== undefined) {
-                output += `**${field}**: ${item[field]}\n`;
+                output += `${field}: ${item[field]}\n`;
             }
         }
         output += '\n';

@@ -74,6 +74,13 @@ Get the following macroeconomic indicator data:
 * **Libor Rates** (London Interbank Offered Rate)
 * **Hibor Rates** (Hong Kong Interbank Offered Rate)
 
+### 🕐 Current Timestamp ⭐️ New Feature
+Display current time for China timezone (UTC+8):
+* **China Timezone**: Accurate UTC+8 timezone calculation
+* **Weekday Info**: Chinese weekday display
+* **Real-time**: Current timestamp with precise second accuracy
+* **Simple Format**: Clean datetime display (YYYY-MM-DD HH:MM:SS)
+
 ### 🤖 MCP Integration
 Seamless integration with MCP-compatible clients (like Claude) for intelligent financial analysis
 
@@ -158,6 +165,7 @@ Add the following to Claude's configuration file:
       "type": "sse",
       "disabled": false,
       "autoApprove": [
+        "current_timestamp",
         "finance_news",
         "stock_data",
         "index_data",
@@ -180,6 +188,7 @@ If using stdio mode directly (without Supergateway), configure as follows:
       "type": "stdio",
       "disabled": false,
       "autoApprove": [
+        "current_timestamp",
         "finance_news",
         "stock_data",
         "index_data",
@@ -314,11 +323,25 @@ You can ask Claude:
 
 This will use the `fund_data` tool to retrieve corresponding fund data.
 
-### 6. Combined Data Analysis
+### 6. Get Current Timestamp ⭐️ New Feature
+
+You can ask Claude:
+
+**Get Current Time:**
+> "What time is it now?"
+> "What's today's date?"
+> "Get current timestamp"
+> "What day of the week is today?"
+> "Show current time for market analysis"
+
+This will use the `current_timestamp` tool to get accurate China timezone (UTC+8) time information.
+
+### 7. Combined Data Analysis
 
 You can ask Claude more complex questions:
 > "Combine recent news and stock price data to analyze Ping An Bank (000001.SZ) investment prospects"
 > "Combine macroeconomic PMI data and manufacturing stock performance to analyze current manufacturing investment opportunities"
+> "What's the current time and latest market news for today's trading session?"
 
 Claude will call multiple tools to get the required data, then provide analysis based on this data.
 
@@ -328,6 +351,7 @@ The project currently integrates the following Tushare API interfaces:
 
 | Function | Tushare Interface | Description |
 |----------|-------------------|-------------|
+| Current Timestamp | current_timestamp | Get current China timezone (UTC+8) time information ⭐️ New |
 | A-share Data | daily | Get A-share daily market data |
 | US Stock Data | us_daily | Get US stock daily market data |
 | HK Stock Data | hk_daily | Get Hong Kong stock daily market data |

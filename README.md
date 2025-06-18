@@ -75,11 +75,12 @@ Get the following macroeconomic indicator data:
 * **Hibor Rates** (Hong Kong Interbank Offered Rate)
 
 ### 🕐 Current Timestamp ⭐️ New Feature
-Display current time for China timezone (UTC+8):
+Get current time information for China timezone (UTC+8), supporting:
+* **Multiple Formats**: datetime, date, time, timestamp, readable
 * **China Timezone**: Accurate UTC+8 timezone calculation
 * **Weekday Info**: Chinese weekday display
 * **Real-time**: Current timestamp with precise second accuracy
-* **Simple Format**: Clean datetime display (YYYY-MM-DD HH:MM:SS)
+* **Formatted Output**: Beautiful markdown display with timezone information
 
 ### 🤖 MCP Integration
 Seamless integration with MCP-compatible clients (like Claude) for intelligent financial analysis
@@ -331,8 +332,16 @@ You can ask Claude:
 > "What time is it now?"
 > "What's today's date?"
 > "Get current timestamp"
+
+**Different Time Formats:**
+> "Show current time in readable format"
+> "Get Unix timestamp"
+> "Show only today's date"
+> "Show only current time"
+
+**Time-aware Analysis:**
 > "What day of the week is today?"
-> "Show current time for market analysis"
+> "Get current time for market analysis"
 
 This will use the `current_timestamp` tool to get accurate China timezone (UTC+8) time information.
 

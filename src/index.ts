@@ -14,45 +14,83 @@ import { macroEcon } from "./tools/macroEcon.js";
 import { companyPerformance } from "./tools/companyPerformance.js";
 import { fundData } from "./tools/fundData.js";
 
-// 🕐 获取当前时间的函数
-function getCurrentChinaTime(): string {
-  const now = new Date();
-  const chinaTime = new Date(now.getTime() + (8 * 60 * 60 * 1000));
-  
-  const formatNumber = (num: number): string => num.toString().padStart(2, '0');
-  
-  const year = chinaTime.getUTCFullYear();
-  const month = formatNumber(chinaTime.getUTCMonth() + 1);
-  const day = formatNumber(chinaTime.getUTCDate());
-  const hour = formatNumber(chinaTime.getUTCHours());
-  const minute = formatNumber(chinaTime.getUTCMinutes());
-  const second = formatNumber(chinaTime.getUTCSeconds());
-  
-  const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
-  const weekday = weekdays[chinaTime.getUTCDay()];
-  
-  return `上次一刷新时，东八区最新的时间: ${year}-${month}-${day} ${hour}:${minute}:${second} (${weekday})`;
-}
-
 // 🕐 时间戳工具定义
 const timestampTool = {
   name: "current_timestamp",
-  get description() {
-    return getCurrentChinaTime();
-  },
+  description: "获取当前东八区（中国时区）的时间戳，包括年月日时分秒信息",
   parameters: {
     type: "object",
-    properties: {}
+    properties: {
+      format: {
+        type: "string",
+        description: "时间格式，可选值：datetime(完整日期时间，默认)、date(仅日期)、time(仅时间)、timestamp(Unix时间戳)、readable(可读格式)"
+      }
+    }
   },
-  async run() {
-    return {
-      content: [
-        {
-          type: "text",
-          text: getCurrentChinaTime()
-        }
-      ]
-    };
+  async run(args?: { format?: string }) {
+    try {
+      // 获取当前UTC时间
+      const now = new Date();
+      
+      // 转换为东八区时间（UTC+8）
+      const chinaTime = new Date(now.getTime() + (8 * 60 * 60 * 1000));
+      
+      const format = args?.format || 'datetime';
+      
+      // 格式化时间函数
+      const formatNumber = (num: number): string => num.toString().padStart(2, '0');
+      
+      const year = chinaTime.getUTCFullYear();
+      const month = formatNumber(chinaTime.getUTCMonth() + 1);
+      const day = formatNumber(chinaTime.getUTCDate());
+      const hour = formatNumber(chinaTime.getUTCHours());
+      const minute = formatNumber(chinaTime.getUTCMinutes());
+      const second = formatNumber(chinaTime.getUTCSeconds());
+      
+      // 星期几
+      const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+      const weekday = weekdays[chinaTime.getUTCDay()];
+      
+      let result: string;
+      
+      switch (format) {
+        case 'date':
+          result = `${year}-${month}-${day}`;
+          break;
+        case 'time':
+          result = `${hour}:${minute}:${second}`;
+          break;
+        case 'timestamp':
+          result = Math.floor(chinaTime.getTime() / 1000).toString();
+          break;
+        case 'readable':
+          result = `${year}年${month}月${day}日 ${weekday} ${hour}时${minute}分${second}秒`;
+          break;
+        case 'datetime':
+        default:
+          result = `${year}-${month}-${day} ${hour}:${minute}:${second}`;
+          break;
+      }
+      
+      return {
+        content: [
+          {
+            type: "text",
+            text: `## 🕐 当前东八区时间\n\n**格式**: ${format}\n**时间**: ${result}\n\n**时区**: 东八区 (UTC+8)\n**星期**: ${weekday}\n\n---\n\n*时间戳获取于: ${year}-${month}-${day} ${hour}:${minute}:${second}*`
+          }
+        ]
+      };
+    } catch (error) {
+      return {
+        content: [
+          {
+            type: "text", 
+            text: `❌ 获取时间戳时发生错误: ${error instanceof Error ? error.message : String(error)}`
+          }
+        ],
+        isError: true
+      };
+    }
   }
 };
 
@@ -116,7 +154,8 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   switch (request.params.name) {
     case "current_timestamp": {
-      return await timestampTool.run();
+      const format = request.params.arguments?.format ? String(request.params.arguments.format) : undefined;
+      return await timestampTool.run({ format });
     }
 
     case "finance_news": {

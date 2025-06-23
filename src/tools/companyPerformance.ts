@@ -195,8 +195,6 @@ async function fetchFinancialData(
     if (startDate) params.params.start_date = startDate;
     if (endDate) params.params.end_date = endDate;
   } else if (dataType === 'dividend') {
-    if (startDate) params.params.start_date = startDate;
-    if (endDate) params.params.end_date = endDate;
   }
 
   console.log(`请求${dataType}数据，API: ${config.api_name}，参数:`, params.params);
@@ -235,13 +233,26 @@ async function fetchFinancialData(
     const fieldsArray = data.data.fields;
 
     // 将数据转换为对象数组
-    const resultData = data.data.items.map((item: any) => {
+    let resultData = data.data.items.map((item: any) => {
       const result: Record<string, any> = {};
       fieldsArray.forEach((field: string, index: number) => {
         result[field] = item[index];
       });
       return result;
     });
+
+    // 对dividend数据进行日期范围过滤
+    if (dataType === 'dividend' && startDate && endDate) {
+      resultData = resultData.filter((item: any) => {
+        // 使用ann_date（公告日期）进行过滤
+        const annDate = item.ann_date;
+        if (!annDate) return true; // 如果没有公告日期，保留数据
+        
+        // 转换日期格式进行比较 (YYYYMMDD格式)
+        return annDate >= startDate && annDate <= endDate;
+      });
+      console.log(`日期范围过滤后剩余${resultData.length}条分红记录`);
+    }
 
     console.log(`成功获取到${resultData.length}条${dataType}数据记录`);
     return { data: resultData, fields: fieldsArray };

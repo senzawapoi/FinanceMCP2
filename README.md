@@ -2,7 +2,7 @@
 
 [![smithery badge](https://smithery.ai/badge/@guangxiangdebizi/FinanceMCP)](https://smithery.ai/server/@guangxiangdebizi/FinanceMCP)
 
-Welcome to **FinanceMCP Financial Data Server**! This project provides a Model Context Protocol (MCP) based server that enables language models (like Claude) to access real-time financial data through the **Tushare API**. This allows AI assistants to perform financial analysis and predictions based on the latest market information.
+Welcome to **FinanceMCP Financial Data Server**! This project provides a Model Context Protocol (MCP) based server that enables language models (like Claude) to access comprehensive real-time financial data through the **Tushare API**. This allows AI assistants to perform financial analysis and predictions based on the latest market information, including stocks, bonds, funds, macroeconomic indicators, and convertible bonds.
 
 ## 🌟 Features
 
@@ -74,6 +74,28 @@ Get the following macroeconomic indicator data:
 * **Libor Rates** (London Interbank Offered Rate)
 * **Hibor Rates** (Hong Kong Interbank Offered Rate)
 
+### 🪙 Convertible Bond Data ⭐️ New Feature
+Get comprehensive convertible bond non-market data, supporting:
+
+#### Basic Information Query
+* **Bond Details**: Bond name, underlying stock code/name, maturity period, par value
+* **Trading Info**: Exchange, listing date, delisting date, issue date
+* **Conversion Terms**: Initial conversion price, current conversion price, conversion period
+* **Bond Clauses**: Interest rate clause, put clause, force redemption clause, resale clause
+
+#### Issuance Data Query  
+* **Issue Overview**: Planned/actual issue size, issue price, issue type, issue cost
+* **Online Issuance**: Subscription code/name, issue date, subscription volume, winning rate
+* **Shareholder Allotment**: Allotment code/name, record date, payment date, allotment ratio
+* **Offline Issuance**: Issue volume, deposit ratio, subscription statistics
+* **Underwriting Info**: Lead underwriter, underwriting volume
+
+#### Query Features
+* **Flexible Filters**: Query by bond code, announcement date, listing date, status, etc.
+* **Date Range Support**: Custom start/end date for announcement periods
+* **Professional Display**: Structured markdown format with rich emoji categorization
+* **Error Handling**: Comprehensive error reporting and user-friendly messages
+
 ### 🕐 Current Timestamp ⭐️ New Feature
 Get current time information for China timezone (UTC+8), supporting:
 * **Multiple Formats**: datetime, date, time, timestamp, readable
@@ -84,6 +106,47 @@ Get current time information for China timezone (UTC+8), supporting:
 
 ### 🤖 MCP Integration
 Seamless integration with MCP-compatible clients (like Claude) for intelligent financial analysis
+
+## 🎯 Tool Overview
+
+This server provides **8 comprehensive financial tools**:
+
+1. **📰 Finance News** - Real-time financial news and market updates
+2. **📈 Stock Data** - Multi-market stock trading data (A-shares, US, HK, forex, futures, etc.)  
+3. **📊 Index Data** - Major market indices (SSE, SZSE, CSI, etc.)
+4. **🏢 Company Performance** - Complete financial statements and corporate analysis
+5. **💰 Fund Data** - Comprehensive mutual fund information and analysis
+6. **📉 Macro Economics** - Key economic indicators (GDP, CPI, PPI, PMI, etc.)
+7. **🪙 Convertible Bonds** - Complete convertible bond information and issuance data
+8. **🕐 Timestamp** - Current China timezone timestamp in multiple formats
+
+## 🔧 Technical Specifications
+
+### Data Sources
+- **Primary API**: [Tushare Pro](https://tushare.pro) - Professional financial data platform
+- **Coverage**: Chinese mainland markets, Hong Kong, US markets, and global indices
+- **Update Frequency**: Real-time to daily, depending on data type
+- **Historical Data**: Multi-year historical coverage for most data types
+
+### Supported Markets & Instruments
+- **A-Shares**: Shanghai (SH) and Shenzhen (SZ) stock exchanges
+- **Hong Kong**: Hong Kong Stock Exchange (HK)
+- **US Markets**: NASDAQ, NYSE, and other US exchanges
+- **Bonds**: Government bonds, corporate bonds, convertible bonds
+- **Funds**: ETFs, mutual funds, index funds
+- **Derivatives**: Futures, options, currency pairs
+- **Indices**: Major market indices and sector indices
+
+### API Endpoints
+| Tool | Tushare API | Description |
+|------|-------------|-------------|
+| 📰 Finance News | `news`, `major_news` | Real-time financial news |
+| 📈 Stock Data | `daily`, `us_daily`, `hk_daily`, etc. | Multi-market stock data |
+| 📊 Index Data | `index_daily` | Market indices |
+| 🏢 Company Performance | `income`, `balance`, `cashflow`, etc. | Financial statements |
+| 💰 Fund Data | `fund_basic`, `fund_nav`, etc. | Fund information |
+| 📉 Macro Economics | `shibor`, `gdp`, `cpi`, etc. | Economic indicators |
+| 🪙 Convertible Bonds | `cb_basic`, `cb_issue` | Convertible bond data |
 
 ## 🚦 Requirements
 
@@ -150,6 +213,28 @@ node build/index.js
 npx supergateway --stdio "node build/index.js" --port 3100
 ```
 
+## 📚 Usage Examples
+
+### Query Convertible Bond Basic Information
+```
+Show me the basic information for convertible bond 110001.SH
+```
+
+### Query Convertible Bond Issuance Data
+```
+Get the issuance data for convertible bonds announced in December 2023
+```
+
+### Query All Convertible Bond Data
+```
+Show me all available data for convertible bond 128001.SZ
+```
+
+### Query Recent Convertible Bond Issues
+```
+Find convertible bonds issued between 20240101 and 20240630
+```
+
 ## 📝 Configuring MCP Clients
 
 To use this server in Claude or other MCP clients, you need the following configuration:
@@ -172,7 +257,8 @@ Add the following to Claude's configuration file:
         "index_data",
         "macro_econ",
         "company_performance",
-        "fund_data"
+        "fund_data",
+        "convertible_bond"
       ]
     }
   }
@@ -195,7 +281,8 @@ If using stdio mode directly (without Supergateway), configure as follows:
         "index_data",
         "macro_econ",
         "company_performance",
-        "fund_data"
+        "fund_data",
+        "convertible_bond"
       ]
     }
   }

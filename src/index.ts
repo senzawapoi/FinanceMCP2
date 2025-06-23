@@ -13,6 +13,7 @@ import { indexData } from "./tools/indexData.js";
 import { macroEcon } from "./tools/macroEcon.js";
 import { companyPerformance } from "./tools/companyPerformance.js";
 import { fundData } from "./tools/fundData.js";
+import { convertibleBond } from "./tools/convertibleBond.js";
 
 // 🕐 时间戳工具定义
 const timestampTool = {
@@ -145,6 +146,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         name: fundData.name,
         description: fundData.description,
         inputSchema: fundData.parameters
+      },
+      {
+        name: convertibleBond.name,
+        description: convertibleBond.description,
+        inputSchema: convertibleBond.parameters
       }
     ]
   };
@@ -216,6 +222,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       const status = request.params.arguments?.status ? String(request.params.arguments.status) : undefined;
       const fields = request.params.arguments?.fields ? String(request.params.arguments.fields) : undefined;
       return await fundData.run({ ts_code, data_type, market, start_date, end_date, ann_date, nav_date, period, symbol, name, status, fields });
+    }
+
+    case "convertible_bond": {
+      const ts_code = request.params.arguments?.ts_code ? String(request.params.arguments.ts_code) : undefined;
+      const data_type = String(request.params.arguments?.data_type);
+      const start_date = request.params.arguments?.start_date ? String(request.params.arguments.start_date) : undefined;
+      const end_date = request.params.arguments?.end_date ? String(request.params.arguments.end_date) : undefined;
+      return await convertibleBond.run({ ts_code, data_type, start_date, end_date });
     }
 
     default:

@@ -14,26 +14,17 @@ export const companyPerformance = {
                 description: "数据类型，可选值：income(利润表)、balance(资产负债表)、cashflow(现金流量表)、forecast(业绩预告)、express(业绩快报)、indicators(财务指标)、dividend(分红送股)、all(全部数据)",
                 enum: ["income", "balance", "cashflow", "forecast", "express", "indicators", "dividend", "all"]
             },
-            period: {
-                type: "string",
-                description: "报告期，格式为YYYYMMDD，如'20231231'表示2023年年报，'20230930'表示2023年三季报"
-            },
             start_date: {
                 type: "string",
-                description: "起始日期，格式为YYYYMMDD，如'20230101'"
+                description: "起始日期，格式为YYYYMMDD，如'20230101'。不指定则获取默认时间范围数据"
             },
             end_date: {
                 type: "string",
-                description: "结束日期，格式为YYYYMMDD，如'20231231'"
+                description: "结束日期，格式为YYYYMMDD，如'20231231'。不指定则获取到最新数据"
             },
-            report_type: {
+            period: {
                 type: "string",
-                description: "报告类型，可选值：1(合并报表)、2(单季合并)、3(调整单季合并表)、4(调整合并报表)、5(调整前合并报表)，默认为1",
-                enum: ["1", "2", "3", "4", "5"]
-            },
-            fields: {
-                type: "string",
-                description: "指定返回的字段，多个字段用逗号分隔。如果不指定，将返回该数据类型的主要字段"
+                description: "特定报告期，格式为YYYYMMDD，如'20231231'表示2023年年报。指定此参数时将忽略start_date和end_date"
             }
         },
         required: ["ts_code", "data_type"]
@@ -58,7 +49,7 @@ export const companyPerformance = {
                 : [args.data_type];
             for (const dataType of dataTypes) {
                 try {
-                    const result = await fetchFinancialData(dataType, args.ts_code, args.period, args.start_date || defaultStartDate, args.end_date || defaultEndDate, args.report_type || '1', args.fields, TUSHARE_API_KEY, TUSHARE_API_URL);
+                    const result = await fetchFinancialData(dataType, args.ts_code, args.period, args.start_date || defaultStartDate, args.end_date || defaultEndDate, TUSHARE_API_KEY, TUSHARE_API_URL);
                     if (result.data && result.data.length > 0) {
                         results.push({
                             type: dataType,
@@ -96,7 +87,7 @@ export const companyPerformance = {
     }
 };
 // 获取财务数据的通用函数
-async function fetchFinancialData(dataType, tsCode, period, startDate, endDate, reportType, fields, apiKey, apiUrl) {
+async function fetchFinancialData(dataType, tsCode, period, startDate, endDate, apiKey, apiUrl) {
     const apiConfigs = {
         income: {
             api_name: "income",
@@ -138,7 +129,7 @@ async function fetchFinancialData(dataType, tsCode, period, startDate, endDate, 
         params: {
             ts_code: tsCode
         },
-        fields: fields || config.default_fields
+        fields: config.default_fields
     };
     // 根据不同的API添加特定参数
     if (['income', 'balance', 'cashflow', 'indicators'].includes(dataType)) {
@@ -151,8 +142,6 @@ async function fetchFinancialData(dataType, tsCode, period, startDate, endDate, 
             if (endDate)
                 params.params.end_date = endDate;
         }
-        if (reportType)
-            params.params.report_type = reportType;
     }
     else if (['forecast', 'express'].includes(dataType)) {
         if (startDate)
@@ -161,6 +150,7 @@ async function fetchFinancialData(dataType, tsCode, period, startDate, endDate, 
             params.params.end_date = endDate;
     }
     else if (dataType === 'dividend') {
+        // 分红数据不在API级别过滤，在返回后过滤
     }
     console.log(`请求${dataType}数据，API: ${config.api_name}，参数:`, params.params);
     // 设置请求超时
@@ -272,7 +262,7 @@ function formatFinancialData(results, tsCode) {
 // 格式化利润表数据
 function formatIncomeStatement(data) {
     let output = '';
-    for (const item of data.slice(0, 5)) { // 显示最近5期数据
+    for (const item of data) { // 显示所有数据
         output += ` ${item.end_date || item.period} 期间\n`;
         output += `公告日期: ${item.ann_date || 'N/A'}  实际公告日期: ${item.f_ann_date || 'N/A'}\n\n`;
         if (item.total_revenue)
@@ -296,7 +286,7 @@ function formatIncomeStatement(data) {
 // 格式化资产负债表数据
 function formatBalanceSheet(data) {
     let output = '';
-    for (const item of data.slice(0, 5)) {
+    for (const item of data) {
         output += ` ${item.end_date || item.period} 期间\n`;
         output += `公告日期: ${item.ann_date || 'N/A'}  实际公告日期: ${item.f_ann_date || 'N/A'}\n\n`;
         if (item.total_assets)
@@ -318,7 +308,7 @@ function formatBalanceSheet(data) {
 // 格式化现金流量表数据
 function formatCashFlow(data) {
     let output = '';
-    for (const item of data.slice(0, 5)) {
+    for (const item of data) {
         output += ` ${item.end_date || item.period} 期间\n`;
         output += `公告日期: ${item.ann_date || 'N/A'}  实际公告日期: ${item.f_ann_date || 'N/A'}\n\n`;
         if (item.n_cashflow_act)
@@ -338,7 +328,7 @@ function formatCashFlow(data) {
 // 格式化业绩预告数据
 function formatForecast(data) {
     let output = '';
-    for (const item of data.slice(0, 10)) {
+    for (const item of data) {
         output += ` ${item.end_date} 期间预告\n`;
         output += `公告日期: ${item.ann_date}  预告类型: ${getForecastType(item.type)}\n`;
         if (item.p_change_min !== null && item.p_change_max !== null) {
@@ -360,7 +350,7 @@ function formatForecast(data) {
 // 格式化业绩快报数据
 function formatExpress(data) {
     let output = '';
-    for (const item of data.slice(0, 5)) {
+    for (const item of data) {
         output += ` ${item.end_date} 期间快报\n`;
         output += `公告日期: ${item.ann_date}\n\n`;
         if (item.revenue)
@@ -391,7 +381,7 @@ function formatExpress(data) {
 // 格式化财务指标数据
 function formatIndicators(data) {
     let output = '';
-    for (const item of data.slice(0, 5)) {
+    for (const item of data) {
         output += ` ${item.end_date} 期间指标\n`;
         output += `公告日期: ${item.ann_date}\n\n`;
         // 盈利能力指标
@@ -429,7 +419,7 @@ function formatIndicators(data) {
 // 格式化分红送股数据
 function formatDividend(data) {
     let output = '';
-    for (const item of data.slice(0, 10)) {
+    for (const item of data) {
         output += ` ${item.end_date} 分红方案\n`;
         output += `公告日期: ${item.ann_date}  实施进度: ${item.div_proc || 'N/A'}\n`;
         if (item.stk_div)
@@ -453,7 +443,7 @@ function formatDividend(data) {
 // 格式化通用数据
 function formatGenericData(data, fields) {
     let output = '';
-    for (const item of data.slice(0, 5)) {
+    for (const item of data) {
         output += ' 数据记录\n';
         for (const field of fields.slice(0, 10)) { // 只显示前10个字段
             if (item[field] !== null && item[field] !== undefined) {

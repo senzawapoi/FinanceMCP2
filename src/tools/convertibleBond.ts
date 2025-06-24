@@ -210,18 +210,18 @@ async function fetchConvertibleBondData(
 
 // 格式化可转债数据输出
 function formatConvertibleBondData(results: any[], tsCode?: string): string {
-  let output = `# 🪙 可转债数据报告${tsCode ? ` - ${tsCode}` : ''}\n\n`;
-  output += `📅 **查询时间**: ${new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })}\n\n`;
+  let output = ` 🪙 可转债数据报告${tsCode ? ` - ${tsCode}` : ''}\n\n`;
+  output += `📅 查询时间: ${new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })}\n\n`;
 
   results.forEach((result, index) => {
     if (result.error) {
-      output += `## ❌ ${getDataTypeName(result.type)}查询失败\n\n`;
-      output += `**错误信息**: ${result.error}\n\n`;
+      output += ` ❌ ${getDataTypeName(result.type)}查询失败\n\n`;
+      output += `错误信息: ${result.error}\n\n`;
       return;
     }
 
     const dataTypeName = getDataTypeName(result.type);
-    output += `## 📊 ${dataTypeName} (${result.data.length}条记录)\n\n`;
+    output += ` 📊 ${dataTypeName} (${result.data.length}条记录)\n\n`;
 
     switch (result.type) {
       case 'basic':
@@ -257,29 +257,29 @@ function formatBasicInfo(data: any[]): string {
   }
 
   return data.map((item, index) => {
-    const output = `### ${index + 1}. ${item.bond_short_name || '未知可转债'} (${item.ts_code})\n\n`;
+    const output = ` ${index + 1}. ${item.bond_short_name || '未知可转债'} (${item.ts_code})\n\n`;
     
     let details = '';
     if (item.stk_code && item.stk_short_name) {
-      details += `**🏢 正股信息**: ${item.stk_short_name} (${item.stk_code})\n`;
+      details += `🏢 正股信息: ${item.stk_short_name} (${item.stk_code})\n`;
     }
-    if (item.par_value) details += `**💰 票面价值**: ${formatNumber(item.par_value)}元\n`;
-    if (item.issue_price) details += `**💵 发行价格**: ${formatNumber(item.issue_price)}元\n`;
-    if (item.issue_size) details += `**📊 发行规模**: ${formatNumber(item.issue_size)}亿元\n`;
-    if (item.remain_size) details += `**📦 存续规模**: ${formatNumber(item.remain_size)}亿元\n`;
-    if (item.maturity) details += `**⏰ 存续期限**: ${item.maturity}年\n`;
-    if (item.value_date) details += `**📅 起息日期**: ${formatDate(item.value_date)}\n`;
-    if (item.maturity_date) details += `**🏁 到期日期**: ${formatDate(item.maturity_date)}\n`;
-    if (item.list_date) details += `**📈 上市日期**: ${formatDate(item.list_date)}\n`;
-    if (item.delist_date) details += `**📉 摘牌日期**: ${formatDate(item.delist_date)}\n`;
-    if (item.exchange) details += `**🏛️ 交易市场**: ${item.exchange}\n`;
-    if (item.conv_start_date) details += `**🔄 转股开始**: ${formatDate(item.conv_start_date)}\n`;
-    if (item.conv_end_date) details += `**🔚 转股结束**: ${formatDate(item.conv_end_date)}\n`;
-    if (item.first_conv_price) details += `**💲 初始转股价**: ${formatNumber(item.first_conv_price)}元/股\n`;
-    if (item.conv_price) details += `**💲 当前转股价**: ${formatNumber(item.conv_price)}元/股\n`;
-    if (item.rate_clause) details += `**📋 利率条款**: ${item.rate_clause}\n`;
-    if (item.put_clause) details += `**🔄 回售条款**: ${item.put_clause}\n`;
-    if (item.force_redeem_clause) details += `**🚨 强赎条款**: ${item.force_redeem_clause}\n`;
+    if (item.par_value) details += `💰 票面价值: ${formatNumber(item.par_value)}元\n`;
+    if (item.issue_price) details += `💵 发行价格: ${formatNumber(item.issue_price)}元\n`;
+    if (item.issue_size) details += `📊 发行规模: ${formatNumber(item.issue_size)}亿元\n`;
+    if (item.remain_size) details += `📦 存续规模: ${formatNumber(item.remain_size)}亿元\n`;
+    if (item.maturity) details += `⏰ 存续期限: ${item.maturity}年\n`;
+    if (item.value_date) details += `📅 起息日期: ${formatDate(item.value_date)}\n`;
+    if (item.maturity_date) details += `🏁 到期日期: ${formatDate(item.maturity_date)}\n`;
+    if (item.list_date) details += `📈 上市日期: ${formatDate(item.list_date)}\n`;
+    if (item.delist_date) details += `📉 摘牌日期: ${formatDate(item.delist_date)}\n`;
+    if (item.exchange) details += `🏛️ 交易市场: ${item.exchange}\n`;
+    if (item.conv_start_date) details += `🔄 转股开始: ${formatDate(item.conv_start_date)}\n`;
+    if (item.conv_end_date) details += `🔚 转股结束: ${formatDate(item.conv_end_date)}\n`;
+    if (item.first_conv_price) details += `💲 初始转股价: ${formatNumber(item.first_conv_price)}元/股\n`;
+    if (item.conv_price) details += `💲 当前转股价: ${formatNumber(item.conv_price)}元/股\n`;
+    if (item.rate_clause) details += `📋 利率条款: ${item.rate_clause}\n`;
+    if (item.put_clause) details += `🔄 回售条款: ${item.put_clause}\n`;
+    if (item.force_redeem_clause) details += `🚨 强赎条款: ${item.force_redeem_clause}\n`;
 
     return output + details + '\n';
   }).join('---\n\n');
@@ -291,20 +291,20 @@ function formatIssueInfo(data: any[]): string {
   }
 
   return data.map((item, index) => {
-    const output = `### ${index + 1}. 发行信息 (${item.ts_code})\n\n`;
+    const output = ` ${index + 1}. 发行信息 (${item.ts_code})\n\n`;
     
     let details = '';
-    if (item.ann_date) details += `**📢 发行公告日**: ${formatDate(item.ann_date)}\n`;
-    if (item.res_ann_date) details += `**📊 发行结果公告日**: ${formatDate(item.res_ann_date)}\n`;
-    if (item.plan_issue_size) details += `**📋 计划发行总额**: ${formatNumber(item.plan_issue_size)}元\n`;
-    if (item.issue_size) details += `**💰 实际发行总额**: ${formatNumber(item.issue_size)}元\n`;
-    if (item.issue_price) details += `**💵 发行价格**: ${formatNumber(item.issue_price)}元\n`;
-    if (item.issue_type) details += `**🏷️ 发行方式**: ${item.issue_type}\n`;
-    if (item.issue_cost) details += `**💸 发行费用**: ${formatNumber(item.issue_cost)}元\n`;
+    if (item.ann_date) details += `📢 发行公告日: ${formatDate(item.ann_date)}\n`;
+    if (item.res_ann_date) details += `📊 发行结果公告日: ${formatDate(item.res_ann_date)}\n`;
+    if (item.plan_issue_size) details += `📋 计划发行总额: ${formatNumber(item.plan_issue_size)}元\n`;
+    if (item.issue_size) details += `💰 实际发行总额: ${formatNumber(item.issue_size)}元\n`;
+    if (item.issue_price) details += `💵 发行价格: ${formatNumber(item.issue_price)}元\n`;
+    if (item.issue_type) details += `🏷️ 发行方式: ${item.issue_type}\n`;
+    if (item.issue_cost) details += `💸 发行费用: ${formatNumber(item.issue_cost)}元\n`;
 
     // 网上发行信息
     if (item.onl_code && item.onl_name) {
-      details += `\n**🌐 网上发行信息**:\n`;
+      details += `\n🌐 网上发行信息:\n`;
       details += `- 申购代码: ${item.onl_code} (${item.onl_name})\n`;
       if (item.onl_date) details += `- 发行日期: ${formatDate(item.onl_date)}\n`;
       if (item.onl_size) details += `- 发行总额: ${formatNumber(item.onl_size)}张\n`;
@@ -316,7 +316,7 @@ function formatIssueInfo(data: any[]): string {
 
     // 老股东配售信息
     if (item.shd_ration_code && item.shd_ration_name) {
-      details += `\n**👥 老股东配售信息**:\n`;
+      details += `\n👥 老股东配售信息:\n`;
       details += `- 配售代码: ${item.shd_ration_code} (${item.shd_ration_name})\n`;
       if (item.shd_ration_date) details += `- 配售日期: ${formatDate(item.shd_ration_date)}\n`;
       if (item.shd_ration_record_date) details += `- 股权登记日: ${formatDate(item.shd_ration_record_date)}\n`;
@@ -331,7 +331,7 @@ function formatIssueInfo(data: any[]): string {
 
     // 网下发行信息
     if (item.offl_size) {
-      details += `\n**🏢 网下发行信息**:\n`;
+      details += `\n🏢 网下发行信息:\n`;
       details += `- 发行总额: ${formatNumber(item.offl_size)}张\n`;
       if (item.offl_deposit) details += `- 定金比例: ${formatPercent(item.offl_deposit)}\n`;
       if (item.offl_pch_vol) details += `- 有效申购: ${formatNumber(item.offl_pch_vol)}张\n`;
@@ -342,7 +342,7 @@ function formatIssueInfo(data: any[]): string {
 
     // 承销商信息
     if (item.lead_underwriter) {
-      details += `\n**🏦 承销信息**:\n`;
+      details += `\n🏦 承销信息:\n`;
       details += `- 主承销商: ${item.lead_underwriter}\n`;
       if (item.lead_underwriter_vol) details += `- 包销数量: ${formatNumber(item.lead_underwriter_vol)}张\n`;
     }
@@ -357,11 +357,11 @@ function formatGenericCBData(data: any[], fields: string[]): string {
   }
 
   return data.map((item, index) => {
-    let output = `### ${index + 1}. 记录详情\n\n`;
+    let output = ` ${index + 1}. 记录详情\n\n`;
     
     fields.forEach(field => {
       if (item[field] !== null && item[field] !== undefined && item[field] !== '') {
-        output += `**${field}**: ${item[field]}\n`;
+        output += `${field}: ${item[field]}\n`;
       }
     });
     

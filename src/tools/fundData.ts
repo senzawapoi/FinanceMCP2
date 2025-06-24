@@ -15,10 +15,7 @@ export const fundData = {
         description: "数据类型，可选值：basic(基金列表)、manager(基金经理)、nav(基金净值)、dividend(基金分红)、portfolio(基金持仓)、all(全部数据)",
         enum: ["basic", "manager", "nav", "dividend", "portfolio", "all"]
       },
-      name: {
-        type: "string",
-        description: "基金经理姓名，用于查询特定基金经理的信息。仅在data_type为'manager'时有效，如'张坤'、'刘彦春'等"
-      },
+
       start_date: {
         type: "string",
         description: "起始日期，格式为YYYYMMDD，如'20230101'。重要：对于基金持仓(portfolio)数据和基金净值(nav)数据，如果不指定时间参数，将返回所有历史数据，可能数据量很大。建议指定时间范围或使用period参数"
@@ -32,12 +29,11 @@ export const fundData = {
         description: "特定报告期，格式为YYYYMMDD。例如：'20231231'表示2023年年报，'20240630'表示2024年中报，'20220630'表示2022年三季报，'20240331'表示2024年一季报。指定此参数时将忽略start_date和end_date"
       }
     },
-    required: ["data_type"]
+    required: ["data_type","ts_code"]
   },
   async run(args: { 
     ts_code?: string; 
     data_type: string; 
-    name?: string;
     start_date?: string; 
     end_date?: string; 
     period?: string;
@@ -80,7 +76,6 @@ export const fundData = {
           const result = await fetchFundData(
             dataType,
             args.ts_code,
-            args.name,
             args.period,
             args.start_date || defaultStartDate,
             args.end_date || defaultEndDate,
@@ -109,7 +104,7 @@ export const fundData = {
       }
 
       // 格式化输出
-      const formattedOutput = formatFundData(results, args.ts_code, args.name);
+      const formattedOutput = formatFundData(results, args.ts_code);
       
       return {
         content: [{ type: "text", text: formattedOutput }]
@@ -131,7 +126,6 @@ export const fundData = {
 async function fetchFundData(
   dataType: string,
   tsCode?: string,
-  name?: string,
   period?: string,
   startDate?: string,
   endDate?: string,
@@ -179,7 +173,6 @@ async function fetchFundData(
     if (tsCode) params.params.ts_code = tsCode;
   } else if (dataType === 'manager') {
     if (tsCode) params.params.ts_code = tsCode;
-    if (name) params.params.name = name;
   } else if (dataType === 'nav') {
     if (tsCode) params.params.ts_code = tsCode;
     if (period) {
@@ -368,15 +361,11 @@ async function fetchFundShareData(
 }
 
 // 格式化基金数据输出
-function formatFundData(results: any[], tsCode?: string, name?: string): string {
+function formatFundData(results: any[], tsCode?: string): string {
   let output = `# 基金数据查询结果\n\n`;
   
   if (tsCode) {
     output += `基金代码: ${tsCode}\n\n`;
-  }
-  
-  if (name) {
-    output += `基金经理姓名: ${name}\n\n`;
   }
 
   for (const result of results) {
@@ -459,7 +448,7 @@ function formatManagerData(data: any[]): string {
     output += `- 离任日期: ${item.end_date || '在任'}\n`;
     output += `- 公告日期: ${item.ann_date || 'N/A'}\n`;
     if (item.resume) {
-      const resumeShort = item.resume.length > 100 ? item.resume.substring(0, 100) + '...' : item.resume;
+      const resumeShort = item.resume;
       output += `- 简历: ${resumeShort}\n`;
     }
     output += '\n';

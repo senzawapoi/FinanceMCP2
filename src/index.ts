@@ -13,6 +13,7 @@ import { indexData } from "./tools/indexData.js";
 import { macroEcon } from "./tools/macroEcon.js";
 import { companyPerformance } from "./tools/companyPerformance.js";
 import { fundData } from "./tools/fundData.js";
+import { fundManagerByName, runFundManagerByName } from "./tools/fundManagerByName.js";
 import { convertibleBond } from "./tools/convertibleBond.js";
 
 // 🕐 时间戳工具定义
@@ -148,6 +149,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         inputSchema: fundData.parameters
       },
       {
+        name: fundManagerByName.name,
+        description: fundManagerByName.description,
+        inputSchema: fundManagerByName.inputSchema
+      },
+      {
         name: convertibleBond.name,
         description: convertibleBond.description,
         inputSchema: convertibleBond.parameters
@@ -209,11 +215,16 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     case "fund_data": {
       const ts_code = request.params.arguments?.ts_code ? String(request.params.arguments.ts_code) : undefined;
       const data_type = String(request.params.arguments?.data_type);
-      const name = request.params.arguments?.name ? String(request.params.arguments.name) : undefined;
       const start_date = request.params.arguments?.start_date ? String(request.params.arguments.start_date) : undefined;
       const end_date = request.params.arguments?.end_date ? String(request.params.arguments.end_date) : undefined;
       const period = request.params.arguments?.period ? String(request.params.arguments.period) : undefined;
-      return await fundData.run({ ts_code, data_type, name, start_date, end_date, period });
+      return await fundData.run({ ts_code, data_type, start_date, end_date, period });
+    }
+
+    case "fund_manager_by_name": {
+      const name = String(request.params.arguments?.name);
+      const ann_date = request.params.arguments?.ann_date ? String(request.params.arguments.ann_date) : undefined;
+      return await runFundManagerByName({ name, ann_date });
     }
 
     case "convertible_bond": {

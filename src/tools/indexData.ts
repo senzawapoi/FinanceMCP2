@@ -19,7 +19,7 @@ export const indexData = {
         description: "结束日期，格式为YYYYMMDD，如'20230131'"
       }
     },
-    required: ["code"]
+    required: ["code", "start_date", "end_date"]
   },
   async run(args: { code: string; start_date?: string; end_date?: string }) {
     try {

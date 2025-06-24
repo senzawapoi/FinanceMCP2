@@ -1,7 +1,7 @@
 import { TUSHARE_CONFIG } from '../config.js';
 export const fundData = {
     name: "fund_data",
-    description: "获取公募基金全面数据，包括基金列表、基金管理人、基金经理、基金净值、基金分红、基金持仓等数据",
+    description: "获取公募基金全面数据，包括基金列表、基金经理、基金净值、基金分红、基金持仓等数据",
     parameters: {
         type: "object",
         properties: {
@@ -11,48 +11,20 @@ export const fundData = {
             },
             data_type: {
                 type: "string",
-                description: "数据类型，可选值：basic(基金列表)、company(基金管理人)、manager(基金经理)、nav(基金净值)、dividend(基金分红)、portfolio(基金持仓)、all(全部数据)",
-                enum: ["basic", "company", "manager", "nav", "dividend", "portfolio", "all"]
-            },
-            market: {
-                type: "string",
-                description: "交易市场，E场内 O场外，默认E"
+                description: "数据类型，可选值：basic(基金列表)、manager(基金经理)、nav(基金净值)、dividend(基金分红)、portfolio(基金持仓)、all(全部数据)",
+                enum: ["basic", "manager", "nav", "dividend", "portfolio", "all"]
             },
             start_date: {
                 type: "string",
-                description: "起始日期，格式为YYYYMMDD，如'20230101'"
+                description: "起始日期，格式为YYYYMMDD，如'20230101'。不指定则获取默认时间范围数据"
             },
             end_date: {
                 type: "string",
-                description: "结束日期，格式为YYYYMMDD，如'20231231'"
-            },
-            ann_date: {
-                type: "string",
-                description: "公告日期，格式为YYYYMMDD"
-            },
-            nav_date: {
-                type: "string",
-                description: "净值日期，格式为YYYYMMDD"
+                description: "结束日期，格式为YYYYMMDD，如'20231231'。不指定则获取到最新数据"
             },
             period: {
                 type: "string",
-                description: "季度，每个季度最后一天的日期，比如20131231表示2013年年报"
-            },
-            symbol: {
-                type: "string",
-                description: "股票代码，用于查询基金持仓"
-            },
-            name: {
-                type: "string",
-                description: "基金经理姓名或基金管理人名称"
-            },
-            status: {
-                type: "string",
-                description: "存续状态 D摘牌 I发行 L上市中"
-            },
-            fields: {
-                type: "string",
-                description: "指定返回的字段，多个字段用逗号分隔。如果不指定，将返回该数据类型的主要字段"
+                description: "特定报告期，格式为YYYYMMDD，如'20231231'表示2023年年报。指定此参数时将忽略start_date和end_date"
             }
         },
         required: ["data_type"]
@@ -73,11 +45,11 @@ export const fundData = {
             const results = [];
             // 根据data_type决定要查询的API
             const dataTypes = args.data_type === 'all'
-                ? ['basic', 'company', 'manager', 'nav', 'dividend', 'portfolio']
+                ? ['basic', 'manager', 'nav', 'dividend', 'portfolio']
                 : [args.data_type];
             for (const dataType of dataTypes) {
                 try {
-                    const result = await fetchFundData(dataType, args.ts_code, args.market, args.start_date || defaultStartDate, args.end_date || defaultEndDate, args.ann_date, args.nav_date, args.period, args.symbol, args.name, args.status, args.fields, TUSHARE_API_KEY, TUSHARE_API_URL);
+                    const result = await fetchFundData(dataType, args.ts_code, args.period, args.start_date || defaultStartDate, args.end_date || defaultEndDate, TUSHARE_API_KEY, TUSHARE_API_URL);
                     if (result.data && result.data.length > 0) {
                         results.push({
                             type: dataType,
@@ -115,15 +87,11 @@ export const fundData = {
     }
 };
 // 获取基金数据的通用函数
-async function fetchFundData(dataType, tsCode, market, startDate, endDate, annDate, navDate, period, symbol, name, status, fields, apiKey, apiUrl) {
+async function fetchFundData(dataType, tsCode, period, startDate, endDate, apiKey, apiUrl) {
     const apiConfigs = {
         basic: {
             api_name: "fund_basic",
             default_fields: "ts_code,name,management,custodian,fund_type,found_date,due_date,list_date,issue_date,delist_date,issue_amount,m_fee,c_fee,duration_year,p_value,min_amount,exp_return,benchmark,status,invest_type,type,trustee,purc_startdate,redm_startdate,market"
-        },
-        company: {
-            api_name: "fund_company",
-            default_fields: "name,shortname,short_enname,province,city,address,phone,office,website,chairman,manager,reg_capital,setup_date,end_date,employees,main_business,org_code,credit_code"
         },
         manager: {
             api_name: "fund_manager",
@@ -135,7 +103,7 @@ async function fetchFundData(dataType, tsCode, market, startDate, endDate, annDa
         },
         dividend: {
             api_name: "fund_div",
-            default_fields: "ts_code,ann_date,imp_anndate,base_date,div_proc,cash_div,cash_div_tax,nav_date,end_date,pay_date,earpay_date,lastoper_date,fund_share,net_value,total_ratio"
+            default_fields: "ts_code,ann_date,imp_anndate,base_date,div_proc,record_date,ex_date,pay_date,earpay_date,net_ex_date,div_cash,base_unit,ear_distr,ear_amount,account_date,base_year"
         },
         portfolio: {
             api_name: "fund_portfolio",
@@ -151,91 +119,100 @@ async function fetchFundData(dataType, tsCode, market, startDate, endDate, annDa
         api_name: config.api_name,
         token: apiKey,
         params: {},
-        fields: fields || config.default_fields
+        fields: config.default_fields
     };
     // 根据不同的API添加特定参数
     if (dataType === 'basic') {
         if (tsCode)
             params.params.ts_code = tsCode;
-        if (market)
-            params.params.market = market;
-        if (status)
-            params.params.status = status;
-    }
-    else if (dataType === 'company') {
-        if (name)
-            params.params.name = name;
     }
     else if (dataType === 'manager') {
         if (tsCode)
             params.params.ts_code = tsCode;
-        if (annDate)
-            params.params.ann_date = annDate;
-        if (name)
-            params.params.name = name;
     }
     else if (dataType === 'nav') {
         if (tsCode)
             params.params.ts_code = tsCode;
-        if (navDate)
-            params.params.nav_date = navDate;
-        if (market)
-            params.params.market = market;
-        if (startDate)
-            params.params.start_date = startDate;
-        if (endDate)
-            params.params.end_date = endDate;
+        if (period) {
+            params.params.nav_date = period;
+        }
+        else {
+            if (startDate)
+                params.params.start_date = startDate;
+            if (endDate)
+                params.params.end_date = endDate;
+        }
     }
     else if (dataType === 'dividend') {
         if (tsCode)
             params.params.ts_code = tsCode;
-        if (annDate)
-            params.params.ann_date = annDate;
     }
     else if (dataType === 'portfolio') {
         if (tsCode)
             params.params.ts_code = tsCode;
-        if (symbol)
-            params.params.symbol = symbol;
-        if (annDate)
-            params.params.ann_date = annDate;
-        if (period)
+        if (period) {
             params.params.period = period;
-        if (startDate)
-            params.params.start_date = startDate;
-        if (endDate)
-            params.params.end_date = endDate;
+        }
+        else {
+            if (startDate)
+                params.params.start_date = startDate;
+            if (endDate)
+                params.params.end_date = endDate;
+        }
     }
     console.log(`调用${config.api_name} API，参数:`, JSON.stringify(params, null, 2));
-    const response = await fetch(apiUrl || 'https://api.tushare.pro', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(params)
-    });
-    if (!response.ok) {
-        throw new Error(`API请求失败: ${response.status} ${response.statusText}`);
-    }
-    const result = await response.json();
-    if (result.code !== 0) {
-        throw new Error(`API返回错误: ${result.msg || '未知错误'}`);
-    }
-    if (!result.data || !result.data.items) {
-        return { data: [], fields: result.data?.fields || [] };
-    }
-    // 转换数据格式
-    const formattedData = result.data.items.map((item) => {
-        const obj = {};
-        result.data.fields.forEach((field, index) => {
-            obj[field] = item[index];
+    // 设置请求超时
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), TUSHARE_CONFIG.TIMEOUT);
+    try {
+        const response = await fetch(apiUrl || 'https://api.tushare.pro', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(params),
+            signal: controller.signal
         });
-        return obj;
-    });
-    return {
-        data: formattedData,
-        fields: result.data.fields
-    };
+        clearTimeout(timeoutId);
+        if (!response.ok) {
+            throw new Error(`API请求失败: ${response.status} ${response.statusText}`);
+        }
+        const result = await response.json();
+        if (result.code !== 0) {
+            throw new Error(`API返回错误: ${result.msg || '未知错误'}`);
+        }
+        if (!result.data || !result.data.items) {
+            return { data: [], fields: result.data?.fields || [] };
+        }
+        // 转换数据格式
+        const formattedData = result.data.items.map((item) => {
+            const obj = {};
+            result.data.fields.forEach((field, index) => {
+                obj[field] = item[index];
+            });
+            return obj;
+        });
+        // 对某些数据类型进行日期范围过滤
+        let filteredData = formattedData;
+        if (['dividend'].includes(dataType) && startDate && endDate && !period) {
+            filteredData = formattedData.filter((item) => {
+                const annDate = item.ann_date;
+                if (!annDate)
+                    return true;
+                return annDate >= startDate && annDate <= endDate;
+            });
+            console.log(`日期范围过滤后剩余${filteredData.length}条${dataType}记录`);
+        }
+        console.log(`成功获取到${filteredData.length}条${dataType}数据记录`);
+        return {
+            data: filteredData,
+            fields: result.data.fields
+        };
+    }
+    catch (error) {
+        clearTimeout(timeoutId);
+        throw error;
+    }
 }
 // 格式化基金数据输出
 function formatFundData(results, tsCode) {
@@ -254,9 +231,6 @@ function formatFundData(results, tsCode) {
             switch (result.type) {
                 case 'basic':
                     output += formatBasicData(result.data);
-                    break;
-                case 'company':
-                    output += formatCompanyData(result.data);
                     break;
                 case 'manager':
                     output += formatManagerData(result.data);
@@ -281,7 +255,6 @@ function formatFundData(results, tsCode) {
 function getDataTypeName(type) {
     const names = {
         basic: '基金基本信息',
-        company: '基金管理人',
         manager: '基金经理',
         nav: '基金净值',
         dividend: '基金分红',
@@ -291,7 +264,7 @@ function getDataTypeName(type) {
 }
 function formatBasicData(data) {
     let output = '';
-    data.slice(0, 10).forEach((item, index) => {
+    data.forEach((item, index) => {
         output += `### ${index + 1}. ${item.name || '未知基金'} (${item.ts_code})\n`;
         output += `- **管理人**: ${item.management || 'N/A'}\n`;
         output += `- **托管人**: ${item.custodian || 'N/A'}\n`;
@@ -306,35 +279,11 @@ function formatBasicData(data) {
             output += `- **托管费**: ${formatPercent(item.c_fee)}%\n`;
         output += '\n';
     });
-    if (data.length > 10) {
-        output += `... 还有 ${data.length - 10} 条记录\n`;
-    }
-    return output;
-}
-function formatCompanyData(data) {
-    let output = '';
-    data.slice(0, 5).forEach((item, index) => {
-        output += `### ${index + 1}. ${item.name || '未知公司'}\n`;
-        output += `- **简称**: ${item.shortname || 'N/A'}\n`;
-        output += `- **省份**: ${item.province || 'N/A'}\n`;
-        output += `- **城市**: ${item.city || 'N/A'}\n`;
-        output += `- **成立日期**: ${item.setup_date || 'N/A'}\n`;
-        output += `- **注册资本**: ${item.reg_capital || 'N/A'}\n`;
-        output += `- **员工人数**: ${item.employees || 'N/A'}\n`;
-        output += `- **董事长**: ${item.chairman || 'N/A'}\n`;
-        output += `- **总经理**: ${item.manager || 'N/A'}\n`;
-        if (item.website)
-            output += `- **网址**: ${item.website}\n`;
-        output += '\n';
-    });
-    if (data.length > 5) {
-        output += `... 还有 ${data.length - 5} 条记录\n`;
-    }
     return output;
 }
 function formatManagerData(data) {
     let output = '';
-    data.slice(0, 10).forEach((item, index) => {
+    data.forEach((item, index) => {
         output += `### ${index + 1}. ${item.name || '未知经理'} (${item.ts_code})\n`;
         output += `- **性别**: ${item.gender === 'M' ? '男' : item.gender === 'F' ? '女' : item.gender || 'N/A'}\n`;
         output += `- **出生年份**: ${item.birth_year || 'N/A'}\n`;
@@ -349,9 +298,6 @@ function formatManagerData(data) {
         }
         output += '\n';
     });
-    if (data.length > 10) {
-        output += `... 还有 ${data.length - 10} 条记录\n`;
-    }
     return output;
 }
 function formatNavData(data) {
@@ -364,12 +310,9 @@ function formatNavData(data) {
     });
     output += '| 净值日期 | 单位净值 | 累计净值 | 复权净值 | 资产净值 |\n';
     output += '|---------|----------|----------|----------|----------|\n';
-    sortedData.slice(0, 20).forEach(item => {
+    sortedData.forEach(item => {
         output += `| ${item.nav_date || 'N/A'} | ${formatNumber(item.unit_nav)} | ${formatNumber(item.accum_nav)} | ${formatNumber(item.adj_nav)} | ${formatNumber(item.net_asset)} |\n`;
     });
-    if (data.length > 20) {
-        output += `\n... 还有 ${data.length - 20} 条记录\n`;
-    }
     return output;
 }
 function formatDividendData(data) {
@@ -380,14 +323,11 @@ function formatDividendData(data) {
         const dateB = b.ann_date || '';
         return dateB.localeCompare(dateA);
     });
-    output += '| 公告日期 | 基准日期 | 分红方案 | 现金分红 | 净值日期 | 单位净值 |\n';
-    output += '|---------|----------|----------|----------|----------|----------|\n';
-    sortedData.slice(0, 15).forEach(item => {
-        output += `| ${item.ann_date || 'N/A'} | ${item.base_date || 'N/A'} | ${item.div_proc || 'N/A'} | ${formatNumber(item.cash_div)} | ${item.nav_date || 'N/A'} | ${formatNumber(item.net_value)} |\n`;
+    output += '| 公告日期 | 基准日期 | 分红方案 | 每股派息(元) | 除息日 | 派息日 | 权益登记日 |\n';
+    output += '|---------|----------|----------|-------------|-------|-------|----------|\n';
+    sortedData.forEach(item => {
+        output += `| ${item.ann_date || 'N/A'} | ${item.base_date || 'N/A'} | ${item.div_proc || 'N/A'} | ${formatNumber(item.div_cash)} | ${item.ex_date || 'N/A'} | ${item.pay_date || 'N/A'} | ${item.record_date || 'N/A'} |\n`;
     });
-    if (data.length > 15) {
-        output += `\n... 还有 ${data.length - 15} 条记录\n`;
-    }
     return output;
 }
 function formatPortfolioData(data) {
@@ -400,30 +340,24 @@ function formatPortfolioData(data) {
     });
     output += '| 股票代码 | 持有市值(万元) | 持有数量(股) | 占基金净值比(%) | 占流通股本比(%) |\n';
     output += '|---------|---------------|-------------|----------------|----------------|\n';
-    sortedData.slice(0, 20).forEach(item => {
+    sortedData.forEach(item => {
         const mkv = formatNumber(parseFloat(item.mkv) / 10000); // 转换为万元
         const amount = formatNumber(item.amount);
         const mkvRatio = formatPercent(item.stk_mkv_ratio);
         const floatRatio = formatPercent(item.stk_float_ratio);
         output += `| ${item.symbol || 'N/A'} | ${mkv} | ${amount} | ${mkvRatio} | ${floatRatio} |\n`;
     });
-    if (data.length > 20) {
-        output += `\n... 还有 ${data.length - 20} 条记录\n`;
-    }
     return output;
 }
 function formatGenericFundData(data, fields) {
     let output = '';
     if (data.length === 0)
         return '暂无数据\n';
-    // 显示表格格式
-    const maxRows = 10;
-    const displayData = data.slice(0, maxRows);
     // 表头
     output += '| ' + fields.slice(0, 6).join(' | ') + ' |\n';
     output += '|' + fields.slice(0, 6).map(() => '-------').join('|') + '|\n';
     // 数据行
-    displayData.forEach(item => {
+    data.forEach(item => {
         const row = fields.slice(0, 6).map(field => {
             const value = item[field];
             if (value === null || value === undefined)
@@ -435,9 +369,6 @@ function formatGenericFundData(data, fields) {
         });
         output += '| ' + row.join(' | ') + ' |\n';
     });
-    if (data.length > maxRows) {
-        output += `\n... 还有 ${data.length - maxRows} 条记录\n`;
-    }
     return output;
 }
 function formatNumber(num) {

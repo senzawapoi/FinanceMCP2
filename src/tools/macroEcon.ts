@@ -2,28 +2,28 @@ import { TUSHARE_CONFIG } from '../config.js';
 
 export const macroEcon = {
   name: "macro_econ",
-  description: "Get macroeconomic data including Shibor rates, LPR rates, GDP, CPI, PPI, money supply, PMI, social financing, Shibor quotes, Libor, Hibor, etc.",
+  description: "获取宏观经济数据，包括Shibor利率、LPR利率、GDP、CPI、PPI、货币供应量、PMI、社融数据、Shibor报价、Libor、Hibor等",
   parameters: {
     type: "object",
     properties: {
       indicator: {
         type: "string",
-        description: "Indicator type, options: shibor(Shanghai Interbank Offered Rate), lpr(Loan Prime Rate), gdp(Gross Domestic Product), cpi(Consumer Price Index), ppi(Producer Price Index), cn_m(Money Supply), cn_pmi(Purchasing Managers Index), cn_sf(Total Social Financing), shibor_quote(Shibor Bank Quotes), libor(Libor Rate), hibor(Hibor Rate)"
+        description: "指标类型，可选值：shibor(上海银行间同业拆放利率)、lpr(贷款市场报价利率)、gdp(国内生产总值)、cpi(居民消费价格指数)、ppi(工业生产者出厂价格指数)、cn_m(货币供应量)、cn_pmi(采购经理指数)、cn_sf(社会融资规模)、shibor_quote(Shibor银行报价数据)、libor(伦敦银行间同业拆借利率)、hibor(香港银行间同业拆借利率)"
       },
       start_date: {
         type: "string",
-        description: "Start date in YYYYMMDD format, e.g., '20230101'"
+        description: "起始日期，格式为YYYYMMDD，如'20230101'"
       },
       end_date: {
         type: "string",
-        description: "End date in YYYYMMDD format, e.g., '20230131'"
+        description: "结束日期，格式为YYYYMMDD，如'20230131'"
       }
     },
-    required: ["indicator"]
+    required: ["indicator","start_date","end_date"]
   },
   async run(args: { indicator: string; start_date?: string; end_date?: string }) {
     try {
-      console.log(`Using Tushare API to get ${args.indicator} macroeconomic data`);
+      console.log(`使用Tushare API获取${args.indicator}宏观经济数据`);
       
       // 使用全局配置中的Tushare API设置
       const TUSHARE_API_KEY = TUSHARE_CONFIG.API_TOKEN;
@@ -32,7 +32,7 @@ export const macroEcon = {
       // 验证指标类型
       const validIndicators = ['shibor', 'lpr', 'gdp', 'cpi', 'ppi', 'cn_m', 'cn_pmi', 'cn_sf', 'shibor_quote', 'libor', 'hibor'];
       if (!validIndicators.includes(args.indicator)) {
-        throw new Error(`Unsupported indicator type: ${args.indicator}. Supported types: ${validIndicators.join(', ')}`);
+        throw new Error(`不支持的指标类型: ${args.indicator}。支持的类型有: ${validIndicators.join(', ')}`);
       }
 
       // 根据指标类型设置不同的默认时间范围
@@ -125,7 +125,7 @@ export const macroEcon = {
           
         case 'ppi':
           params.api_name = "cn_ppi";
-          params.fields = "month,ppi_val,ppi_yoy,ppi_mom,ppi_accu,rpi_val,rpi_yoy,rpi_mom,rpi_accu";
+          params.fields = "month,ppi_yoy,ppi_mom,ppi_accu,ppi_mp_yoy,ppi_mp_mom,ppi_mp_accu,ppi_cg_yoy,ppi_cg_mom,ppi_cg_accu";
           // PPI数据使用月份格式
           const startMonthPPI = dateToMonth(args.start_date || defaultStartDate);
           const endMonthPPI = dateToMonth(args.end_date || defaultEndDate);
@@ -209,7 +209,7 @@ export const macroEcon = {
       const timeoutId = setTimeout(() => controller.abort(), TUSHARE_CONFIG.TIMEOUT);
       
       try {
-        console.log(`Requesting Tushare API: ${params.api_name}, parameters:`, params.params);
+        console.log(`请求Tushare API: ${params.api_name}，参数:`, params.params);
         
         // 发送请求
         const response = await fetch(TUSHARE_API_URL, {
@@ -222,19 +222,19 @@ export const macroEcon = {
         });
         
         if (!response.ok) {
-          throw new Error(`Tushare API request failed: ${response.status}`);
+          throw new Error(`Tushare API请求失败: ${response.status}`);
         }
         
         const data = await response.json();
         
         // 处理响应数据
         if (data.code !== 0) {
-          throw new Error(`Tushare API error: ${data.msg}`);
+          throw new Error(`Tushare API错误: ${data.msg}`);
         }
         
         // 确保data.data和data.data.items存在
         if (!data.data || !data.data.items || data.data.items.length === 0) {
-          throw new Error(`No ${args.indicator} macroeconomic data found`);
+          throw new Error(`未找到${args.indicator}宏观经济数据`);
         }
         
         // 获取字段名
@@ -251,17 +251,17 @@ export const macroEcon = {
         
         // 生成指标表头
         let titleMap: Record<string, string> = {
-          'shibor': 'Shibor Interest Rate',
-          'lpr': 'LPR Loan Prime Rate',
-          'gdp': 'Gross Domestic Product (GDP)',
-          'cpi': 'Consumer Price Index (CPI)',
-          'ppi': 'Producer Price Index (PPI)',
-          'cn_m': 'Money Supply',
-          'cn_pmi': 'Purchasing Managers Index (PMI)',
-          'cn_sf': 'Total Social Financing',
-          'shibor_quote': 'Shibor Bank Quote Data',
-          'libor': 'Libor Interest Rate',
-          'hibor': 'Hibor Interest Rate'
+          'shibor': 'Shibor利率数据',
+          'lpr': 'LPR贷款市场报价利率',
+          'gdp': '国内生产总值(GDP)',
+          'cpi': '居民消费价格指数(CPI)',
+          'ppi': '工业生产者出厂价格指数(PPI)',
+          'cn_m': '货币供应量',
+          'cn_pmi': '采购经理指数(PMI)',
+          'cn_sf': '社会融资规模',
+          'shibor_quote': 'Shibor银行报价数据',
+          'libor': 'Libor利率数据',
+          'hibor': 'Hibor利率数据'
         };
         
         // 格式化数据（根据不同指标类型构建不同的格式）
@@ -274,7 +274,7 @@ export const macroEcon = {
             for (const [key, value] of Object.entries(data)) {
               if (key !== 'date') {
                 const displayName = getRateDisplayName(key);
-                row += `**${displayName}**: ${value}%  `;
+                row += `${displayName}: ${value}%  `;
               }
             }
             return `## ${formatDate(data.date)}\n${row}\n`;
@@ -282,7 +282,7 @@ export const macroEcon = {
         } else if (args.indicator === 'shibor_quote') {
           // Shibor报价数据展示
           formattedData = econData.map((data: Record<string, any>) => {
-            return `## ${formatDate(data.date)} - ${data.bank}\n**隔夜**: 买价${data.on_b}% 卖价${data.on_a}%  **1周**: 买价${data['1w_b']}% 卖价${data['1w_a']}%\n**1月**: 买价${data['1m_b']}% 卖价${data['1m_a']}%  **3月**: 买价${data['3m_b']}% 卖价${data['3m_a']}%\n**6月**: 买价${data['6m_b']}% 卖价${data['6m_a']}%  **1年**: 买价${data['1y_b']}% 卖价${data['1y_a']}%\n`;
+            return `## ${formatDate(data.date)} - ${data.bank}\n隔夜: 买价${data.on_b}% 卖价${data.on_a}%  1周: 买价${data['1w_b']}% 卖价${data['1w_a']}%\n1月: 买价${data['1m_b']}% 卖价${data['1m_a']}%  3月: 买价${data['3m_b']}% 卖价${data['3m_a']}%\n6月: 买价${data['6m_b']}% 卖价${data['6m_a']}%  1年: 买价${data['1y_b']}% 卖价${data['1y_a']}%\n`;
           }).join('\n---\n\n');
         } else if (args.indicator === 'libor' || args.indicator === 'hibor') {
           // 其他利率数据展示
@@ -291,7 +291,7 @@ export const macroEcon = {
             for (const [key, value] of Object.entries(data)) {
               if (key !== 'date' && key !== 'curr') {
                 const displayName = getRateDisplayName(key);
-                row += `**${displayName}**: ${value}%  `;
+                row += `${displayName}: ${value}%  `;
               }
             }
             const currencyInfo = data.curr ? ` (${data.curr})` : '';
@@ -300,32 +300,32 @@ export const macroEcon = {
         } else if (args.indicator === 'gdp') {
           // 季度型数据展示
           formattedData = econData.map((data: Record<string, any>) => {
-            return `## ${data.quarter}\n**GDP总值**: ${data.gdp}亿元  **同比增长**: ${data.gdp_yoy}%\n**第一产业**: ${data.pi}亿元  **同比**: ${data.pi_yoy}%\n**第二产业**: ${data.si}亿元  **同比**: ${data.si_yoy}%\n**第三产业**: ${data.ti}亿元  **同比**: ${data.ti_yoy}%\n`;
+            return `## ${data.quarter}\nGDP总值: ${data.gdp}亿元  同比增长: ${data.gdp_yoy}%\n第一产业: ${data.pi}亿元  同比: ${data.pi_yoy}%\n第二产业: ${data.si}亿元  同比: ${data.si_yoy}%\n第三产业: ${data.ti}亿元  同比: ${data.ti_yoy}%\n`;
           }).join('\n---\n\n');
         } else if (args.indicator === 'cpi') {
           // CPI数据展示
           formattedData = econData.map((data: Record<string, any>) => {
-            return `## ${formatMonth(data.month)}\n**全国CPI**: ${data.nt_val}  **同比**: ${data.nt_yoy}%  **环比**: ${data.nt_mom}%  **累计**: ${data.nt_accu}%\n**城市CPI**: ${data.town_val}  **同比**: ${data.town_yoy}%  **环比**: ${data.town_mom}%  **累计**: ${data.town_accu}%\n**农村CPI**: ${data.cnt_val}  **同比**: ${data.cnt_yoy}%  **环比**: ${data.cnt_mom}%  **累计**: ${data.cnt_accu}%\n`;
+            return `## ${formatMonth(data.month)}\n全国CPI: ${data.nt_val}  同比: ${data.nt_yoy}%  环比: ${data.nt_mom}%  累计: ${data.nt_accu}%\n城市CPI: ${data.town_val}  同比: ${data.town_yoy}%  环比: ${data.town_mom}%  累计: ${data.town_accu}%\n农村CPI: ${data.cnt_val}  同比: ${data.cnt_yoy}%  环比: ${data.cnt_mom}%  累计: ${data.cnt_accu}%\n`;
           }).join('\n---\n\n');
-        } else if (args.indicator === 'ppi') {
-          // PPI数据展示
-          formattedData = econData.map((data: Record<string, any>) => {
-            return `## ${formatMonth(data.month)}\n**PPI当月值**: ${data.ppi_val}  **同比**: ${data.ppi_yoy}%  **环比**: ${data.ppi_mom}%  **累计**: ${data.ppi_accu}%\n**原料购进价格当月值**: ${data.rpi_val}  **同比**: ${data.rpi_yoy}%  **环比**: ${data.rpi_mom}%  **累计**: ${data.rpi_accu}%\n`;
-          }).join('\n---\n\n');
+                  } else if (args.indicator === 'ppi') {
+            // PPI数据展示
+            formattedData = econData.map((data: Record<string, any>) => {
+              return `## ${formatMonth(data.month)}\n全部工业品PPI: 同比: ${data.ppi_yoy}%  环比: ${data.ppi_mom}%  累计: ${data.ppi_accu}%\n生产资料PPI: 同比: ${data.ppi_mp_yoy}%  环比: ${data.ppi_mp_mom}%  累计: ${data.ppi_mp_accu}%\n生活资料PPI: 同比: ${data.ppi_cg_yoy}%  环比: ${data.ppi_cg_mom}%  累计: ${data.ppi_cg_accu}%\n`;
+            }).join('\n---\n\n');
         } else if (args.indicator === 'cn_m') {
           // 货币供应量数据展示
           formattedData = econData.map((data: Record<string, any>) => {
-            return `## ${formatMonth(data.month)}\n**M0**: ${data.m0}亿元  **同比**: ${data.m0_yoy}%  **环比**: ${data.m0_mom}%\n**M1**: ${data.m1}亿元  **同比**: ${data.m1_yoy}%  **环比**: ${data.m1_mom}%\n**M2**: ${data.m2}亿元  **同比**: ${data.m2_yoy}%  **环比**: ${data.m2_mom}%\n`;
+            return `## ${formatMonth(data.month)}\nM0: ${data.m0}亿元  同比: ${data.m0_yoy}%  环比: ${data.m0_mom}%\nM1: ${data.m1}亿元  同比: ${data.m1_yoy}%  环比: ${data.m1_mom}%\nM2: ${data.m2}亿元  同比: ${data.m2_yoy}%  环比: ${data.m2_mom}%\n`;
           }).join('\n---\n\n');
         } else if (args.indicator === 'cn_pmi') {
           // PMI数据展示 - 使用正确的字段名
           formattedData = econData.map((data: Record<string, any>) => {
-            return `## ${formatMonth(data.month)}\n### 制造业PMI\n**制造业PMI**: ${data.pmi010000}  **生产指数**: ${data.pmi010100}  **新订单指数**: ${data.pmi010200}\n**新出口订单**: ${data.pmi010300}  **在手订单**: ${data.pmi010400}  **产成品库存**: ${data.pmi010500}\n**采购量指数**: ${data.pmi010600}  **进口指数**: ${data.pmi010700}  **购进价格指数**: ${data.pmi010800}\n**原材料库存**: ${data.pmi010900}  **从业人员指数**: ${data.pmi011000}  **供应商配送时间**: ${data.pmi011100}\n**生产经营活动预期**: ${data.pmi011200}\n\n### 非制造业PMI\n**商务活动指数**: ${data.pmi020100}  **建筑业**: ${data.pmi020101}  **服务业**: ${data.pmi020102}\n**新订单指数**: ${data.pmi020200}  **投入品价格**: ${data.pmi020300}  **销售价格**: ${data.pmi020400}\n**从业人员**: ${data.pmi020500}  **业务活动预期**: ${data.pmi020600}\n\n**综合PMI产出指数**: ${data.pmi030000}\n`;
+            return `## ${formatMonth(data.month)}\n### 制造业PMI\n制造业PMI: ${data.pmi010000}  生产指数: ${data.pmi010100}  新订单指数: ${data.pmi010200}\n新出口订单: ${data.pmi010300}  在手订单: ${data.pmi010400}  产成品库存: ${data.pmi010500}\n采购量指数: ${data.pmi010600}  进口指数: ${data.pmi010700}  购进价格指数: ${data.pmi010800}\n原材料库存: ${data.pmi010900}  从业人员指数: ${data.pmi011000}  供应商配送时间: ${data.pmi011100}\n生产经营活动预期: ${data.pmi011200}\n\n### 非制造业PMI\n商务活动指数: ${data.pmi020100}  建筑业: ${data.pmi020101}  服务业: ${data.pmi020102}\n新订单指数: ${data.pmi020200}  投入品价格: ${data.pmi020300}  销售价格: ${data.pmi020400}\n从业人员: ${data.pmi020500}  业务活动预期: ${data.pmi020600}\n\n综合PMI产出指数: ${data.pmi030000}\n`;
           }).join('\n---\n\n');
         } else if (args.indicator === 'cn_sf') {
           // 社融增量数据展示
           formattedData = econData.map((data: Record<string, any>) => {
-            return `## ${formatMonth(data.month)}\n**当月增量**: ${data.inc_month}亿元  **累计增量**: ${data.inc_cumval}亿元\n**存量期末值**: ${data.stk_endval}万亿元\n`;
+            return `## ${formatMonth(data.month)}\n当月增量: ${data.inc_month}亿元  累计增量: ${data.inc_cumval}亿元\n存量期末值: ${data.stk_endval}万亿元\n`;
           }).join('\n---\n\n');
         }
         
@@ -333,7 +333,7 @@ export const macroEcon = {
           content: [
             {
               type: "text",
-              text: `# ${titleMap[args.indicator]} data\n\n**Query time range**: ${args.start_date || defaultStartDate} - ${args.end_date || defaultEndDate}\n**Data count**: ${econData.length} records\n\n---\n\n${formattedData}`
+              text: `# ${titleMap[args.indicator]}\n\n查询时间范围: ${args.start_date || defaultStartDate} - ${args.end_date || defaultEndDate}\n数据条数: ${econData.length}条记录\n\n---\n\n${formattedData}`
             }
           ]
         };
@@ -341,13 +341,13 @@ export const macroEcon = {
         clearTimeout(timeoutId);
       }
     } catch (error) {
-      console.error("Failed to get macroeconomic data:", error);
+      console.error("获取宏观经济数据失败:", error);
       
       return {
         content: [
           {
             type: "text",
-            text: `# Failed to get ${args.indicator} macroeconomic data\n\n**Error information**: ${error instanceof Error ? error.message : String(error)}\n\n**Supported indicator types**: \n- shibor: Shanghai Interbank Offered Rate\n- lpr: Loan Prime Rate\n- gdp: Gross Domestic Product\n- cpi: Consumer Price Index\n- ppi: Producer Price Index\n- cn_m: Money Supply\n- cn_pmi: Purchasing Managers Index\n- cn_sf: Total Social Financing\n- shibor_quote: Shibor Bank Quotes\n- libor: Libor Rate\n- hibor: Hibor Rate`
+            text: `# 获取${args.indicator}宏观经济数据失败\n\n错误信息: ${error instanceof Error ? error.message : String(error)}\n\n支持的指标类型: \n- shibor: 上海银行间同业拆放利率\n- lpr: 贷款市场报价利率\n- gdp: 国内生产总值\n- cpi: 居民消费价格指数\n- ppi: 工业生产者出厂价格指数\n- cn_m: 货币供应量\n- cn_pmi: 采购经理指数\n- cn_sf: 社会融资规模\n- shibor_quote: Shibor银行报价数据\n- libor: 伦敦银行间同业拆借利率\n- hibor: 香港银行间同业拆借利率`
           }
         ]
       };
@@ -355,7 +355,7 @@ export const macroEcon = {
   }
 };
 
-/**
+/*
  * 获取利率字段的显示名称
  */
 function getRateDisplayName(key: string): string {
@@ -377,7 +377,7 @@ function getRateDisplayName(key: string): string {
   return nameMap[key] || key;
 }
 
-/**
+/*
  * 格式化日期显示
  */
 function formatDate(dateStr: string): string {
@@ -388,7 +388,7 @@ function formatDate(dateStr: string): string {
   return `${year}年${month}月${day}日`;
 }
 
-/**
+/*
  * 格式化月份显示
  */
 function formatMonth(monthStr: string): string {
@@ -398,7 +398,7 @@ function formatMonth(monthStr: string): string {
   return `${year}年${month}月`;
 }
 
-/**
+/*
  * 将日期格式(YYYYMMDD)转换为季度格式(YYYYQN)
  */
 function dateToQuarter(dateStr: string): string {
@@ -417,7 +417,7 @@ function dateToQuarter(dateStr: string): string {
   return `${year}Q${quarter}`;
 }
 
-/**
+/*
  * 将日期格式(YYYYMMDD)转换为月份格式(YYYYMM)
  */
 function dateToMonth(dateStr: string): string {

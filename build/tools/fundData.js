@@ -1,7 +1,7 @@
 import { TUSHARE_CONFIG } from '../config.js';
 export const fundData = {
     name: "fund_data",
-    description: "获取公募基金全面数据，包括基金列表、基金经理、基金净值、基金分红、基金持仓等数据。⚠️ 注意：基金持仓、数据不指定时间参数时会返回所有历史数据，建议使用period或时间范围参数控制数据量",
+    description: "获取公募基金全面数据，包括基金列表、基金经理、基金净值、基金分红、基金持仓等数据。",
     parameters: {
         type: "object",
         properties: {
@@ -16,7 +16,7 @@ export const fundData = {
             },
             start_date: {
                 type: "string",
-                description: "起始日期，格式为YYYYMMDD，如'20230101'。⚠️ 重要：对于基金持仓(portfolio)数据，如果不指定时间参数，将返回所有历史数据，可能数据量很大。建议指定时间范围或使用period参数"
+                description: "起始日期，格式为YYYYMMDD，如'20230101'。重要：对于基金持仓(portfolio)数据和基金净值(nav)数据，如果不指定时间参数，将返回所有历史数据，可能数据量很大。建议指定时间范围或使用period参数"
             },
             end_date: {
                 type: "string",
@@ -24,7 +24,7 @@ export const fundData = {
             },
             period: {
                 type: "string",
-                description: "特定报告期，格式为YYYYMMDD。例如：'20231231'表示2023年年报，'20240630'表示2024年中报，'20220630'表示2022年三季报，'20240331'表示2024年一季报。💡 推荐：对于基金持仓数据，使用此参数可精确获取单个季度的持仓，避免数据过多。指定此参数时将忽略start_date和end_date"
+                description: "特定报告期，格式为YYYYMMDD。例如：'20231231'表示2023年年报，'20240630'表示2024年中报，'20220630'表示2022年三季报，'20240331'表示2024年一季报。指定此参数时将忽略start_date和end_date"
             }
         },
         required: ["data_type"]
@@ -306,10 +306,10 @@ function formatFundData(results, tsCode) {
     }
     for (const result of results) {
         if (result.error) {
-            output += `## ${getDataTypeName(result.type)}\n❌ 查询失败: ${result.error}\n\n`;
+            output += `# ${getDataTypeName(result.type)}\n❌ 查询失败: ${result.error}\n\n`;
             continue;
         }
-        output += `## ${getDataTypeName(result.type)}\n`;
+        output += `# ${getDataTypeName(result.type)}\n`;
         output += `数据条数: ${result.data.length}\n\n`;
         if (result.data.length > 0) {
             switch (result.type) {
@@ -349,18 +349,18 @@ function getDataTypeName(type) {
 function formatBasicData(data) {
     let output = '';
     data.forEach((item, index) => {
-        output += `### ${index + 1}. ${item.name || '未知基金'} (${item.ts_code})\n`;
-        output += `- **管理人**: ${item.management || 'N/A'}\n`;
-        output += `- **托管人**: ${item.custodian || 'N/A'}\n`;
-        output += `- **投资类型**: ${item.fund_type || 'N/A'}\n`;
-        output += `- **成立日期**: ${item.found_date || 'N/A'}\n`;
-        output += `- **上市时间**: ${item.list_date || 'N/A'}\n`;
-        output += `- **存续状态**: ${item.status || 'N/A'}\n`;
-        output += `- **市场**: ${item.market === 'E' ? '场内' : item.market === 'O' ? '场外' : item.market || 'N/A'}\n`;
+        output += `## ${index + 1}. ${item.name || '未知基金'} (${item.ts_code})\n`;
+        output += `- 管理人: ${item.management || 'N/A'}\n`;
+        output += `- 托管人: ${item.custodian || 'N/A'}\n`;
+        output += `- 投资类型: ${item.fund_type || 'N/A'}\n`;
+        output += `- 成立日期: ${item.found_date || 'N/A'}\n`;
+        output += `- 上市时间: ${item.list_date || 'N/A'}\n`;
+        output += `- 存续状态: ${item.status || 'N/A'}\n`;
+        output += `- 市场: ${item.market === 'E' ? '场内' : item.market === 'O' ? '场外' : item.market || 'N/A'}\n`;
         if (item.m_fee)
-            output += `- **管理费**: ${formatPercent(item.m_fee)}%\n`;
+            output += `- 管理费: ${formatPercent(item.m_fee)}%\n`;
         if (item.c_fee)
-            output += `- **托管费**: ${formatPercent(item.c_fee)}%\n`;
+            output += `- 托管费: ${formatPercent(item.c_fee)}%\n`;
         output += '\n';
     });
     return output;
@@ -368,17 +368,17 @@ function formatBasicData(data) {
 function formatManagerData(data) {
     let output = '';
     data.forEach((item, index) => {
-        output += `### ${index + 1}. ${item.name || '未知经理'} (${item.ts_code})\n`;
-        output += `- **性别**: ${item.gender === 'M' ? '男' : item.gender === 'F' ? '女' : item.gender || 'N/A'}\n`;
-        output += `- **出生年份**: ${item.birth_year || 'N/A'}\n`;
-        output += `- **学历**: ${item.edu || 'N/A'}\n`;
-        output += `- **国籍**: ${item.nationality || 'N/A'}\n`;
-        output += `- **任职日期**: ${item.begin_date || 'N/A'}\n`;
-        output += `- **离任日期**: ${item.end_date || '在任'}\n`;
-        output += `- **公告日期**: ${item.ann_date || 'N/A'}\n`;
+        output += `## ${index + 1}. ${item.name || '未知经理'} (${item.ts_code})\n`;
+        output += `- 性别: ${item.gender === 'M' ? '男' : item.gender === 'F' ? '女' : item.gender || 'N/A'}\n`;
+        output += `- 出生年份: ${item.birth_year || 'N/A'}\n`;
+        output += `- 学历: ${item.edu || 'N/A'}\n`;
+        output += `- 国籍: ${item.nationality || 'N/A'}\n`;
+        output += `- 任职日期: ${item.begin_date || 'N/A'}\n`;
+        output += `- 离任日期: ${item.end_date || '在任'}\n`;
+        output += `- 公告日期: ${item.ann_date || 'N/A'}\n`;
         if (item.resume) {
             const resumeShort = item.resume.length > 100 ? item.resume.substring(0, 100) + '...' : item.resume;
-            output += `- **简历**: ${resumeShort}\n`;
+            output += `- 简历: ${resumeShort}\n`;
         }
         output += '\n';
     });
@@ -448,7 +448,7 @@ function formatPortfolioData(data) {
         return dateB.localeCompare(dateA);
     });
     sortedPeriods.forEach((period) => {
-        output += `### 📊 报告期: ${period.end_date || 'N/A'}  (公告日期: ${period.ann_date || 'N/A'})\n`;
+        output += `## 📊 报告期: ${period.end_date || 'N/A'}  (公告日期: ${period.ann_date || 'N/A'})\n`;
         output += `持仓股票数量: ${period.holdings.length}只\n\n`;
         // 按持有市值排序，从大到小
         const sortedHoldings = period.holdings.sort((a, b) => {

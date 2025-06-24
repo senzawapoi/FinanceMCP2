@@ -7,7 +7,7 @@ export const stockData = {
         properties: {
             code: {
                 type: "string",
-                description: "股票代码，如'000001.SZ'表示平安银行(A股)，'AAPL'表示苹果(美股)，'00700.HK'表示腾讯(港股)，'USDCNY'表示美元人民币(外汇)，'CU2501.SHF'表示铜期货，'159919.SZ'表示沪深300ETF(基金)，'204001.SH'表示GC001国债逆回购，'113008.SH'表示可转债，'10001313.SH'表示期权合约"
+                description: "股票代码，如'000001.SZ'表示平安银行(A股)，'AAPL'表示苹果(美股)，'00700.HK'表示腾讯(港股)，'USDCNY.FXCM'表示美元人民币(外汇)，'CU2501.SHF'表示铜期货，'159919.SZ'表示沪深300ETF(基金)，'204001.SH'表示GC001国债逆回购，'113008.SH'表示可转债，'10001313.SH'表示期权合约"
             },
             market_type: {
                 type: "string",
@@ -79,7 +79,7 @@ export const stockData = {
                     break;
                 case 'fx':
                     params.api_name = "fx_daily";
-                    params.fields = args.fields || "ts_code,trade_date,open,high,low,close";
+                    params.fields = args.fields || "ts_code,trade_date,bid_open,bid_close,bid_high,bid_low,ask_open,ask_close,ask_high,ask_low,tick_qty";
                     break;
                 case 'futures':
                     params.api_name = "fut_daily";
@@ -183,7 +183,7 @@ export const stockData = {
                 if (marketType === 'fx') {
                     // 外汇数据展示
                     formattedData = stockData.map((data) => {
-                        return ` ${data.trade_date}\n开盘: ${data.open}  最高: ${data.high}  最低: ${data.low}  收盘: ${data.close}\n`;
+                        return ` ${data.trade_date}\n买入价格: 开盘: ${data.bid_open}  最高: ${data.bid_high}  最低: ${data.bid_low}  收盘: ${data.bid_close}\n卖出价格: 开盘: ${data.ask_open}  最高: ${data.ask_high}  最低: ${data.ask_low}  收盘: ${data.ask_close}\n报价笔数: ${data.tick_qty}\n`;
                     }).join('\n---\n\n');
                 }
                 else if (marketType === 'futures') {
@@ -248,7 +248,7 @@ export const stockData = {
                 content: [
                     {
                         type: "text",
-                        text: `# 获取股票${args.code}数据失败\n\n无法从Tushare API获取数据：${error instanceof Error ? error.message : String(error)}\n\n请检查股票代码和市场类型是否正确：\n- A股格式："000001.SZ"\n- 美股格式："AAPL"\n- 港股格式："00700.HK"\n- 外汇格式："USDCNY"\n- 期货格式："CU2501.SHF"\n- 基金格式："159919.SZ"\n- 债券逆回购格式："204001.SH"\n- 可转债格式："113008.SH"\n- 期权格式："10001313.SH"`
+                        text: `# 获取股票${args.code}数据失败\n\n无法从Tushare API获取数据：${error instanceof Error ? error.message : String(error)}\n\n请检查股票代码和市场类型是否正确：\n- A股格式："000001.SZ"\n- 美股格式："AAPL"\n- 港股格式："00700.HK"\n- 外汇格式："USDCNH.FXCM"（美元人民币）\n- 期货格式："CU2501.SHF"\n- 基金格式："159919.SZ"\n- 债券逆回购格式："204001.SH"\n- 可转债格式："113008.SH"\n- 期权格式："10001313.SH"`
                     }
                 ]
             };

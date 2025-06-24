@@ -101,7 +101,7 @@ export const indexData = {
                 const endDate = indexData[0]?.trade_date || args.end_date || defaultEndDate;
                 // 格式化输出
                 const formattedData = indexData.map((data) => {
-                    return `## ${data.trade_date}\n**开盘**: ${data.open}  **最高**: ${data.high}  **最低**: ${data.low}  **收盘**: ${data.close}\n**涨跌**: ${data.change}  **涨跌幅**: ${data.pct_chg}%  **成交量**: ${data.vol}  **成交额**: ${data.amount}\n`;
+                    return `## ${data.trade_date}\n开盘: ${data.open}  最高: ${data.high}  最低: ${data.low}  收盘: ${data.close}\n涨跌: ${data.change}  涨跌幅: ${data.pct_chg}%  成交量: ${data.vol}  成交额: ${data.amount}\n`;
                 }).join('\n---\n\n');
                 return {
                     content: [

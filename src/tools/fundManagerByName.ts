@@ -64,14 +64,14 @@ async function fetchFundManagerData(
 // 格式化基金经理数据输出
 function formatFundManagerData(data: any, name: string): string {
   let output = `# 基金经理查询结果\n\n`;
-  output += `基金经理姓名: **${name}**\n\n`;
+  output += `基金经理姓名: ${name}\n\n`;
 
   if (!data || !data.items || data.items.length === 0) {
     return output + "没有找到相关的基金经理信息。\n";
   }
 
   const items = data.items;
-  output += `找到 **${items.length}** 条相关记录\n\n`;
+  output += `找到 ${items.length} 条相关记录\n\n`;
 
   // 按基金代码分组显示
   const fundGroups = new Map();
@@ -103,12 +103,12 @@ function formatFundManagerData(data: any, name: string): string {
     output += `| 公告日期 | ${annDate || 'N/A'} |\n`;
     
     if (resume) {
-      output += `\n**个人简历:**\n${resume}\n`;
+      output += `\n个人简历:\n${resume}\n`;
     }
     
     // 如果该基金有多条记录（历史任职记录），显示历史信息
     if (records.length > 1) {
-      output += `\n**历史任职记录:**\n`;
+      output += `\n历史任职记录:\n`;
       records.slice(1).forEach((record: any, index: number) => {
         const [, histAnnDate, , , , , , histBeginDate, histEndDate] = record;
         output += `- 第${index + 2}次任职: ${histBeginDate || 'N/A'} 至 ${histEndDate || '在任'} (公告日期: ${histAnnDate || 'N/A'})\n`;

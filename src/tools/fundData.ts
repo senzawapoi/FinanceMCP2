@@ -2,7 +2,7 @@ import { TUSHARE_CONFIG } from '../config.js';
 
 export const fundData = {
   name: "fund_data",
-  description: "获取公募基金全面数据，包括基金列表、基金经理、基金净值、基金分红、基金持仓等数据",
+  description: "获取公募基金全面数据，包括基金列表、基金经理、基金净值、基金分红、基金持仓等数据。⚠️ 注意：基金持仓、数据不指定时间参数时会返回所有历史数据，建议使用period或时间范围参数控制数据量",
   parameters: {
     type: "object",
     properties: {
@@ -17,15 +17,15 @@ export const fundData = {
       },
       start_date: {
         type: "string",
-        description: "起始日期，格式为YYYYMMDD，如'20230101'。不指定则获取默认时间范围数据"
+        description: "起始日期，格式为YYYYMMDD，如'20230101'。⚠️ 重要：对于基金持仓(portfolio)数据，如果不指定时间参数，将返回所有历史数据，可能数据量很大。建议指定时间范围或使用period参数"
       },
       end_date: {
         type: "string",
-        description: "结束日期，格式为YYYYMMDD，如'20231231'。不指定则获取到最新数据"
+        description: "结束日期，格式为YYYYMMDD，如'20231231'。配合start_date使用可限制数据范围"
       },
       period: {
         type: "string",
-        description: "特定报告期，格式为YYYYMMDD，如'20231231'表示2023年年报。指定此参数时将忽略start_date和end_date"
+        description: "特定报告期，格式为YYYYMMDD。例如：'20231231'表示2023年年报，'20240630'表示2024年中报，'20220630'表示2022年三季报，'20240331'表示2024年一季报。💡 推荐：对于基金持仓数据，使用此参数可精确获取单个季度的持仓，避免数据过多。指定此参数时将忽略start_date和end_date"
       }
     },
     required: ["data_type"]
@@ -235,8 +235,111 @@ async function fetchFundData(
     }
 
     console.log(`成功获取到${filteredData.length}条${dataType}数据记录`);
+    
+    // 如果是净值数据且有基金代码，尝试获取基金份额数据并合并
+    if (dataType === 'nav' && tsCode && filteredData.length > 0) {
+      try {
+        const shareResult = await fetchFundShareData(tsCode, startDate, endDate, period, apiKey, apiUrl);
+        if (shareResult.data && shareResult.data.length > 0) {
+          // 创建份额数据的映射表，以交易日期为键
+          const shareMap = new Map();
+          shareResult.data.forEach((shareItem: any) => {
+            shareMap.set(shareItem.trade_date, shareItem.fd_share);
+          });
+          
+          // 将份额数据合并到净值数据中
+          filteredData.forEach((navItem: any) => {
+            const tradeDate = navItem.nav_date || navItem.ann_date;
+            navItem.fd_share = shareMap.get(tradeDate) || null;
+          });
+          
+          console.log(`成功合并${shareResult.data.length}条基金份额数据`);
+        }
+      } catch (error) {
+        console.warn('获取基金份额数据失败，将继续返回净值数据:', error);
+      }
+    }
+    
     return {
       data: filteredData,
+      fields: result.data.fields
+    };
+
+  } catch (error) {
+    clearTimeout(timeoutId);
+    throw error;
+  }
+}
+
+// 获取基金份额数据的函数
+async function fetchFundShareData(
+  tsCode: string,
+  startDate?: string,
+  endDate?: string,
+  period?: string,
+  apiKey?: string,
+  apiUrl?: string
+) {
+  const params: any = {
+    api_name: "fund_share",
+    token: apiKey,
+    params: {
+      ts_code: tsCode
+    },
+    fields: "ts_code,trade_date,fd_share"
+  };
+
+  // 添加时间参数
+  if (period) {
+    params.params.trade_date = period;
+  } else {
+    if (startDate) params.params.start_date = startDate;
+    if (endDate) params.params.end_date = endDate;
+  }
+
+  console.log(`调用fund_share API，参数:`, JSON.stringify(params, null, 2));
+
+  // 设置请求超时
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), TUSHARE_CONFIG.TIMEOUT);
+
+  try {
+    const response = await fetch(apiUrl || 'https://api.tushare.pro', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(params),
+      signal: controller.signal
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      throw new Error(`API请求失败: ${response.status} ${response.statusText}`);
+    }
+
+    const result = await response.json();
+
+    if (result.code !== 0) {
+      throw new Error(`API返回错误: ${result.msg || '未知错误'}`);
+    }
+
+    if (!result.data || !result.data.items) {
+      return { data: [], fields: result.data?.fields || [] };
+    }
+
+    // 转换数据格式
+    const formattedData = result.data.items.map((item: any[]) => {
+      const obj: any = {};
+      result.data.fields.forEach((field: string, index: number) => {
+        obj[field] = item[index];
+      });
+      return obj;
+    });
+
+    return {
+      data: formattedData,
       fields: result.data.fields
     };
 
@@ -353,12 +456,25 @@ function formatNavData(data: any[]): string {
     return dateB.localeCompare(dateA);
   });
   
-  output += '| 净值日期 | 单位净值 | 累计净值 | 复权净值 | 资产净值 |\n';
-  output += '|---------|----------|----------|----------|----------|\n';
+  // 检查是否有基金份额数据
+  const hasShareData = sortedData.some(item => item.fd_share !== null && item.fd_share !== undefined);
   
-  sortedData.forEach(item => {
-    output += `| ${item.nav_date || 'N/A'} | ${formatNumber(item.unit_nav)} | ${formatNumber(item.accum_nav)} | ${formatNumber(item.adj_nav)} | ${formatNumber(item.net_asset)} |\n`;
-  });
+  if (hasShareData) {
+    output += '| 净值日期 | 单位净值 | 累计净值 | 复权净值 | 资产净值 | 基金份额(万份) |\n';
+    output += '|---------|----------|----------|----------|----------|---------------|\n';
+    
+    sortedData.forEach(item => {
+      const shareFormatted = item.fd_share ? formatNumber(item.fd_share) : 'N/A';
+      output += `| ${item.nav_date || 'N/A'} | ${formatNumber(item.unit_nav)} | ${formatNumber(item.accum_nav)} | ${formatNumber(item.adj_nav)} | ${formatNumber(item.net_asset)} | ${shareFormatted} |\n`;
+    });
+  } else {
+    output += '| 净值日期 | 单位净值 | 累计净值 | 复权净值 | 资产净值 |\n';
+    output += '|---------|----------|----------|----------|----------|\n';
+    
+    sortedData.forEach(item => {
+      output += `| ${item.nav_date || 'N/A'} | ${formatNumber(item.unit_nav)} | ${formatNumber(item.accum_nav)} | ${formatNumber(item.adj_nav)} | ${formatNumber(item.net_asset)} |\n`;
+    });
+  }
   
   return output;
 }
@@ -386,22 +502,55 @@ function formatDividendData(data: any[]): string {
 function formatPortfolioData(data: any[]): string {
   let output = '';
   
-  // 按持有市值排序，从大到小
-  const sortedData = data.sort((a, b) => {
-    const mvkA = parseFloat(a.mkv) || 0;
-    const mvkB = parseFloat(b.mkv) || 0;
-    return mvkB - mvkA;
+  // 按报告期分组
+  const groupedByPeriod = data.reduce((groups: any, item: any) => {
+    const periodKey = `${item.end_date || 'Unknown'}_${item.ann_date || 'Unknown'}`;
+    if (!groups[periodKey]) {
+      groups[periodKey] = {
+        end_date: item.end_date,
+        ann_date: item.ann_date,
+        holdings: []
+      };
+    }
+    groups[periodKey].holdings.push(item);
+    return groups;
+  }, {} as any);
+  
+  // 按报告期排序（最新的在前）
+  const sortedPeriods = Object.values(groupedByPeriod).sort((a: any, b: any) => {
+    const dateA = a.end_date || a.ann_date || '';
+    const dateB = b.end_date || b.ann_date || '';
+    return dateB.localeCompare(dateA);
   });
   
-  output += '| 股票代码 | 持有市值(万元) | 持有数量(股) | 占基金净值比(%) | 占流通股本比(%) |\n';
-  output += '|---------|---------------|-------------|----------------|----------------|\n';
-  
-  sortedData.forEach(item => {
-    const mkv = formatNumber(parseFloat(item.mkv) / 10000); // 转换为万元
-    const amount = formatNumber(item.amount);
-    const mkvRatio = formatPercent(item.stk_mkv_ratio);
-    const floatRatio = formatPercent(item.stk_float_ratio);
-    output += `| ${item.symbol || 'N/A'} | ${mkv} | ${amount} | ${mkvRatio} | ${floatRatio} |\n`;
+  sortedPeriods.forEach((period: any) => {
+    output += `### 📊 报告期: ${period.end_date || 'N/A'}  (公告日期: ${period.ann_date || 'N/A'})\n`;
+    output += `持仓股票数量: ${period.holdings.length}只\n\n`;
+    
+    // 按持有市值排序，从大到小
+    const sortedHoldings = period.holdings.sort((a: any, b: any) => {
+      const mvkA = parseFloat(a.mkv) || 0;
+      const mvkB = parseFloat(b.mkv) || 0;
+      return mvkB - mvkA;
+    });
+    
+    output += '| 股票代码 | 持有市值(万元) | 持有数量(股) | 占基金净值比(%) | 占流通股本比(%) |\n';
+    output += '|---------|---------------|-------------|----------------|----------------|\n';
+    
+    // 只显示前20大重仓股
+    sortedHoldings.slice(0, 20).forEach((item: any) => {
+      const mkv = formatNumber(parseFloat(item.mkv) / 10000); // 转换为万元
+      const amount = formatNumber(item.amount);
+      const mkvRatio = formatPercent(item.stk_mkv_ratio);
+      const floatRatio = formatPercent(item.stk_float_ratio);
+      output += `| ${item.symbol || 'N/A'} | ${mkv} | ${amount} | ${mkvRatio} | ${floatRatio} |\n`;
+    });
+    
+    if (sortedHoldings.length > 20) {
+      output += `\n💡 注：仅显示前20大重仓股，共持有${sortedHoldings.length}只股票\n`;
+    }
+    
+    output += '\n---\n\n';
   });
   
   return output;

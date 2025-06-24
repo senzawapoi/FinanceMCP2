@@ -7,12 +7,16 @@ export const fundData = {
         properties: {
             ts_code: {
                 type: "string",
-                description: "基金代码，如'150018.SZ'表示银华深证100分级，'001753.OF'表示场外基金"
+                description: "基金代码，如'150018.SZ'表示银华深证100分级，'001753.OF'表示场外基金。注意：查询基金列表(basic)时必须提供此参数"
             },
             data_type: {
                 type: "string",
                 description: "数据类型，可选值：basic(基金列表)、manager(基金经理)、nav(基金净值)、dividend(基金分红)、portfolio(基金持仓)、all(全部数据)",
                 enum: ["basic", "manager", "nav", "dividend", "portfolio", "all"]
+            },
+            name: {
+                type: "string",
+                description: "基金经理姓名，用于查询特定基金经理的信息。仅在data_type为'manager'时有效，如'张坤'、'刘彦春'等"
             },
             start_date: {
                 type: "string",
@@ -49,7 +53,16 @@ export const fundData = {
                 : [args.data_type];
             for (const dataType of dataTypes) {
                 try {
-                    const result = await fetchFundData(dataType, args.ts_code, args.period, args.start_date || defaultStartDate, args.end_date || defaultEndDate, TUSHARE_API_KEY, TUSHARE_API_URL);
+                    // 基金列表(basic)模块必须提供基金代码，否则跳过
+                    if (dataType === 'basic' && !args.ts_code) {
+                        console.warn('基金列表查询需要提供基金代码，跳过basic模块');
+                        results.push({
+                            type: dataType,
+                            error: '基金列表查询需要提供基金代码(ts_code)参数，否则数据量过大'
+                        });
+                        continue;
+                    }
+                    const result = await fetchFundData(dataType, args.ts_code, args.name, args.period, args.start_date || defaultStartDate, args.end_date || defaultEndDate, TUSHARE_API_KEY, TUSHARE_API_URL);
                     if (result.data && result.data.length > 0) {
                         results.push({
                             type: dataType,
@@ -70,7 +83,7 @@ export const fundData = {
                 throw new Error(`未找到相关基金数据`);
             }
             // 格式化输出
-            const formattedOutput = formatFundData(results, args.ts_code);
+            const formattedOutput = formatFundData(results, args.ts_code, args.name);
             return {
                 content: [{ type: "text", text: formattedOutput }]
             };
@@ -87,7 +100,7 @@ export const fundData = {
     }
 };
 // 获取基金数据的通用函数
-async function fetchFundData(dataType, tsCode, period, startDate, endDate, apiKey, apiUrl) {
+async function fetchFundData(dataType, tsCode, name, period, startDate, endDate, apiKey, apiUrl) {
     const apiConfigs = {
         basic: {
             api_name: "fund_basic",
@@ -129,6 +142,8 @@ async function fetchFundData(dataType, tsCode, period, startDate, endDate, apiKe
     else if (dataType === 'manager') {
         if (tsCode)
             params.params.ts_code = tsCode;
+        if (name)
+            params.params.name = name;
     }
     else if (dataType === 'nav') {
         if (tsCode)
@@ -299,10 +314,13 @@ async function fetchFundShareData(tsCode, startDate, endDate, period, apiKey, ap
     }
 }
 // 格式化基金数据输出
-function formatFundData(results, tsCode) {
+function formatFundData(results, tsCode, name) {
     let output = `# 基金数据查询结果\n\n`;
     if (tsCode) {
         output += `基金代码: ${tsCode}\n\n`;
+    }
+    if (name) {
+        output += `基金经理姓名: ${name}\n\n`;
     }
     for (const result of results) {
         if (result.error) {

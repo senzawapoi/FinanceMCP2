@@ -11,23 +11,23 @@ export const companyPerformance = {
             },
             data_type: {
                 type: "string",
-                description: "数据类型，可选值：income(利润表)、balance(资产负债表)、cashflow(现金流量表)、forecast(业绩预告)、express(业绩快报)、indicators(财务指标)、dividend(分红送股)、all(全部数据)",
-                enum: ["income", "balance", "cashflow", "forecast", "express", "indicators", "dividend", "all"]
+                description: "数据类型，可选值：income(利润表)、balance(资产负债表)、cashflow(现金流量表)、forecast(业绩预告)、express(业绩快报)、indicators(财务指标)、dividend(分红送股)、mainbz_product(主营业务构成-按产品)、mainbz_region(主营业务构成-按地区)、mainbz_industry(主营业务构成-按行业)、all(全部数据)",
+                enum: ["income", "balance", "cashflow", "forecast", "express", "indicators", "dividend", "mainbz_product", "mainbz_region", "mainbz_industry", "all"]
             },
             start_date: {
                 type: "string",
-                description: "起始日期，格式为YYYYMMDD，如'20230101'。不指定则获取默认时间范围数据"
+                description: "起始日期，格式为YYYYMMDD，如'20230101'"
             },
             end_date: {
                 type: "string",
-                description: "结束日期，格式为YYYYMMDD，如'20231231'。不指定则获取到最新数据"
+                description: "结束日期，格式为YYYYMMDD，如'20231231'"
             },
             period: {
                 type: "string",
                 description: "特定报告期，格式为YYYYMMDD，如'20231231'表示2023年年报。指定此参数时将忽略start_date和end_date"
             }
         },
-        required: ["ts_code", "data_type"]
+        required: ["ts_code", "data_type", "start_date", "end_date"]
     },
     async run(args) {
         try {
@@ -37,19 +37,14 @@ export const companyPerformance = {
             if (!TUSHARE_API_KEY) {
                 throw new Error('请配置TUSHARE_TOKEN环境变量');
             }
-            // 默认日期设置
-            const today = new Date();
-            const currentYear = today.getFullYear();
-            const defaultEndDate = `${currentYear}1231`;
-            const defaultStartDate = `${currentYear - 2}0101`;
             const results = [];
             // 根据data_type决定要查询的API
             const dataTypes = args.data_type === 'all'
-                ? ['income', 'balance', 'cashflow', 'forecast', 'express', 'indicators', 'dividend']
+                ? ['income', 'balance', 'cashflow', 'forecast', 'express', 'indicators', 'dividend', 'mainbz_product', 'mainbz_region', 'mainbz_industry']
                 : [args.data_type];
             for (const dataType of dataTypes) {
                 try {
-                    const result = await fetchFinancialData(dataType, args.ts_code, args.period, args.start_date || defaultStartDate, args.end_date || defaultEndDate, TUSHARE_API_KEY, TUSHARE_API_URL);
+                    const result = await fetchFinancialData(dataType, args.ts_code, args.period, args.start_date, args.end_date, TUSHARE_API_KEY, TUSHARE_API_URL);
                     if (result.data && result.data.length > 0) {
                         results.push({
                             type: dataType,
@@ -87,7 +82,7 @@ export const companyPerformance = {
     }
 };
 // 获取财务数据的通用函数
-async function fetchFinancialData(dataType, tsCode, period, startDate, endDate, apiKey, apiUrl) {
+async function fetchFinancialData(dataType, tsCode, period, startDate, endDate, apiKey, apiUrl, businessType) {
     const apiConfigs = {
         income: {
             api_name: "income",
@@ -116,6 +111,21 @@ async function fetchFinancialData(dataType, tsCode, period, startDate, endDate, 
         dividend: {
             api_name: "dividend",
             default_fields: "ts_code,end_date,ann_date,div_proc,stk_div,stk_bo_rate,stk_co_rate,cash_div,cash_div_tax,record_date,ex_date,pay_date,div_listdate,imp_ann_date,base_date,base_share"
+        },
+        mainbz_product: {
+            api_name: "fina_mainbz",
+            default_fields: "ts_code,end_date,bz_item,bz_sales,bz_profit,bz_cost,curr_type,update_flag",
+            business_type: "P"
+        },
+        mainbz_region: {
+            api_name: "fina_mainbz",
+            default_fields: "ts_code,end_date,bz_item,bz_sales,bz_profit,bz_cost,curr_type,update_flag",
+            business_type: "D"
+        },
+        mainbz_industry: {
+            api_name: "fina_mainbz",
+            default_fields: "ts_code,end_date,bz_item,bz_sales,bz_profit,bz_cost,curr_type,update_flag",
+            business_type: "I"
         }
     };
     const config = apiConfigs[dataType];
@@ -137,20 +147,28 @@ async function fetchFinancialData(dataType, tsCode, period, startDate, endDate, 
             params.params.period = period;
         }
         else {
-            if (startDate)
-                params.params.start_date = startDate;
-            if (endDate)
-                params.params.end_date = endDate;
+            params.params.start_date = startDate;
+            params.params.end_date = endDate;
         }
     }
     else if (['forecast', 'express'].includes(dataType)) {
-        if (startDate)
-            params.params.start_date = startDate;
-        if (endDate)
-            params.params.end_date = endDate;
+        params.params.start_date = startDate;
+        params.params.end_date = endDate;
     }
     else if (dataType === 'dividend') {
         // 分红数据不在API级别过滤，在返回后过滤
+    }
+    else if (['mainbz_product', 'mainbz_region', 'mainbz_industry'].includes(dataType)) {
+        // 主营业务构成数据
+        if (period) {
+            params.params.period = period;
+        }
+        else {
+            params.params.start_date = startDate;
+            params.params.end_date = endDate;
+        }
+        // 添加业务类型参数（从配置中获取）
+        params.params.type = config.business_type;
     }
     console.log(`请求${dataType}数据，API: ${config.api_name}，参数:`, params.params);
     // 设置请求超时
@@ -187,7 +205,7 @@ async function fetchFinancialData(dataType, tsCode, period, startDate, endDate, 
             return result;
         });
         // 对dividend数据进行日期范围过滤
-        if (dataType === 'dividend' && startDate && endDate) {
+        if (dataType === 'dividend') {
             resultData = resultData.filter((item) => {
                 // 使用ann_date（公告日期）进行过滤
                 const annDate = item.ann_date;
@@ -216,7 +234,10 @@ function formatFinancialData(results, tsCode) {
         forecast: '🔮 业绩预告',
         express: '⚡ 业绩快报',
         indicators: '📊 财务指标',
-        dividend: '💵 分红送股'
+        dividend: '💵 分红送股',
+        mainbz_product: '🏭 主营业务构成(按产品)',
+        mainbz_region: '🗺️ 主营业务构成(按地区)',
+        mainbz_industry: '🏢 主营业务构成(按行业)'
     };
     for (const result of results) {
         const typeName = dataTypeNames[result.type] || result.type;
@@ -251,6 +272,11 @@ function formatFinancialData(results, tsCode) {
                 break;
             case 'dividend':
                 output += formatDividend(result.data);
+                break;
+            case 'mainbz_product':
+            case 'mainbz_region':
+            case 'mainbz_industry':
+                output += formatMainBusiness(result.data);
                 break;
             default:
                 output += formatGenericData(result.data, result.fields);
@@ -436,6 +462,43 @@ function formatDividend(data) {
             output += `除权除息日: ${item.ex_date}\n`;
         if (item.pay_date)
             output += `派息日: ${item.pay_date}\n`;
+        output += '\n';
+    }
+    return output;
+}
+// 格式化主营业务构成数据
+function formatMainBusiness(data) {
+    if (!data || data.length === 0) {
+        return `暂无数据\n\n`;
+    }
+    let output = '';
+    // 按报告期分组
+    const groupedData = {};
+    for (const item of data) {
+        const period = item.end_date || 'unknown';
+        if (!groupedData[period]) {
+            groupedData[period] = [];
+        }
+        groupedData[period].push(item);
+    }
+    // 按报告期排序（最新的在前）
+    const sortedPeriods = Object.keys(groupedData).sort((a, b) => b.localeCompare(a));
+    // 为每个报告期生成表格
+    for (const period of sortedPeriods) {
+        const items = groupedData[period];
+        output += `#### 📅 ${period} 报告期\n\n`;
+        // 创建表格头
+        output += `| 业务项目 | 主营收入(万元) | 主营利润(万元) | 主营成本(万元) | 货币代码 |\n`;
+        output += `|---------|-------------|-------------|-------------|----------|\n`;
+        // 添加数据行
+        for (const item of items) {
+            const bzItem = item.bz_item || 'N/A';
+            const bzSales = item.bz_sales ? formatNumber(item.bz_sales) : 'N/A';
+            const bzProfit = item.bz_profit ? formatNumber(item.bz_profit) : 'N/A';
+            const bzCost = item.bz_cost ? formatNumber(item.bz_cost) : 'N/A';
+            const currType = item.curr_type || 'CNY';
+            output += `| ${bzItem} | ${bzSales} | ${bzProfit} | ${bzCost} | ${currType} |\n`;
+        }
         output += '\n';
     }
     return output;

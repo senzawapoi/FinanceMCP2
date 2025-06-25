@@ -152,13 +152,12 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             return await timestampTool.run({ format });
         }
         case "finance_news": {
-            const news_type = request.params.arguments?.news_type ? String(request.params.arguments.news_type) : undefined;
             const source = request.params.arguments?.source ? String(request.params.arguments.source) : undefined;
             const count = request.params.arguments?.count ? Number(request.params.arguments.count) : undefined;
             const hours = request.params.arguments?.hours ? Number(request.params.arguments.hours) : undefined;
             const start_date = request.params.arguments?.start_date ? String(request.params.arguments.start_date) : undefined;
             const end_date = request.params.arguments?.end_date ? String(request.params.arguments.end_date) : undefined;
-            return await financeNews.run({ news_type, source, count, hours, start_date, end_date });
+            return await financeNews.run({ source, count, hours, start_date, end_date });
         }
         case "stock_data": {
             const code = String(request.params.arguments?.code);
@@ -183,8 +182,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         case "company_performance": {
             const ts_code = String(request.params.arguments?.ts_code);
             const data_type = String(request.params.arguments?.data_type);
-            const start_date = request.params.arguments?.start_date ? String(request.params.arguments.start_date) : undefined;
-            const end_date = request.params.arguments?.end_date ? String(request.params.arguments.end_date) : undefined;
+            const start_date = String(request.params.arguments?.start_date);
+            const end_date = String(request.params.arguments?.end_date);
             const period = request.params.arguments?.period ? String(request.params.arguments.period) : undefined;
             return await companyPerformance.run({ ts_code, data_type, start_date, end_date, period });
         }

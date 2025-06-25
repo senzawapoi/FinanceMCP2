@@ -47,52 +47,220 @@ async function fetchFundManagerData(name, annDate, apiKey, apiUrl) {
     }
     return result.data;
 }
+// 格式化日期显示
+function formatDate(dateStr) {
+    if (!dateStr || dateStr === 'N/A')
+        return 'N/A';
+    if (dateStr.length === 8) {
+        return `${dateStr.substring(0, 4)}-${dateStr.substring(4, 6)}-${dateStr.substring(6, 8)}`;
+    }
+    return dateStr;
+}
+// 计算两个简历的相似度
+function calculateResumeSimilarity(resume1, resume2) {
+    if (!resume1 || !resume2)
+        return 0;
+    // 提取关键信息进行比较
+    const extractKeywords = (resume) => {
+        const keywords = new Set();
+        // 提取学校名称
+        const schoolMatches = resume.match(/[大学|学院|University|College]+/g);
+        if (schoolMatches) {
+            schoolMatches.forEach(school => keywords.add(school.toLowerCase()));
+        }
+        // 提取公司名称
+        const companyMatches = resume.match(/[基金|投资|证券|银行|保险|资管]+/g);
+        if (companyMatches) {
+            companyMatches.forEach(company => keywords.add(company.toLowerCase()));
+        }
+        // 提取学位信息
+        const degreeMatches = resume.match(/[硕士|博士|学士|MBA|CFA|FRM]+/g);
+        if (degreeMatches) {
+            degreeMatches.forEach(degree => keywords.add(degree.toLowerCase()));
+        }
+        return keywords;
+    };
+    const keywords1 = extractKeywords(resume1);
+    const keywords2 = extractKeywords(resume2);
+    if (keywords1.size === 0 && keywords2.size === 0)
+        return 0;
+    // 计算交集
+    const intersection = new Set([...keywords1].filter(x => keywords2.has(x)));
+    const union = new Set([...keywords1, ...keywords2]);
+    return intersection.size / union.size;
+}
+// 判断两个记录是否是同一人
+function isSamePerson(record1, record2) {
+    // 姓名和性别必须相同
+    if (record1.managerName !== record2.managerName || record1.gender !== record2.gender) {
+        return false;
+    }
+    // 如果出生年份都有且不同，则认为是不同人
+    if (record1.birthYear && record2.birthYear &&
+        record1.birthYear !== 'N/A' && record2.birthYear !== 'N/A' &&
+        record1.birthYear !== record2.birthYear) {
+        return false;
+    }
+    // 如果学历完全相同（且不为空），认为可能是同一人
+    if (record1.edu && record2.edu && record1.edu !== 'N/A' && record2.edu !== 'N/A') {
+        if (record1.edu === record2.edu) {
+            return true;
+        }
+    }
+    // 如果简历相似度高，认为是同一人
+    const similarity = calculateResumeSimilarity(record1.resume, record2.resume);
+    if (similarity > 0.3) { // 30%以上相似度认为是同一人
+        return true;
+    }
+    // 如果都没有出生年份，学历也不同或为空，但国籍相同，暂时认为是同一人
+    if ((!record1.birthYear || record1.birthYear === 'N/A') &&
+        (!record2.birthYear || record2.birthYear === 'N/A') &&
+        record1.nationality === record2.nationality) {
+        return true;
+    }
+    return false;
+}
+// 智能分组：将同一人的记录合并
+function groupRecordsByPerson(records) {
+    const groups = [];
+    for (const record of records) {
+        let foundGroup = false;
+        // 尝试找到匹配的现有组
+        for (const group of groups) {
+            const representativeRecord = {
+                tsCode: '', // 不重要
+                annDate: '',
+                managerName: group.info.managerName,
+                gender: group.info.gender,
+                birthYear: group.info.birthYear,
+                edu: group.info.edu,
+                nationality: group.info.nationality,
+                beginDate: '',
+                endDate: '',
+                resume: group.info.resume
+            };
+            if (isSamePerson(record, representativeRecord)) {
+                // 添加到现有组
+                group.funds.push({
+                    tsCode: record.tsCode,
+                    annDate: record.annDate,
+                    beginDate: record.beginDate,
+                    endDate: record.endDate
+                });
+                // 更新组信息（优先使用更完整的信息）
+                if (!group.info.birthYear || group.info.birthYear === 'N/A') {
+                    if (record.birthYear && record.birthYear !== 'N/A') {
+                        group.info.birthYear = record.birthYear;
+                    }
+                }
+                if (!group.info.edu || group.info.edu === 'N/A') {
+                    if (record.edu && record.edu !== 'N/A') {
+                        group.info.edu = record.edu;
+                    }
+                }
+                if (!group.info.resume || group.info.resume.length < record.resume.length) {
+                    if (record.resume) {
+                        group.info.resume = record.resume;
+                    }
+                }
+                foundGroup = true;
+                break;
+            }
+        }
+        // 如果没有找到匹配的组，创建新组
+        if (!foundGroup) {
+            groups.push({
+                info: {
+                    managerName: record.managerName,
+                    gender: record.gender,
+                    birthYear: record.birthYear,
+                    edu: record.edu,
+                    nationality: record.nationality,
+                    resume: record.resume
+                },
+                funds: [{
+                        tsCode: record.tsCode,
+                        annDate: record.annDate,
+                        beginDate: record.beginDate,
+                        endDate: record.endDate
+                    }]
+            });
+        }
+    }
+    return groups;
+}
 // 格式化基金经理数据输出
 function formatFundManagerData(data, name) {
     let output = `# 基金经理查询结果\n\n`;
-    output += `基金经理姓名: ${name}\n\n`;
+    output += `查询基金经理: **${name}**\n\n`;
     if (!data || !data.items || data.items.length === 0) {
         return output + "没有找到相关的基金经理信息。\n";
     }
     const items = data.items;
-    output += `找到 ${items.length} 条相关记录\n\n`;
-    // 按基金代码分组显示
-    const fundGroups = new Map();
-    items.forEach((item) => {
-        const tsCode = item[0]; // ts_code
-        if (!fundGroups.has(tsCode)) {
-            fundGroups.set(tsCode, []);
-        }
-        fundGroups.get(tsCode).push(item);
+    // 转换为统一的记录格式
+    const records = items.map((item) => {
+        const [tsCode, annDate, managerName, gender, birthYear, edu, nationality, beginDate, endDate, resume] = item;
+        return {
+            tsCode, annDate, managerName, gender, birthYear, edu, nationality, beginDate, endDate, resume
+        };
     });
-    let fundIndex = 1;
-    for (const [tsCode, records] of fundGroups) {
-        const firstRecord = records[0];
-        const [, annDate, managerName, gender, birthYear, edu, nationality, beginDate, endDate, resume] = firstRecord;
-        output += `## ${fundIndex}. 基金代码: ${tsCode}\n\n`;
+    // 智能分组
+    const personGroups = groupRecordsByPerson(records);
+    let personIndex = 1;
+    for (const personData of personGroups) {
+        const { info, funds } = personData;
+        const { managerName, gender, birthYear, edu, nationality, resume } = info;
+        // 如果有多个人
+        if (personGroups.length > 1) {
+            output += `## ${personIndex}. 基金经理信息\n\n`;
+        }
+        // 个人基本信息（只显示一次）
+        output += `### 个人基本信息\n\n`;
         output += `| 项目 | 信息 |\n`;
         output += `|------|------|\n`;
-        output += `| 基金经理 | ${managerName || 'N/A'} |\n`;
-        output += `| 性别 | ${gender || 'N/A'} |\n`;
+        output += `| 姓名 | ${managerName || 'N/A'} |\n`;
+        output += `| 性别 | ${gender === 'M' ? '男' : gender === 'F' ? '女' : gender || 'N/A'} |\n`;
         output += `| 出生年份 | ${birthYear || 'N/A'} |\n`;
         output += `| 学历 | ${edu || 'N/A'} |\n`;
         output += `| 国籍 | ${nationality || 'N/A'} |\n`;
-        output += `| 任职开始日期 | ${beginDate || 'N/A'} |\n`;
-        output += `| 任职结束日期 | ${endDate || '在任'} |\n`;
-        output += `| 公告日期 | ${annDate || 'N/A'} |\n`;
         if (resume) {
-            output += `\n个人简历:\n${resume}\n`;
+            output += `\n**个人简历:**\n${resume}\n`;
         }
-        // 如果该基金有多条记录（历史任职记录），显示历史信息
-        if (records.length > 1) {
-            output += `\n历史任职记录:\n`;
-            records.slice(1).forEach((record, index) => {
-                const [, histAnnDate, , , , , , histBeginDate, histEndDate] = record;
-                output += `- 第${index + 2}次任职: ${histBeginDate || 'N/A'} 至 ${histEndDate || '在任'} (公告日期: ${histAnnDate || 'N/A'})\n`;
+        // 基金管理信息统计
+        const activeFunds = funds.filter((fund) => !fund.endDate || fund.endDate === '在任');
+        const historicalFunds = funds.filter((fund) => fund.endDate && fund.endDate !== '在任');
+        output += `\n### 基金管理概况\n\n`;
+        output += `- **管理基金总数:** ${funds.length} 只\n`;
+        output += `- **当前在任:** ${activeFunds.length} 只\n`;
+        output += `- **历史管理:** ${historicalFunds.length} 只\n\n`;
+        // 当前在任基金
+        if (activeFunds.length > 0) {
+            output += `### 当前在任基金 (${activeFunds.length}只)\n\n`;
+            output += `| 基金代码 | 任职开始日期 | 最新公告日期 |\n`;
+            output += `|----------|--------------|---------------|\n`;
+            // 按任职开始日期排序
+            activeFunds.sort((a, b) => (b.beginDate || '').localeCompare(a.beginDate || ''));
+            activeFunds.forEach((fund) => {
+                output += `| ${fund.tsCode} | ${formatDate(fund.beginDate)} | ${formatDate(fund.annDate)} |\n`;
             });
+            output += `\n`;
         }
-        output += `\n---\n\n`;
-        fundIndex++;
+        // 历史管理基金
+        if (historicalFunds.length > 0) {
+            output += `### 历史管理基金 (${historicalFunds.length}只)\n\n`;
+            output += `| 基金代码 | 任职开始日期 | 任职结束日期 | 公告日期 |\n`;
+            output += `|----------|--------------|--------------|----------|\n`;
+            // 按结束日期倒序排序
+            historicalFunds.sort((a, b) => (b.endDate || '').localeCompare(a.endDate || ''));
+            historicalFunds.forEach((fund) => {
+                output += `| ${fund.tsCode} | ${formatDate(fund.beginDate)} | ${formatDate(fund.endDate)} | ${formatDate(fund.annDate)} |\n`;
+            });
+            output += `\n`;
+        }
+        if (personGroups.length > 1) {
+            output += `---\n\n`;
+        }
+        personIndex++;
     }
     return output;
 }

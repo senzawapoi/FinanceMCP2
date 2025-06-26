@@ -171,12 +171,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     }
 
     case "finance_news": {
-      const source = request.params.arguments?.source ? String(request.params.arguments.source) : undefined;
-      const count = request.params.arguments?.count ? Number(request.params.arguments.count) : undefined;
-      const hours = request.params.arguments?.hours ? Number(request.params.arguments.hours) : undefined;
-      const start_date = request.params.arguments?.start_date ? String(request.params.arguments.start_date) : undefined;
-      const end_date = request.params.arguments?.end_date ? String(request.params.arguments.end_date) : undefined;
-      return await financeNews.run({ source, count, hours, start_date, end_date });
+      const query = String(request.params.arguments?.query);
+      return await financeNews.run({ query });
     }
 
     case "stock_data": {

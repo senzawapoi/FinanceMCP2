@@ -12,8 +12,8 @@ export const companyPerformance = {
       },
       data_type: {
         type: "string",
-        description: "数据类型，可选值：income(利润表)、balance(资产负债表)、cashflow(现金流量表)、forecast(业绩预告)、express(业绩快报)、indicators(财务指标)、dividend(分红送股)、mainbz_product(主营业务构成-按产品)、mainbz_region(主营业务构成-按地区)、mainbz_industry(主营业务构成-按行业)、all(全部数据)",
-        enum: ["income", "balance", "cashflow", "forecast", "express", "indicators", "dividend", "mainbz_product", "mainbz_region", "mainbz_industry", "all"]
+        description: "数据类型，可选值：income(利润表)、balance(资产负债表)、cashflow(现金流量表)、forecast(业绩预告)、express(业绩快报)、indicators(财务指标)、dividend(分红送股)、mainbz_product(主营业务构成-按产品)、mainbz_region(主营业务构成-按地区)、mainbz_industry(主营业务构成-按行业)、holder_number(股东人数)、holder_trade(股东增减持)、all(全部数据)",
+        enum: ["income", "balance", "cashflow", "forecast", "express", "indicators", "dividend", "mainbz_product", "mainbz_region", "mainbz_industry", "holder_number", "holder_trade", "all"]
       },
       start_date: {
         type: "string",
@@ -51,7 +51,7 @@ export const companyPerformance = {
 
       // 根据data_type决定要查询的API
       const dataTypes = args.data_type === 'all' 
-        ? ['income', 'balance', 'cashflow', 'forecast', 'express', 'indicators', 'dividend', 'mainbz_product', 'mainbz_region', 'mainbz_industry']
+        ? ['income', 'balance', 'cashflow', 'forecast', 'express', 'indicators', 'dividend', 'mainbz_product', 'mainbz_region', 'mainbz_industry', 'holder_number', 'holder_trade']
         : [args.data_type];
 
       for (const dataType of dataTypes) {
@@ -159,6 +159,14 @@ async function fetchFinancialData(
       api_name: "fina_mainbz",
       default_fields: "ts_code,end_date,bz_item,bz_sales,bz_profit,bz_cost,curr_type,update_flag",
       business_type: "I"
+    },
+    holder_number: {
+      api_name: "stk_holdernumber",
+      default_fields: "ts_code,ann_date,end_date,holder_num"
+    },
+    holder_trade: {
+      api_name: "stk_holdertrade",
+      default_fields: "ts_code,ann_date,holder_name,holder_type,in_de,change_vol,change_ratio,after_share,after_ratio,avg_price,total_share,begin_date,close_date"
     }
   };
 
@@ -200,6 +208,10 @@ async function fetchFinancialData(
     }
     // 添加业务类型参数（从配置中获取）
     params.params.type = config.business_type;
+  } else if (['holder_number', 'holder_trade'].includes(dataType)) {
+    // 股东人数和股东增减持数据
+    params.params.start_date = startDate;
+    params.params.end_date = endDate;
   }
 
   console.log(`请求${dataType}数据，API: ${config.api_name}，参数:`, params.params);
@@ -282,7 +294,9 @@ function formatFinancialData(results: any[], tsCode: string): string {
     dividend: '💵 分红送股',
     mainbz_product: '🏭 主营业务构成(按产品)',
     mainbz_region: '🗺️ 主营业务构成(按地区)',
-    mainbz_industry: '🏢 主营业务构成(按行业)'
+    mainbz_industry: '🏢 主营业务构成(按行业)',
+    holder_number: '👥 股东人数',
+    holder_trade: '📊 股东增减持'
   };
 
   for (const result of results) {
@@ -326,6 +340,12 @@ function formatFinancialData(results: any[], tsCode: string): string {
       case 'mainbz_region':
       case 'mainbz_industry':
         output += formatMainBusiness(result.data);
+        break;
+      case 'holder_number':
+        output += formatHolderNumber(result.data);
+        break;
+      case 'holder_trade':
+        output += formatHolderTrade(result.data);
         break;
       default:
         output += formatGenericData(result.data, result.fields);
@@ -593,4 +613,100 @@ function getForecastType(type: string): string {
     '8': '略减'
   };
   return typeMap[type] || type;
-} 
+}
+
+// 格式化股东人数数据
+function formatHolderNumber(data: any[]): string {
+  if (!data || data.length === 0) {
+    return `暂无数据\n\n`;
+  }
+
+  let output = '';
+  
+  // 按公告日期排序（最新的在前）
+  const sortedData = data.sort((a, b) => (b.ann_date || '').localeCompare(a.ann_date || ''));
+  
+  // 创建表格头
+  output += `| 公告日期 | 截止日期 | 股东户数(户) |\n`;
+  output += `|---------|---------|------------|\n`;
+  
+  // 添加数据行
+  for (const item of sortedData) {
+    const annDate = item.ann_date || 'N/A';
+    const endDate = item.end_date || 'N/A';
+    const holderNum = item.holder_num ? formatNumber(item.holder_num) : 'N/A';
+    
+    output += `| ${annDate} | ${endDate} | ${holderNum} |\n`;
+  }
+  
+  output += '\n';
+  output += `📊 **数据统计**: 共 ${data.length} 条记录\n\n`;
+  
+  return output;
+}
+
+// 格式化股东增减持数据
+function formatHolderTrade(data: any[]): string {
+  if (!data || data.length === 0) {
+    return `暂无数据\n\n`;
+  }
+
+  let output = '';
+  
+  // 按公告日期排序（最新的在前）
+  const sortedData = data.sort((a, b) => (b.ann_date || '').localeCompare(a.ann_date || ''));
+  
+  // 分类统计
+  const increaseData = sortedData.filter(item => item.in_de === 'IN');
+  const decreaseData = sortedData.filter(item => item.in_de === 'DE');
+  
+  output += `📊 **增减持概况**: 增持 ${increaseData.length} 条，减持 ${decreaseData.length} 条\n\n`;
+  
+  // 创建详细表格
+  output += `| 公告日期 | 股东名称 | 股东类型 | 增减持 | 变动数量(万股) | 变动比例(%) | 变动后持股(万股) | 变动后比例(%) | 均价(元) |\n`;
+  output += `|---------|---------|---------|--------|-------------|-----------|-------------|-------------|--------|\n`;
+  
+  // 添加数据行
+  for (const item of sortedData) {
+    const annDate = item.ann_date || 'N/A';
+    const holderName = item.holder_name || 'N/A';
+    const holderType = getHolderType(item.holder_type);
+    const inDe = item.in_de === 'IN' ? '🔼 增持' : '🔽 减持';
+    const changeVol = item.change_vol ? formatNumber(item.change_vol / 10000) : 'N/A';
+    const changeRatio = item.change_ratio ? item.change_ratio.toFixed(4) : 'N/A';
+    const afterShare = item.after_share ? formatNumber(item.after_share / 10000) : 'N/A';
+    const afterRatio = item.after_ratio ? item.after_ratio.toFixed(4) : 'N/A';
+    const avgPrice = item.avg_price ? item.avg_price.toFixed(2) : 'N/A';
+    
+    output += `| ${annDate} | ${holderName} | ${holderType} | ${inDe} | ${changeVol} | ${changeRatio} | ${afterShare} | ${afterRatio} | ${avgPrice} |\n`;
+  }
+  
+  output += '\n';
+  
+  // 增减持统计
+  if (increaseData.length > 0) {
+    output += `### 🔼 增持统计\n\n`;
+    const totalIncreaseVol = increaseData.reduce((sum, item) => sum + (item.change_vol || 0), 0);
+    output += `- 增持次数: ${increaseData.length} 次\n`;
+    output += `- 累计增持数量: ${formatNumber(totalIncreaseVol / 10000)} 万股\n\n`;
+  }
+  
+  if (decreaseData.length > 0) {
+    output += `### 🔽 减持统计\n\n`;
+    const totalDecreaseVol = decreaseData.reduce((sum, item) => sum + (item.change_vol || 0), 0);
+    output += `- 减持次数: ${decreaseData.length} 次\n`;
+    output += `- 累计减持数量: ${formatNumber(totalDecreaseVol / 10000)} 万股\n\n`;
+  }
+  
+  return output;
+}
+
+// 辅助函数：获取股东类型描述
+function getHolderType(type: string): string {
+  const typeMap: Record<string, string> = {
+    'G': '👤 高管',
+    'P': '👤 个人',
+    'C': '🏢 公司'
+  };
+  return typeMap[type] || type;
+}

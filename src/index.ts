@@ -15,6 +15,7 @@ import { companyPerformance } from "./tools/companyPerformance.js";
 import { fundData } from "./tools/fundData.js";
 import { fundManagerByName, runFundManagerByName } from "./tools/fundManagerByName.js";
 import { convertibleBond } from "./tools/convertibleBond.js";
+import { blockTrade } from "./tools/blockTrade.js";
 
 // 🕐 时间戳工具定义
 const timestampTool = {
@@ -78,7 +79,7 @@ const timestampTool = {
         content: [
           {
             type: "text",
-            text: `## 🕐 当前东八区时间\n\n**格式**: ${format}\n**时间**: ${result}\n\n**时区**: 东八区 (UTC+8)\n**星期**: ${weekday}\n\n---\n\n*时间戳获取于: ${year}-${month}-${day} ${hour}:${minute}:${second}*`
+            text: `## 🕐 当前东八区时间\n\n格式: ${format}\n时间: ${result}\n\n时区: 东八区 (UTC+8)\n星期: ${weekday}\n\n---\n\n*时间戳获取于: ${year}-${month}-${day} ${hour}:${minute}:${second}*`
           }
         ]
       };
@@ -157,6 +158,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         name: convertibleBond.name,
         description: convertibleBond.description,
         inputSchema: convertibleBond.parameters
+      },
+      {
+        name: blockTrade.name,
+        description: blockTrade.description,
+        inputSchema: blockTrade.parameters
       }
     ]
   };
@@ -181,7 +187,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       const start_date = request.params.arguments?.start_date ? String(request.params.arguments.start_date) : undefined;
       const end_date = request.params.arguments?.end_date ? String(request.params.arguments.end_date) : undefined;
       const fields = request.params.arguments?.fields ? String(request.params.arguments.fields) : undefined;
-      return await stockData.run({ code, market_type, start_date, end_date, fields });
+      return await stockData.run({ code, market_type, start_date, end_date});
     }
 
     case "index_data": {
@@ -228,6 +234,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       const start_date = request.params.arguments?.start_date ? String(request.params.arguments.start_date) : undefined;
       const end_date = request.params.arguments?.end_date ? String(request.params.arguments.end_date) : undefined;
       return await convertibleBond.run({ ts_code, data_type, start_date, end_date });
+    }
+
+    case "block_trade": {
+      const code = request.params.arguments?.code ? String(request.params.arguments.code) : undefined;
+      const start_date = String(request.params.arguments?.start_date);
+      const end_date = String(request.params.arguments?.end_date);
+      return await blockTrade.run({ code, start_date, end_date });
     }
 
     default:

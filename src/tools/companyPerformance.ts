@@ -640,7 +640,7 @@ function formatHolderNumber(data: any[]): string {
   }
   
   output += '\n';
-  output += `📊 **数据统计**: 共 ${data.length} 条记录\n\n`;
+  output += `📊 数据统计: 共 ${data.length} 条记录\n\n`;
   
   return output;
 }
@@ -660,7 +660,7 @@ function formatHolderTrade(data: any[]): string {
   const increaseData = sortedData.filter(item => item.in_de === 'IN');
   const decreaseData = sortedData.filter(item => item.in_de === 'DE');
   
-  output += `📊 **增减持概况**: 增持 ${increaseData.length} 条，减持 ${decreaseData.length} 条\n\n`;
+  output += `📊 增减持概况: 增持 ${increaseData.length} 条，减持 ${decreaseData.length} 条\n\n`;
   
   // 创建详细表格
   output += `| 公告日期 | 股东名称 | 股东类型 | 增减持 | 变动数量(万股) | 变动比例(%) | 变动后持股(万股) | 变动后比例(%) | 均价(元) |\n`;

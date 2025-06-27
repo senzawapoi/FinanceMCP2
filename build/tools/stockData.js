@@ -21,10 +21,6 @@ export const stockData = {
                 type: "string",
                 description: "结束日期，格式为YYYYMMDD，如'20230131'"
             },
-            fields: {
-                type: "string",
-                description: "需要的字段，可选值包括：open,high,low,close,vol等，多个字段用逗号分隔"
-            }
         },
         required: ["code", "market_type"]
     },
@@ -60,46 +56,46 @@ export const stockData = {
                     ts_code: args.code,
                     start_date: args.start_date || defaultStartDate,
                     end_date: args.end_date || defaultEndDate
-                },
-                fields: ""
+                }
+                // 不设置fields参数，默认返回所有字段
             };
-            // 根据不同市场类型设置不同的API名称、参数和字段
+            // 根据不同市场类型设置不同的API名称和参数，默认返回所有字段
             switch (marketType) {
                 case 'cn':
                     params.api_name = "daily";
-                    params.fields = args.fields || "ts_code,trade_date,open,high,low,close,vol,amount";
+                    // 不设置fields，返回所有可用字段
                     break;
                 case 'us':
                     params.api_name = "us_daily";
-                    params.fields = args.fields || "ts_code,trade_date,open,high,low,close,pre_close,change,pct_change,vol,amount";
+                    // 不设置fields，返回所有可用字段
                     break;
                 case 'hk':
                     params.api_name = "hk_daily";
-                    params.fields = args.fields || "ts_code,trade_date,open,high,low,close,pre_close,change,pct_change,vol,amount";
+                    // 不设置fields，返回所有可用字段
                     break;
                 case 'fx':
                     params.api_name = "fx_daily";
-                    params.fields = args.fields || "ts_code,trade_date,bid_open,bid_close,bid_high,bid_low,ask_open,ask_close,ask_high,ask_low,tick_qty";
+                    // 不设置fields，返回所有可用字段
                     break;
                 case 'futures':
                     params.api_name = "fut_daily";
-                    params.fields = args.fields || "ts_code,trade_date,open,high,low,close,settle,change1,change2,vol,amount,oi";
+                    // 不设置fields，返回所有可用字段
                     break;
                 case 'fund':
                     params.api_name = "fund_daily";
-                    params.fields = args.fields || "ts_code,trade_date,open,high,low,close,pre_close,change,pct_chg,vol,amount";
+                    // 不设置fields，返回所有可用字段
                     break;
                 case 'repo':
                     params.api_name = "repo_daily";
-                    params.fields = args.fields || "ts_code,trade_date,name,rate,amount";
+                    // 不设置fields，返回所有可用字段
                     break;
                 case 'convertible_bond':
                     params.api_name = "cb_daily";
-                    params.fields = args.fields || "ts_code,trade_date,pre_close,open,high,low,close,change,pct_chg,vol,amount,bond_value,bond_over_rate,cb_value,cb_over_rate";
+                    // 不设置fields，返回所有可用字段
                     break;
                 case 'options':
                     params.api_name = "opt_daily";
-                    params.fields = args.fields || "ts_code,trade_date,exchange,pre_settle,pre_close,open,high,low,close,settle,vol,amount,oi";
+                    // 不设置fields，返回所有可用字段
                     // 期权接口优先使用trade_date，如果没有指定则使用end_date作为trade_date
                     if (!args.start_date && !args.end_date) {
                         // 如果都没指定，使用默认的end_date作为trade_date
@@ -128,7 +124,7 @@ export const stockData = {
                     break;
             }
             console.log(`选择的API接口: ${params.api_name}`);
-            console.log(`使用的字段: ${params.fields}`);
+            console.log(`字段设置: 返回所有可用字段`);
             // 设置请求超时
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), TUSHARE_CONFIG.TIMEOUT);

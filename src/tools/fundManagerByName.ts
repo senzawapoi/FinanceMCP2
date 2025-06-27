@@ -263,7 +263,7 @@ function groupRecordsByPerson(records: RawRecord[]): PersonData[] {
 // 格式化基金经理数据输出
 function formatFundManagerData(data: any, name: string): string {
   let output = `# 基金经理查询结果\n\n`;
-  output += `查询基金经理: **${name}**\n\n`;
+  output += `查询基金经理: ${name}\n\n`;
 
   if (!data || !data.items || data.items.length === 0) {
     return output + "没有找到相关的基金经理信息。\n";
@@ -303,7 +303,7 @@ function formatFundManagerData(data: any, name: string): string {
     output += `| 国籍 | ${nationality || 'N/A'} |\n`;
     
     if (resume) {
-      output += `\n**个人简历:**\n${resume}\n`;
+      output += `\n个人简历:\n${resume}\n`;
     }
     
     // 基金管理信息统计
@@ -311,9 +311,9 @@ function formatFundManagerData(data: any, name: string): string {
     const historicalFunds = funds.filter((fund: FundRecord) => fund.endDate && fund.endDate !== '在任');
     
     output += `\n### 基金管理概况\n\n`;
-    output += `- **管理基金总数:** ${funds.length} 只\n`;
-    output += `- **当前在任:** ${activeFunds.length} 只\n`;
-    output += `- **历史管理:** ${historicalFunds.length} 只\n\n`;
+    output += `- 管理基金总数: ${funds.length} 只\n`;
+    output += `- 当前在任: ${activeFunds.length} 只\n`;
+    output += `- 历史管理: ${historicalFunds.length} 只\n\n`;
     
     // 当前在任基金
     if (activeFunds.length > 0) {

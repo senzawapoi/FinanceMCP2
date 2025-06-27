@@ -16,6 +16,7 @@ import { fundData } from "./tools/fundData.js";
 import { fundManagerByName, runFundManagerByName } from "./tools/fundManagerByName.js";
 import { convertibleBond } from "./tools/convertibleBond.js";
 import { blockTrade } from "./tools/blockTrade.js";
+import { moneyFlow } from "./tools/moneyFlow.js";
 
 // 🕐 时间戳工具定义
 const timestampTool = {
@@ -163,6 +164,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         name: blockTrade.name,
         description: blockTrade.description,
         inputSchema: blockTrade.parameters
+      },
+      {
+        name: moneyFlow.name,
+        description: moneyFlow.description,
+        inputSchema: moneyFlow.parameters
       }
     ]
   };
@@ -241,6 +247,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       const start_date = String(request.params.arguments?.start_date);
       const end_date = String(request.params.arguments?.end_date);
       return await blockTrade.run({ code, start_date, end_date });
+    }
+
+    case "money_flow": {
+      const ts_code = request.params.arguments?.ts_code ? String(request.params.arguments.ts_code) : undefined;
+      const start_date = String(request.params.arguments?.start_date);
+      const end_date = String(request.params.arguments?.end_date);
+      return await moneyFlow.run({ ts_code, start_date, end_date });
     }
 
     default:

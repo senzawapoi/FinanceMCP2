@@ -2,7 +2,7 @@ import { TUSHARE_CONFIG } from '../config.js';
 
 export const companyPerformance = {
   name: "company_performance",
-  description: "获取上市公司财务表现数据，包括利润表、资产负债表、业绩预告、业绩快报、财务指标和分红送股数据",
+  description: "获取上市公司财务表现数据，包括资产负债表、业绩预告、业绩快报、财务指标和分红送股数据",
   parameters: {
     type: "object",
     properties: {
@@ -12,8 +12,8 @@ export const companyPerformance = {
       },
       data_type: {
         type: "string",
-        description: "数据类型，可选值：income(利润表)、balance(资产负债表)、forecast(业绩预告)、express(业绩快报)、indicators(财务指标)、dividend(分红送股)、mainbz_product(主营业务构成-按产品)、mainbz_region(主营业务构成-按地区)、mainbz_industry(主营业务构成-按行业)、holder_number(股东人数)、holder_trade(股东增减持)、all(全部数据)",
-        enum: ["income", "balance", "forecast", "express", "indicators", "dividend", "mainbz_product", "mainbz_region", "mainbz_industry", "holder_number", "holder_trade", "all"]
+        description: "数据类型，可选值：balance(资产负债表)、forecast(业绩预告)、express(业绩快报)、indicators(财务指标)、dividend(分红送股)、mainbz_product(主营业务构成-按产品)、mainbz_region(主营业务构成-按地区)、mainbz_industry(主营业务构成-按行业)、holder_number(股东人数)、holder_trade(股东增减持)、all(全部数据)",
+        enum: ["balance", "forecast", "express", "indicators", "dividend", "mainbz_product", "mainbz_region", "mainbz_industry", "holder_number", "holder_trade", "all"]
       },
       start_date: {
         type: "string",
@@ -51,7 +51,7 @@ export const companyPerformance = {
 
       // 根据data_type决定要查询的API
       const dataTypes = args.data_type === 'all' 
-        ? ['income', 'balance', 'forecast', 'express', 'indicators', 'dividend', 'mainbz_product', 'mainbz_region', 'mainbz_industry', 'holder_number', 'holder_trade']
+        ? ['balance', 'forecast', 'express', 'indicators', 'dividend', 'mainbz_product', 'mainbz_region', 'mainbz_industry', 'holder_number', 'holder_trade']
         : [args.data_type];
 
       for (const dataType of dataTypes) {
@@ -117,10 +117,6 @@ async function fetchFinancialData(
   businessType?: string
 ) {
   const apiConfigs: Record<string, any> = {
-    income: {
-      api_name: "income",
-      default_fields: "ts_code,ann_date,f_ann_date,end_date,report_type,comp_type,total_revenue,revenue,int_income,prem_earned,comm_income,n_commis_income,n_oth_income,n_oth_b_income,prem_income,out_prem,une_prem_reser,reins_income,n_sec_tb_income,n_sec_uw_income,n_asset_mg_income,oth_b_income,fv_value_chg_gain,invest_income,ass_invest_income,forex_gain,total_cogs,oper_cost,int_exp,comm_exp,biz_tax_surchg,sell_exp,admin_exp,fin_exp,assets_impair_loss,prem_refund,compens_payout,reser_insur_liab,div_payt,reins_exp,oper_exp,compens_payout_refu,insur_reser_refu,reins_cost_refund,other_bus_cost,operate_profit,non_oper_income,non_oper_exp,nca_disploss,total_profit,income_tax,n_income,n_income_attr_p,minority_gain,oth_compr_income,t_compr_income,compr_inc_attr_p,compr_inc_attr_m_s,ebit,ebitda,insurance_exp,undist_profit,distable_profit,rd_exp,fin_exp_int_exp,fin_exp_int_inc,transfer_surplus_rese,transfer_housing_imprest,transfer_oth,adj_lossgain,withdra_legal_surplus,withdra_legal_pubfunds,withdra_biz_devfunds,withdra_rese_fund,withdra_oth_ersu,workers_welfare,distr_profit_shrhder,prfshare_payable_dvd,comshare_payable_dvd,capit_comstock_div,continued_net_profit,end_net_profit"
-    },
     balance: {
       api_name: "balancesheet",
       default_fields: "ts_code,ann_date,f_ann_date,end_date,report_type,comp_type,total_share,cap_rese,undistr_porfit,surplus_rese,special_rese,money_cap,trad_asset,notes_receiv,accounts_receiv,oth_receiv,prepayment,div_receiv,int_receiv,inventories,amor_exp,nca_within_1y,sett_rsrv,loanto_oth_bank_fi,premium_receiv,reinsur_receiv,reinsur_res_receiv,pur_resale_fa,oth_cur_assets,total_cur_assets,fa_avail_for_sale,htm_invest,lt_eqt_invest,invest_real_estate,time_deposits,oth_assets,lt_rec,fix_assets,cip,const_materials,fixed_assets_disp,produc_bio_assets,oil_and_gas_assets,intan_assets,r_and_d,goodwill,lt_amor_exp,defer_tax_assets,decr_in_disbur,oth_nca,total_nca,cash_reser_cb,depos_in_oth_bfi,prec_metals,deriv_assets,rr_reinsur_une_prem,rr_reinsur_outsrnd_cla,rr_reinsur_lins_liab,rr_reinsur_lthins_liab,refund_depos,ph_pledge_loans,receiv_invest,receiv_cap_contrib,insurance_cont_reserves,receiv_reinsur_res,receiv_reinsur_cont_res,oth_assets_special,total_assets,short_loan,trad_liab,notes_payable,acct_payable,adv_receipts,sold_for_repur_fa,comm_payable,payroll_payable,taxes_payable,int_payable,div_payable,oth_payable,acc_exp,deferred_inc,st_bonds_payable,payable_to_reinsurer,rsrv_insur_cont,acting_trading_sec,acting_uw_sec,non_cur_liab_due_1y,oth_cur_liab,total_cur_liab,bond_payable,lt_payable,specific_payables,estimated_liab,defer_tax_liab,defer_inc_non_cur_liab,oth_ncl,total_ncl,depos_oth_bfi,deriv_liab,depos,agency_bus_liab,oth_liab,prem_receiv_adva,depos_received,ph_invest,reser_une_prem,reser_outstd_claims,reser_lins_liab,reser_lthins_liab,indept_acc_liab,pledge_borr,indem_payable,policy_div_payable,total_liab,treasury_share,ordin_risk_reser,forex_differ,invest_loss_unconf,minority_int,total_hldr_eqy_exc_min_int,total_hldr_eqy_inc_min_int,total_liab_hldr_eqy,lt_payroll_payable,oth_comp_income,oth_eqt_tools,oth_eqt_tools_p_shr,lending_funds,acc_receivable,st_fin_payable,payables"
@@ -182,7 +178,7 @@ async function fetchFinancialData(
   };
 
   // 根据不同的API添加特定参数
-  if (['income', 'balance', 'indicators'].includes(dataType)) {
+  if (['balance', 'indicators'].includes(dataType)) {
     if (period) {
       params.params.period = period;
     } else {
@@ -281,7 +277,6 @@ function formatFinancialData(results: any[], tsCode: string): string {
   let output = `# 📊 ${tsCode} 公司财务表现分析\n\n`;
 
   const dataTypeNames: Record<string, string> = {
-    income: '📈 利润表',
     balance: '⚖️ 资产负债表',
     forecast: '🔮 业绩预告',
     express: '⚡ 业绩快报',
@@ -310,9 +305,6 @@ function formatFinancialData(results: any[], tsCode: string): string {
 
     // 根据不同数据类型格式化输出
     switch (result.type) {
-      case 'income':
-        output += formatIncomeStatement(result.data);
-        break;
       case 'balance':
         output += formatBalanceSheet(result.data);
         break;
@@ -346,28 +338,6 @@ function formatFinancialData(results: any[], tsCode: string): string {
     output += '\n---\n\n';
   }
 
-  return output;
-}
-
-// 格式化利润表数据
-function formatIncomeStatement(data: any[]): string {
-  let output = '';
-  
-  for (const item of data) { // 显示所有数据
-    output += ` ${item.end_date || item.period} 期间\n`;
-    output += `公告日期: ${item.ann_date || 'N/A'}  实际公告日期: ${item.f_ann_date || 'N/A'}\n\n`;
-    
-    if (item.total_revenue) output += `营业总收入: ${formatNumber(item.total_revenue)} 万元\n`;
-    if (item.revenue) output += `营业收入: ${formatNumber(item.revenue)} 万元\n`;
-    if (item.total_cogs) output += `营业总成本: ${formatNumber(item.total_cogs)} 万元\n`;
-    if (item.operate_profit) output += `营业利润: ${formatNumber(item.operate_profit)} 万元\n`;
-    if (item.total_profit) output += `利润总额: ${formatNumber(item.total_profit)} 万元\n`;
-    if (item.n_income) output += `净利润: ${formatNumber(item.n_income)} 万元\n`;
-    if (item.n_income_attr_p) output += `归属于母公司净利润: ${formatNumber(item.n_income_attr_p)} 万元\n`;
-    
-    output += '\n';
-  }
-  
   return output;
 }
 

@@ -53,6 +53,12 @@ Get comprehensive financial data for listed companies with smart data filtering 
 * **Shareholder Count** - Shareholder number change trends
 * **Shareholder Trading** - Important shareholder buy/sell activities, shareholding changes
 
+#### Management Information ⭐️ New Feature
+* **Management Team** - Senior executives, directors, supervisors information
+* **Profile Analysis** - Gender, education, nationality, age statistics
+* **Position Distribution** - Position categories, title hierarchy analysis
+* **Tenure Tracking** - Appointment dates, resignation status, career timeline
+
 ### 💰 Fund Data Query ⭐️ Complete Refactoring
 Performance optimized with 85% speed improvement (from 5.2s to 0.8s):
 * **Fund List** - Fund basic information, investment types, management fees, etc.
@@ -125,7 +131,7 @@ Seamless integration with MCP-compatible clients (like Claude) for intelligent f
 
 ## 🎯 Tool Overview
 
-This server provides **11 professional financial tools**:
+This server provides **12 professional financial tools**:
 
 | Tool Name | Function Description | Key Features |
 |-----------|---------------------|--------------|
@@ -134,12 +140,13 @@ This server provides **11 professional financial tools**:
 | 📈 **stock_data** | Stock data query | Global multi-market, 9 financial instruments |
 | 📊 **index_data** | Index data query | Major market indices |
 | 📉 **macro_econ** | Macroeconomic data | 11 economic indicators, Chinese optimized |
-| 🏢 **company_performance** | Company financial analysis | Financial statements integrated, smart filtering |
+| 🏢 **company_performance** | Company financial analysis | Financial statements integrated, management info |
 | 💰 **fund_data** | Fund data query | 5 major fund data types, performance optimized |
 | 👨‍💼 **fund_manager_by_name** | Fund manager query | Query detailed info by name |
 | 🪙 **convertible_bond** | Convertible bond data | Basic info + issuance data |
 | 🔄 **block_trade** | Block trade data | Trade details + business department info |
 | 💹 **money_flow** | Money flow data | Individual stock + market money flow |
+| 👔 **management_info** | Management team analysis | Executive profiles, position distribution |
 
 ## 🔧 Technical Specifications
 
@@ -166,12 +173,13 @@ This server provides **11 professional financial tools**:
 | 📈 Stock Data | `daily`, `us_daily`, `hk_daily`, etc. | Multi-market stock data |
 | 📊 Index Data | `index_daily` | Market indices |
 | 📉 Macro Economics | `shibor`, `gdp`, `cpi`, etc. | Economic indicators |
-| 🏢 Company Performance | `income`, `balancesheet`, `cashflow`, etc. | Financial statements |
+| 🏢 Company Performance | `income`, `balancesheet`, `cashflow`, `stk_managers`, etc. | Financial statements + management info |
 | 💰 Fund Data | `fund_basic`, `fund_nav`, etc. | Fund information |
 | 👨‍💼 Fund Manager | `fund_manager` | Fund manager information |
 | 🪙 Convertible Bond | `cb_basic`, `cb_issue` | Convertible bond data |
 | 🔄 Block Trade | `block_trade` | Block trade data |
 | 💹 Money Flow | `moneyflow` | Money flow data |
+| 👔 Management Info | `stk_managers` | Listed company management team |
 
 ## 🚦 Requirements
 

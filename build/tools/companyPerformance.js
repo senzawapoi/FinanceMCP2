@@ -1,7 +1,10 @@
 import { TUSHARE_CONFIG } from '../config.js';
+import { formatBasicBalance, formatAllBalance } from './companyPerformanceDetail/balanceFormatters.js';
+import { formatBasicCashFlow, formatCashflowAll } from './companyPerformanceDetail/cashflowFormatters.js';
+import { formatBasicIncome, formatAllIncome } from './companyPerformanceDetail/incomeFormatters.js';
 export const companyPerformance = {
     name: "company_performance",
-    description: "获取上市公司财务表现数据，包括资产负债表、业绩预告、业绩快报、财务指标和分红送股数据",
+    description: "获取上市公司综合表现数据，包括业绩预告、业绩快报、财务指标、分红送股、主营业务构成和股东变动数据",
     parameters: {
         type: "object",
         properties: {
@@ -11,8 +14,8 @@ export const companyPerformance = {
             },
             data_type: {
                 type: "string",
-                description: "数据类型，可选值：balance(资产负债表)、forecast(业绩预告)、express(业绩快报)、indicators(财务指标)、dividend(分红送股)、mainbz_product(主营业务构成-按产品)、mainbz_region(主营业务构成-按地区)、mainbz_industry(主营业务构成-按行业)、holder_number(股东人数)、holder_trade(股东增减持)、all(全部数据)",
-                enum: ["balance", "forecast", "express", "indicators", "dividend", "mainbz_product", "mainbz_region", "mainbz_industry", "holder_number", "holder_trade", "all"]
+                description: "数据类型：forecast(业绩预告)、express(业绩快报)、indicators(财务指标ROE等)、dividend(分红送股)、mainbz_product(主营构成-产品)、mainbz_region(主营构成-地区)、mainbz_industry(主营构成-行业)、holder_number(股东人数)、holder_trade(股东增减持)、balance_basic(核心资产负债表)、balance_all(完整资产负债表)、cashflow_basic(基础现金流)、cashflow_all(完整现金流)、income_basic(核心利润表)、income_all(完整利润表)",
+                enum: ["forecast", "express", "indicators", "dividend", "mainbz_product", "mainbz_region", "mainbz_industry", "holder_number", "holder_trade", "balance_basic", "balance_all", "cashflow_basic", "cashflow_all", "income_basic", "income_all"]
             },
             start_date: {
                 type: "string",
@@ -31,17 +34,15 @@ export const companyPerformance = {
     },
     async run(args) {
         try {
-            console.log('公司财务表现查询参数:', args);
+            console.log('公司综合表现查询参数:', args);
             const TUSHARE_API_KEY = TUSHARE_CONFIG.API_TOKEN;
             const TUSHARE_API_URL = TUSHARE_CONFIG.API_URL;
             if (!TUSHARE_API_KEY) {
                 throw new Error('请配置TUSHARE_TOKEN环境变量');
             }
             const results = [];
-            // 根据data_type决定要查询的API
-            const dataTypes = args.data_type === 'all'
-                ? ['balance', 'forecast', 'express', 'indicators', 'dividend', 'mainbz_product', 'mainbz_region', 'mainbz_industry', 'holder_number', 'holder_trade']
-                : [args.data_type];
+            // 直接使用指定的数据类型
+            const dataTypes = [args.data_type];
             for (const dataType of dataTypes) {
                 try {
                     const result = await fetchFinancialData(dataType, args.ts_code, args.period, args.start_date, args.end_date, TUSHARE_API_KEY, TUSHARE_API_URL);
@@ -62,7 +63,7 @@ export const companyPerformance = {
                 }
             }
             if (results.length === 0) {
-                throw new Error(`未找到股票${args.ts_code}的财务数据`);
+                throw new Error(`未找到股票${args.ts_code}的综合表现数据`);
             }
             // 格式化输出
             const formattedOutput = formatFinancialData(results, args.ts_code);
@@ -71,11 +72,11 @@ export const companyPerformance = {
             };
         }
         catch (error) {
-            console.error('公司财务表现查询错误:', error);
+            console.error('公司综合表现查询错误:', error);
             return {
                 content: [{
                         type: "text",
-                        text: `查询公司财务表现数据时发生错误: ${error instanceof Error ? error.message : '未知错误'}`
+                        text: `查询公司综合表现数据时发生错误: ${error instanceof Error ? error.message : '未知错误'}`
                     }]
             };
         }
@@ -84,10 +85,6 @@ export const companyPerformance = {
 // 获取财务数据的通用函数
 async function fetchFinancialData(dataType, tsCode, period, startDate, endDate, apiKey, apiUrl, businessType) {
     const apiConfigs = {
-        balance: {
-            api_name: "balancesheet",
-            default_fields: "ts_code,ann_date,f_ann_date,end_date,report_type,comp_type,total_share,cap_rese,undistr_porfit,surplus_rese,special_rese,money_cap,trad_asset,notes_receiv,accounts_receiv,oth_receiv,prepayment,div_receiv,int_receiv,inventories,amor_exp,nca_within_1y,sett_rsrv,loanto_oth_bank_fi,premium_receiv,reinsur_receiv,reinsur_res_receiv,pur_resale_fa,oth_cur_assets,total_cur_assets,fa_avail_for_sale,htm_invest,lt_eqt_invest,invest_real_estate,time_deposits,oth_assets,lt_rec,fix_assets,cip,const_materials,fixed_assets_disp,produc_bio_assets,oil_and_gas_assets,intan_assets,r_and_d,goodwill,lt_amor_exp,defer_tax_assets,decr_in_disbur,oth_nca,total_nca,cash_reser_cb,depos_in_oth_bfi,prec_metals,deriv_assets,rr_reinsur_une_prem,rr_reinsur_outsrnd_cla,rr_reinsur_lins_liab,rr_reinsur_lthins_liab,refund_depos,ph_pledge_loans,receiv_invest,receiv_cap_contrib,insurance_cont_reserves,receiv_reinsur_res,receiv_reinsur_cont_res,oth_assets_special,total_assets,short_loan,trad_liab,notes_payable,acct_payable,adv_receipts,sold_for_repur_fa,comm_payable,payroll_payable,taxes_payable,int_payable,div_payable,oth_payable,acc_exp,deferred_inc,st_bonds_payable,payable_to_reinsurer,rsrv_insur_cont,acting_trading_sec,acting_uw_sec,non_cur_liab_due_1y,oth_cur_liab,total_cur_liab,bond_payable,lt_payable,specific_payables,estimated_liab,defer_tax_liab,defer_inc_non_cur_liab,oth_ncl,total_ncl,depos_oth_bfi,deriv_liab,depos,agency_bus_liab,oth_liab,prem_receiv_adva,depos_received,ph_invest,reser_une_prem,reser_outstd_claims,reser_lins_liab,reser_lthins_liab,indept_acc_liab,pledge_borr,indem_payable,policy_div_payable,total_liab,treasury_share,ordin_risk_reser,forex_differ,invest_loss_unconf,minority_int,total_hldr_eqy_exc_min_int,total_hldr_eqy_inc_min_int,total_liab_hldr_eqy,lt_payroll_payable,oth_comp_income,oth_eqt_tools,oth_eqt_tools_p_shr,lending_funds,acc_receivable,st_fin_payable,payables"
-        },
         forecast: {
             api_name: "forecast",
             default_fields: "ts_code,ann_date,end_date,type,p_change_min,p_change_max,net_profit_min,net_profit_max,last_parent_net,first_ann_date,summary,change_reason"
@@ -126,6 +123,30 @@ async function fetchFinancialData(dataType, tsCode, period, startDate, endDate, 
         holder_trade: {
             api_name: "stk_holdertrade",
             default_fields: "ts_code,ann_date,holder_name,holder_type,in_de,change_vol,change_ratio,after_share,after_ratio,avg_price,total_share,begin_date,close_date"
+        },
+        balance_basic: {
+            api_name: "balancesheet",
+            default_fields: "ts_code,ann_date,f_ann_date,end_date,report_type,comp_type,total_assets,total_cur_assets,total_nca,total_liab,total_cur_liab,total_ncl,total_hldr_eqy_exc_min_int,total_hldr_eqy_inc_min_int,total_liab_hldr_eqy"
+        },
+        balance_all: {
+            api_name: "balancesheet",
+            default_fields: "" // 空字符串表示获取所有字段
+        },
+        cashflow_basic: {
+            api_name: "cashflow",
+            default_fields: "ts_code,ann_date,f_ann_date,end_date,comp_type,report_type,net_profit,finan_exp,c_fr_sale_sg,recp_tax_rends,n_depos_incr_fi,n_incr_loans_cb,n_inc_borr_oth_fi,prem_fr_orig_contr,n_incr_insured_dep,n_reinsur_prem,n_incr_disp_tfa,ifc_cash_incr,n_incr_disp_faas,n_incr_loans_oth_bank,n_cap_incr_repur,c_fr_oth_operate_a,c_inf_fr_operate_a,c_paid_goods_s,c_paid_to_for_empl,c_paid_for_taxes,n_incr_clt_loan_adv,n_incr_dep_cbob,c_pay_claims_orig_inco,pay_handling_chrg,pay_comm_insur_plcy,oth_cash_pay_oper_act,st_cash_out_act,n_cashflow_act,oth_recp_ral_inv_act,c_disp_withdrwl_invest,c_recp_return_invest,n_recp_disp_fiolta,n_recp_disp_sobu,stot_inflows_inv_act,c_pay_acq_const_fiolta,c_paid_invest,n_disp_subs_oth_biz,oth_pay_ral_inv_act,n_incr_pledge_loan,stot_out_inv_act,n_cashflow_inv_act,c_recp_borrow,proc_issue_bonds,oth_cash_recp_ral_fnc_act,stot_cash_in_fnc_act,free_cashflow,c_prepay_amt_borr,c_pay_dist_dpcp_int_exp,incl_dvd_profit_paid_sc_ms,oth_cashpay_ral_fnc_act,stot_cashout_fnc_act,n_cash_flows_fnc_act,eff_fx_flu_cash,n_incr_cash_cash_equ,c_cash_equ_beg_period,c_cash_equ_end_period,c_recp_cap_contrib,incl_cash_rec_saims,uncon_invest_loss,prov_depr_assets,depr_fa_coga_dpba,amort_intang_assets,lt_amort_deferred_exp,decr_deferred_exp,incr_acc_exp,loss_disp_fiolta,loss_scr_fa,loss_fv_chg,invest_loss,decr_def_inc_tax_assets,incr_def_inc_tax_liab,decr_inventories,decr_oper_payable,incr_oper_payable,others,im_net_cashflow_oper_act,conv_debt_into_cap,conv_copbonds_due_within_1y,fa_fnc_leases,end_bal_cash,beg_bal_cash,end_bal_cash_equ,beg_bal_cash_equ,im_n_incr_cash_equ"
+        },
+        cashflow_all: {
+            api_name: "cashflow",
+            default_fields: "" // 空字符串表示获取所有字段
+        },
+        income_basic: {
+            api_name: "income",
+            default_fields: "ts_code,ann_date,f_ann_date,end_date,report_type,comp_type,basic_eps,diluted_eps,total_revenue,revenue,total_cogs,oper_cost,operate_profit,total_profit,income_tax,n_income,n_income_attr_p,ebit,ebitda"
+        },
+        income_all: {
+            api_name: "income",
+            default_fields: "" // 空字符串表示获取所有字段
         }
     };
     const config = apiConfigs[dataType];
@@ -138,11 +159,14 @@ async function fetchFinancialData(dataType, tsCode, period, startDate, endDate, 
         token: apiKey,
         params: {
             ts_code: tsCode
-        },
-        fields: config.default_fields
+        }
     };
+    // 添加字段参数（如果不是balance_all类型）
+    if (config.default_fields) {
+        params.fields = config.default_fields;
+    }
     // 根据不同的API添加特定参数
-    if (['balance', 'indicators'].includes(dataType)) {
+    if (['indicators'].includes(dataType)) {
         if (period) {
             params.params.period = period;
         }
@@ -174,6 +198,36 @@ async function fetchFinancialData(dataType, tsCode, period, startDate, endDate, 
         // 股东人数和股东增减持数据
         params.params.start_date = startDate;
         params.params.end_date = endDate;
+    }
+    else if (['balance_basic', 'balance_all'].includes(dataType)) {
+        // 资产负债表数据
+        if (period) {
+            params.params.period = period;
+        }
+        else {
+            params.params.start_date = startDate;
+            params.params.end_date = endDate;
+        }
+    }
+    else if (['cashflow_basic', 'cashflow_all'].includes(dataType)) {
+        // 现金流量表数据
+        if (period) {
+            params.params.period = period;
+        }
+        else {
+            params.params.start_date = startDate;
+            params.params.end_date = endDate;
+        }
+    }
+    else if (['income_basic', 'income_all'].includes(dataType)) {
+        // 利润表数据
+        if (period) {
+            params.params.period = period;
+        }
+        else {
+            params.params.start_date = startDate;
+            params.params.end_date = endDate;
+        }
     }
     console.log(`请求${dataType}数据，API: ${config.api_name}，参数:`, params.params);
     // 设置请求超时
@@ -233,7 +287,6 @@ async function fetchFinancialData(dataType, tsCode, period, startDate, endDate, 
 function formatFinancialData(results, tsCode) {
     let output = `# 📊 ${tsCode} 公司财务表现分析\n\n`;
     const dataTypeNames = {
-        balance: '⚖️ 资产负债表',
         forecast: '🔮 业绩预告',
         express: '⚡ 业绩快报',
         indicators: '📊 财务指标',
@@ -242,7 +295,13 @@ function formatFinancialData(results, tsCode) {
         mainbz_region: '🗺️ 主营业务构成(按地区)',
         mainbz_industry: '🏢 主营业务构成(按行业)',
         holder_number: '👥 股东人数',
-        holder_trade: '📊 股东增减持'
+        holder_trade: '📊 股东增减持',
+        balance_basic: '⚖️ 核心资产负债表',
+        balance_all: '⚖️ 完整资产负债表',
+        cashflow_basic: '💰 基础现金流量表',
+        cashflow_all: '💰 完整现金流量表',
+        income_basic: '💹 核心利润表',
+        income_all: '💹 完整利润表'
     };
     for (const result of results) {
         const typeName = dataTypeNames[result.type] || result.type;
@@ -257,9 +316,6 @@ function formatFinancialData(results, tsCode) {
         }
         // 根据不同数据类型格式化输出
         switch (result.type) {
-            case 'balance':
-                output += formatBalanceSheet(result.data);
-                break;
             case 'forecast':
                 output += formatForecast(result.data);
                 break;
@@ -283,32 +339,28 @@ function formatFinancialData(results, tsCode) {
             case 'holder_trade':
                 output += formatHolderTrade(result.data);
                 break;
+            case 'balance_basic':
+                output += formatBasicBalance(result.data);
+                break;
+            case 'balance_all':
+                output += formatAllBalance(result.data);
+                break;
+            case 'cashflow_basic':
+                output += formatBasicCashFlow(result.data);
+                break;
+            case 'cashflow_all':
+                output += formatCashflowAll(result.data);
+                break;
+            case 'income_basic':
+                output += formatBasicIncome(result.data);
+                break;
+            case 'income_all':
+                output += formatAllIncome(result.data);
+                break;
             default:
                 output += formatGenericData(result.data, result.fields);
         }
         output += '\n---\n\n';
-    }
-    return output;
-}
-// 格式化资产负债表数据
-function formatBalanceSheet(data) {
-    let output = '';
-    for (const item of data) {
-        output += ` ${item.end_date || item.period} 期间\n`;
-        output += `公告日期: ${item.ann_date || 'N/A'}  实际公告日期: ${item.f_ann_date || 'N/A'}\n\n`;
-        if (item.total_assets)
-            output += `资产总计: ${formatNumber(item.total_assets)} 万元\n`;
-        if (item.total_cur_assets)
-            output += `流动资产合计: ${formatNumber(item.total_cur_assets)} 万元\n`;
-        if (item.total_nca)
-            output += `非流动资产合计: ${formatNumber(item.total_nca)} 万元\n`;
-        if (item.total_liab)
-            output += `负债合计: ${formatNumber(item.total_liab)} 万元\n`;
-        if (item.total_cur_liab)
-            output += `流动负债合计: ${formatNumber(item.total_cur_liab)} 万元\n`;
-        if (item.total_hldr_eqy_exc_min_int)
-            output += `股东权益合计: ${formatNumber(item.total_hldr_eqy_exc_min_int)} 万元\n`;
-        output += '\n';
     }
     return output;
 }

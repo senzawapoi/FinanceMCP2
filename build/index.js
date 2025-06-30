@@ -13,8 +13,6 @@ import { fundManagerByName, runFundManagerByName } from "./tools/fundManagerByNa
 import { convertibleBond } from "./tools/convertibleBond.js";
 import { blockTrade } from "./tools/blockTrade.js";
 import { moneyFlow } from "./tools/moneyFlow.js";
-import { cashFlow } from "./tools/cashFlow.js";
-import { income } from "./tools/income.js";
 // 🕐 时间戳工具定义
 const timestampTool = {
     name: "current_timestamp",
@@ -155,16 +153,6 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
                 description: moneyFlow.description,
                 inputSchema: moneyFlow.parameters
             },
-            {
-                name: cashFlow.name,
-                description: cashFlow.description,
-                inputSchema: cashFlow.parameters
-            },
-            {
-                name: income.name,
-                description: income.description,
-                inputSchema: income.parameters
-            }
         ]
     };
 });
@@ -238,38 +226,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             const start_date = String(request.params.arguments?.start_date);
             const end_date = String(request.params.arguments?.end_date);
             return await moneyFlow.run({ ts_code, start_date, end_date });
-        }
-        case "cash_flow": {
-            const ts_code = String(request.params.arguments?.ts_code);
-            const data_type = String(request.params.arguments?.data_type);
-            const start_date = String(request.params.arguments?.start_date);
-            const end_date = String(request.params.arguments?.end_date);
-            const period = request.params.arguments?.period ? String(request.params.arguments.period) : undefined;
-            const result = await cashFlow.handler({ ts_code, data_type, start_date, end_date, period });
-            return {
-                content: [
-                    {
-                        type: "text",
-                        text: result
-                    }
-                ]
-            };
-        }
-        case "income": {
-            const ts_code = String(request.params.arguments?.ts_code);
-            const data_type = String(request.params.arguments?.data_type);
-            const start_date = String(request.params.arguments?.start_date);
-            const end_date = String(request.params.arguments?.end_date);
-            const period = request.params.arguments?.period ? String(request.params.arguments.period) : undefined;
-            const result = await income.handler({ ts_code, data_type, start_date, end_date, period });
-            return {
-                content: [
-                    {
-                        type: "text",
-                        text: result
-                    }
-                ]
-            };
         }
         default:
             throw new Error("Unknown tool");

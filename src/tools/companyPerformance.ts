@@ -16,7 +16,7 @@ import {
 } from './companyPerformanceDetail/indicatorsFormatters.js';
 import { formatForecast, formatExpress } from './companyPerformanceDetail/forecastExpressFormatters.js';
 import { formatDividend } from './companyPerformanceDetail/dividendFormatters.js';
-import { formatMainBusiness } from './companyPerformanceDetail/businessFormatters.js';
+import { formatMainBusiness, formatMainBusinessCombined } from './companyPerformanceDetail/businessFormatters.js';
 import { formatHolderNumber, formatHolderTrade } from './companyPerformanceDetail/holderFormatters.js';
 import { formatGenericData } from './companyPerformanceDetail/genericFormatters.js';
 import { formatAudit } from './companyPerformanceDetail/auditFormatters.js';
@@ -33,8 +33,8 @@ export const companyPerformance = {
       },
       data_type: {
         type: "string",
-        description: "数据类型：forecast(业绩预告)、express(业绩快报)、indicators(财务指标-包含盈利能力/偿债能力/营运能力/成长能力等全面指标)、dividend(分红送股)、mainbz_product(主营构成-产品)、mainbz_region(主营构成-地区)、mainbz_industry(主营构成-行业)、holder_number(股东人数)、holder_trade(股东增减持)、audit(财务审计意见)、balance_basic(核心资产负债表)、balance_all(完整资产负债表)、cashflow_basic(基础现金流)、cashflow_all(完整现金流)、income_basic(核心利润表)、income_all(完整利润表)",
-        enum: ["forecast", "express", "indicators", "dividend", "mainbz_product", "mainbz_region", "mainbz_industry", "holder_number", "holder_trade", "audit", "balance_basic", "balance_all", "cashflow_basic", "cashflow_all", "income_basic", "income_all"]
+        description: "数据类型：forecast(业绩预告)、express(业绩快报)、indicators(财务指标-包含盈利能力/偿债能力/营运能力/成长能力等全面指标)、dividend(分红送股)、mainbz(主营业务构成-融合产品/地区/行业)、holder_number(股东人数)、holder_trade(股东增减持)、audit(财务审计意见)、balance_basic(核心资产负债表)、balance_all(完整资产负债表)、cashflow_basic(基础现金流)、cashflow_all(完整现金流)、income_basic(核心利润表)、income_all(完整利润表)",
+        enum: ["forecast", "express", "indicators", "dividend", "mainbz", "holder_number", "holder_trade", "audit", "balance_basic", "balance_all", "cashflow_basic", "cashflow_all", "income_basic", "income_all"]
       },
       start_date: {
         type: "string",
@@ -70,27 +70,81 @@ export const companyPerformance = {
 
       const results: any[] = [];
 
-      // 直接使用指定的数据类型
-      const dataTypes = [args.data_type];
+      // 处理主营业务融合调用
+      let dataTypes: string[];
+      if (args.data_type === 'mainbz') {
+        // 主营业务融合模式：自动调用三个主营业务类型
+        dataTypes = ['mainbz_product', 'mainbz_region', 'mainbz_industry'];
+      } else {
+        // 直接使用指定的数据类型
+        dataTypes = [args.data_type];
+      }
 
       for (const dataType of dataTypes) {
         try {
-          const result = await fetchFinancialData(
-            dataType,
-            args.ts_code,
-            args.period,
-            args.start_date,
-            args.end_date,
-            TUSHARE_API_KEY,
-            TUSHARE_API_URL
-          );
-          
-          if (result.data && result.data.length > 0) {
-            results.push({
-              type: dataType,
-              data: result.data,
-              fields: result.fields
-            });
+          if (dataType === 'mainbz') {
+            // 特殊处理：获取三种类型的主营业务构成数据
+            const businessTypes = ['P', 'D', 'I'];
+            const businessNames = { 'P': '产品', 'D': '地区', 'I': '行业' };
+            const combinedData: any[] = [];
+            
+            for (const businessType of businessTypes) {
+              try {
+                const result = await fetchFinancialData(
+                  'mainbz',
+                  args.ts_code,
+                  args.period,
+                  args.start_date,
+                  args.end_date,
+                  TUSHARE_API_KEY,
+                  TUSHARE_API_URL,
+                  businessType
+                );
+                
+                if (result.data && result.data.length > 0) {
+                  // 为每条数据添加业务类型标识
+                  result.data.forEach((item: any) => {
+                    item.bz_type = businessNames[businessType as keyof typeof businessNames];
+                    item.bz_type_code = businessType;
+                  });
+                  combinedData.push(...result.data);
+                }
+              } catch (error) {
+                console.warn(`获取主营业务构成数据失败 (${businessNames[businessType as keyof typeof businessNames]}):`, error);
+              }
+            }
+            
+            if (combinedData.length > 0) {
+              results.push({
+                type: dataType,
+                data: combinedData,
+                fields: ['ts_code', 'end_date', 'bz_item', 'bz_sales', 'bz_profit', 'bz_cost', 'curr_type', 'bz_type', 'bz_type_code']
+              });
+            } else {
+              results.push({
+                type: dataType,
+                error: '未获取到任何主营业务构成数据'
+              });
+            }
+          } else {
+            // 普通数据类型处理
+            const result = await fetchFinancialData(
+              dataType,
+              args.ts_code,
+              args.period,
+              args.start_date,
+              args.end_date,
+              TUSHARE_API_KEY,
+              TUSHARE_API_URL
+            );
+            
+            if (result.data && result.data.length > 0) {
+              results.push({
+                type: dataType,
+                data: result.data,
+                fields: result.fields
+              });
+            }
           }
         } catch (error) {
           console.warn(`获取${dataType}数据失败:`, error);
@@ -152,20 +206,10 @@ async function fetchFinancialData(
       api_name: "dividend",
       default_fields: "ts_code,end_date,ann_date,div_proc,stk_div,stk_bo_rate,stk_co_rate,cash_div,cash_div_tax,record_date,ex_date,pay_date,div_listdate,imp_ann_date,base_date,base_share"
     },
-    mainbz_product: {
+    mainbz: {
       api_name: "fina_mainbz",
       default_fields: "ts_code,end_date,bz_item,bz_sales,bz_profit,bz_cost,curr_type,update_flag",
-      business_type: "P"
-    },
-    mainbz_region: {
-      api_name: "fina_mainbz",
-      default_fields: "ts_code,end_date,bz_item,bz_sales,bz_profit,bz_cost,curr_type,update_flag",
-      business_type: "D"
-    },
-    mainbz_industry: {
-      api_name: "fina_mainbz",
-      default_fields: "ts_code,end_date,bz_item,bz_sales,bz_profit,bz_cost,curr_type,update_flag",
-      business_type: "I"
+      business_types: ["P", "D", "I"] // 融合三种类型：产品(P)、地区(D)、行业(I)
     },
     holder_number: {
       api_name: "stk_holdernumber",
@@ -237,16 +281,16 @@ async function fetchFinancialData(
     params.params.end_date = endDate;
   } else if (dataType === 'dividend') {
     // 分红数据不在API级别过滤，在返回后过滤
-  } else if (['mainbz_product', 'mainbz_region', 'mainbz_industry'].includes(dataType)) {
-    // 主营业务构成数据
+  } else   if (dataType === 'mainbz') {
+    // 主营业务构成融合数据
     if (period) {
       params.params.period = period;
     } else {
       params.params.start_date = startDate;
       params.params.end_date = endDate;
     }
-    // 添加业务类型参数（从配置中获取）
-    params.params.type = config.business_type;
+    // 设置业务类型参数（从调用时传入）
+    params.params.type = businessType;
   } else if (['holder_number', 'holder_trade', 'audit'].includes(dataType)) {
     // 股东人数、股东增减持和审计意见数据
     params.params.start_date = startDate;
@@ -352,9 +396,7 @@ function formatFinancialData(results: any[], tsCode: string): string {
     express: '⚡ 业绩快报',
     indicators: '📊 财务指标',
     dividend: '💵 分红送股',
-    mainbz_product: '🏭 主营业务构成(按产品)',
-    mainbz_region: '🗺️ 主营业务构成(按地区)',
-    mainbz_industry: '🏢 主营业务构成(按行业)',
+    mainbz: '🏭 主营业务构成(融合版)',
     holder_number: '👥 股东人数',
     holder_trade: '📊 股东增减持',
     audit: '🔍 财务审计意见',
@@ -394,10 +436,8 @@ function formatFinancialData(results: any[], tsCode: string): string {
       case 'dividend':
         output += formatDividend(result.data);
         break;
-      case 'mainbz_product':
-      case 'mainbz_region':
-      case 'mainbz_industry':
-        output += formatMainBusiness(result.data);
+      case 'mainbz':
+        output += formatMainBusinessCombined(result.data);
         break;
       case 'holder_number':
         output += formatHolderNumber(result.data);

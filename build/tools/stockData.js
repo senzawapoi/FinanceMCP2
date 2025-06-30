@@ -174,56 +174,74 @@ export const stockData = {
                     'convertible_bond': '可转债',
                     'options': '期权'
                 };
-                // 格式化输出（根据不同市场类型构建不同的格式）
+                // 格式化输出（根据不同市场类型构建表格格式）
                 let formattedData = '';
                 if (marketType === 'fx') {
-                    // 外汇数据展示
-                    formattedData = stockData.map((data) => {
-                        return ` ${data.trade_date}\n买入价格: 开盘: ${data.bid_open}  最高: ${data.bid_high}  最低: ${data.bid_low}  收盘: ${data.bid_close}\n卖出价格: 开盘: ${data.ask_open}  最高: ${data.ask_high}  最低: ${data.ask_low}  收盘: ${data.ask_close}\n报价笔数: ${data.tick_qty}\n`;
-                    }).join('\n---\n\n');
+                    // 外汇数据表格展示
+                    formattedData = `| 交易日期 | 买入开盘 | 买入最高 | 买入最低 | 买入收盘 | 卖出开盘 | 卖出最高 | 卖出最低 | 卖出收盘 | 报价笔数 |\n`;
+                    formattedData += `|---------|---------|---------|---------|---------|---------|---------|---------|---------|----------|\n`;
+                    stockData.forEach((data) => {
+                        formattedData += `| ${data.trade_date} | ${data.bid_open || 'N/A'} | ${data.bid_high || 'N/A'} | ${data.bid_low || 'N/A'} | ${data.bid_close || 'N/A'} | ${data.ask_open || 'N/A'} | ${data.ask_high || 'N/A'} | ${data.ask_low || 'N/A'} | ${data.ask_close || 'N/A'} | ${data.tick_qty || 'N/A'} |\n`;
+                    });
                 }
                 else if (marketType === 'futures') {
-                    // 期货数据展示
-                    formattedData = stockData.map((data) => {
-                        return ` ${data.trade_date}\n开盘: ${data.open}  最高: ${data.high}  最低: ${data.low}  收盘: ${data.close}  结算: ${data.settle}\n涨跌1: ${data.change1}  涨跌2: ${data.change2}  成交量: ${data.vol}  持仓量: ${data.oi}\n`;
-                    }).join('\n---\n\n');
+                    // 期货数据表格展示
+                    formattedData = `| 交易日期 | 开盘 | 最高 | 最低 | 收盘 | 结算 | 涨跌1 | 涨跌2 | 成交量 | 持仓量 |\n`;
+                    formattedData += `|---------|------|------|------|------|------|-------|-------|--------|--------|\n`;
+                    stockData.forEach((data) => {
+                        formattedData += `| ${data.trade_date} | ${data.open || 'N/A'} | ${data.high || 'N/A'} | ${data.low || 'N/A'} | ${data.close || 'N/A'} | ${data.settle || 'N/A'} | ${data.change1 || 'N/A'} | ${data.change2 || 'N/A'} | ${data.vol || 'N/A'} | ${data.oi || 'N/A'} |\n`;
+                    });
                 }
                 else if (marketType === 'repo') {
-                    // 债券逆回购数据展示
-                    formattedData = stockData.map((data) => {
-                        return ` ${data.trade_date}\n品种: ${data.name}  利率: ${data.rate}%  成交金额: ${data.amount}万元\n`;
-                    }).join('\n---\n\n');
+                    // 债券逆回购数据表格展示
+                    formattedData = `| 交易日期 | 品种名称 | 利率(%) | 成交金额(万元) |\n`;
+                    formattedData += `|---------|---------|---------|---------------|\n`;
+                    stockData.forEach((data) => {
+                        formattedData += `| ${data.trade_date} | ${data.name || 'N/A'} | ${data.rate || 'N/A'} | ${data.amount || 'N/A'} |\n`;
+                    });
                 }
                 else if (marketType === 'convertible_bond') {
-                    // 可转债数据展示
-                    formattedData = stockData.map((data) => {
-                        let row = ` ${data.trade_date}\n开盘: ${data.open}  最高: ${data.high}  最低: ${data.low}  收盘: ${data.close}\n涨跌: ${data.change}  涨跌幅: ${data.pct_chg}%  成交量: ${data.vol}手  成交金额: ${data.amount}万元\n`;
-                        if (data.bond_value) {
-                            row += `纯债价值: ${data.bond_value}  纯债溢价率: ${data.bond_over_rate}%\n`;
-                        }
-                        if (data.cb_value) {
-                            row += `转股价值: ${data.cb_value}  转股溢价率: ${data.cb_over_rate}%\n`;
-                        }
-                        return row;
-                    }).join('\n---\n\n');
+                    // 可转债数据表格展示
+                    formattedData = `| 交易日期 | 开盘 | 最高 | 最低 | 收盘 | 涨跌 | 涨跌幅(%) | 成交量(手) | 成交金额(万元) | 纯债价值 | 纯债溢价率(%) | 转股价值 | 转股溢价率(%) |\n`;
+                    formattedData += `|---------|------|------|------|------|------|-----------|------------|---------------|----------|---------------|----------|---------------|\n`;
+                    stockData.forEach((data) => {
+                        formattedData += `| ${data.trade_date} | ${data.open || 'N/A'} | ${data.high || 'N/A'} | ${data.low || 'N/A'} | ${data.close || 'N/A'} | ${data.change || 'N/A'} | ${data.pct_chg || 'N/A'} | ${data.vol || 'N/A'} | ${data.amount || 'N/A'} | ${data.bond_value || 'N/A'} | ${data.bond_over_rate || 'N/A'} | ${data.cb_value || 'N/A'} | ${data.cb_over_rate || 'N/A'} |\n`;
+                    });
                 }
                 else if (marketType === 'options') {
-                    // 期权数据展示
-                    formattedData = stockData.map((data) => {
-                        return ` ${data.trade_date}\n交易所: ${data.exchange}  昨结算: ${data.pre_settle}  前收盘: ${data.pre_close}\n开盘: ${data.open}  最高: ${data.high}  最低: ${data.low}  收盘: ${data.close}  结算: ${data.settle}\n成交量: ${data.vol}手  成交金额: ${data.amount}万元  持仓量: ${data.oi}手\n`;
-                    }).join('\n---\n\n');
+                    // 期权数据表格展示
+                    formattedData = `| 交易日期 | 交易所 | 昨结算 | 前收盘 | 开盘 | 最高 | 最低 | 收盘 | 结算 | 成交量(手) | 成交金额(万元) | 持仓量(手) |\n`;
+                    formattedData += `|---------|--------|--------|--------|------|------|------|------|------|------------|---------------|------------|\n`;
+                    stockData.forEach((data) => {
+                        formattedData += `| ${data.trade_date} | ${data.exchange || 'N/A'} | ${data.pre_settle || 'N/A'} | ${data.pre_close || 'N/A'} | ${data.open || 'N/A'} | ${data.high || 'N/A'} | ${data.low || 'N/A'} | ${data.close || 'N/A'} | ${data.settle || 'N/A'} | ${data.vol || 'N/A'} | ${data.amount || 'N/A'} | ${data.oi || 'N/A'} |\n`;
+                    });
                 }
                 else {
-                    // 股票数据展示
-                    formattedData = stockData.map((data) => {
-                        let row = '';
-                        for (const [key, value] of Object.entries(data)) {
-                            if (key !== 'ts_code' && key !== 'trade_date') {
-                                row += `${key}: ${value}  `;
-                            }
-                        }
-                        return ` ${data.trade_date}\n${row}\n`;
-                    }).join('\n---\n\n');
+                    // 股票数据表格展示（A股、美股、港股、基金等）- 只显示基础核心字段
+                    if (stockData.length > 0) {
+                        // 只显示最基础的7个核心字段
+                        const coreFields = ['trade_date', 'open', 'close', 'high', 'low', 'vol', 'amount'];
+                        const availableFields = Object.keys(stockData[0]);
+                        const displayFields = coreFields.filter(field => availableFields.includes(field));
+                        // 生成表头
+                        const fieldNameMap = {
+                            'trade_date': '交易日期',
+                            'open': '开盘',
+                            'close': '收盘',
+                            'high': '最高',
+                            'low': '最低',
+                            'vol': '成交量',
+                            'amount': '成交额'
+                        };
+                        const headers = displayFields.map(field => fieldNameMap[field] || field).join(' | ');
+                        formattedData = `| ${headers} |\n`;
+                        formattedData += `|${displayFields.map(() => '--------').join('|')}|\n`;
+                        // 生成数据行
+                        stockData.forEach((data) => {
+                            const row = displayFields.map(field => data[field] || 'N/A').join(' | ');
+                            formattedData += `| ${row} |\n`;
+                        });
+                    }
                 }
                 return {
                     content: [

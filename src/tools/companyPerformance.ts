@@ -11,10 +11,13 @@ import {
   formatBasicIncome,
   formatAllIncome
 } from './companyPerformanceDetail/incomeFormatters.js';
+import {
+  formatIndicators
+} from './companyPerformanceDetail/indicatorsFormatters.js';
 
 export const companyPerformance = {
   name: "company_performance",
-  description: "获取上市公司综合表现数据，包括业绩预告、业绩快报、财务指标、分红送股、主营业务构成和股东变动数据",
+  description: "获取上市公司综合表现数据，包括业绩预告、业绩快报、财务指标、分红送股、主营业务构成、股东变动数据、资产负债表、现金流量表、利润表等完整财务报表数据",
   parameters: {
     type: "object",
     properties: {
@@ -24,7 +27,7 @@ export const companyPerformance = {
       },
       data_type: {
         type: "string",
-        description: "数据类型：forecast(业绩预告)、express(业绩快报)、indicators(财务指标ROE等)、dividend(分红送股)、mainbz_product(主营构成-产品)、mainbz_region(主营构成-地区)、mainbz_industry(主营构成-行业)、holder_number(股东人数)、holder_trade(股东增减持)、balance_basic(核心资产负债表)、balance_all(完整资产负债表)、cashflow_basic(基础现金流)、cashflow_all(完整现金流)、income_basic(核心利润表)、income_all(完整利润表)",
+        description: "数据类型：forecast(业绩预告)、express(业绩快报)、indicators(财务指标-包含盈利能力/偿债能力/营运能力/成长能力等全面指标)、dividend(分红送股)、mainbz_product(主营构成-产品)、mainbz_region(主营构成-地区)、mainbz_industry(主营构成-行业)、holder_number(股东人数)、holder_trade(股东增减持)、balance_basic(核心资产负债表)、balance_all(完整资产负债表)、cashflow_basic(基础现金流)、cashflow_all(完整现金流)、income_basic(核心利润表)、income_all(完整利润表)",
         enum: ["forecast", "express", "indicators", "dividend", "mainbz_product", "mainbz_region", "mainbz_industry", "holder_number", "holder_trade", "balance_basic", "balance_all", "cashflow_basic", "cashflow_all", "income_basic", "income_all"]
       },
       start_date: {
@@ -137,7 +140,7 @@ async function fetchFinancialData(
     },
     indicators: {
       api_name: "fina_indicator",
-      default_fields: "ts_code,ann_date,end_date,eps,dt_eps,total_revenue_ps,revenue_ps,capital_rese_ps,surplus_rese_ps,undist_profit_ps,extra_item,profit_dedt,gross_margin,current_ratio,quick_ratio,cash_ratio,invturn_days,arturn_days,inv_turn,ar_turn,ca_turn,fa_turn,assets_turn,op_income,valuechange_income,interst_income,daa,ebit,ebitda,fcff,fcfe,current_exint,noncurrent_exint,interestdebt,netdebt,tangible_asset,working_capital,networking_capital,invest_capital,retained_earnings,diluted2_eps,bps,ocfps,retainedps,cfps,ebit_ps,fcff_ps,fcfe_ps,netprofit_margin,grossprofit_margin,cogs_of_sales,expense_of_sales,profit_to_gr,saleexp_to_gr,adminexp_of_gr,finaexp_of_gr,impai_ttm,gc_of_gr,op_of_gr,ebit_of_gr,roe,roe_waa,roe_dt,roa,npta,roic,roe_yearly,roa_yearly,roe_avg,opincome_of_ebt,investincome_of_ebt,n_op_profit_of_ebt,tax_to_ebt,dtprofit_to_profit,salescash_to_or,ocf_to_or,ocf_to_opincome,capitalized_to_da,debt_to_assets,assets_to_eqt,dp_assets_to_eqt,ca_to_assets,nca_to_assets,tbassets_to_totalassets,int_to_talcap,eqt_to_talcapital,currentdebt_to_debt,longdeb_to_debt,ocf_to_shortdebt,debt_to_eqt,eqt_to_debt,eqt_to_interestdebt,tangibleasset_to_debt,tangasset_to_intdebt,tangibleasset_to_netdebt,ocf_to_debt,ocf_to_interestdebt,ocf_to_netdebt,ebit_to_interest,longdebt_to_workingcapital,ebitda_to_debt,turn_days,roa_yearly,roa_dp,fixed_assets,profit_prefin_exp,non_op_profit,op_to_ebt,nop_to_ebt,ocf_to_profit,cash_to_liqdebt,cash_to_liqdebt_withinterest,op_to_liqdebt,op_to_debt,roic_yearly,total_fa_trun,profit_to_op,q_opincome,q_investincome,q_dtprofit,q_eps,q_netprofit_margin,q_gsprofit_margin,q_exp_to_sales,q_profit_to_gr,q_saleexp_to_gr,q_adminexp_to_gr,q_finaexp_to_gr,q_impair_to_gr_ttm,q_gc_to_gr,q_op_to_gr,q_roe,q_dt_roe,q_npta,q_ocf_to_sales,q_ocf_to_or,basic_eps_yoy,dt_eps_yoy,cfps_yoy,op_yoy,ebt_yoy,netprofit_yoy,dt_netprofit_yoy,ocf_yoy,roe_yoy,bps_yoy,assets_yoy,eqt_yoy,tr_yoy,or_yoy,q_gr_yoy,q_gr_qoq,q_sales_yoy,q_sales_qoq,q_op_yoy,q_op_qoq,q_profit_yoy,q_profit_qoq,q_netprofit_yoy,q_netprofit_qoq,equity_yoy,rd_exp,update_flag"
+      default_fields: "" // 空字符串表示获取所有字段
     },
     dividend: {
       api_name: "dividend",
@@ -470,39 +473,7 @@ function formatExpress(data: any[]): string {
   return output;
 }
 
-// 格式化财务指标数据
-function formatIndicators(data: any[]): string {
-  let output = '';
-  
-  for (const item of data) {
-    output += ` ${item.end_date} 期间指标\n`;
-    output += `公告日期: ${item.ann_date}\n\n`;
-    
-    // 盈利能力指标
-    output += `盈利能力指标:\n`;
-    if (item.eps) output += `- 每股收益: ${item.eps} 元\n`;
-    if (item.roe) output += `- 净资产收益率: ${item.roe}%\n`;
-    if (item.roa) output += `- 总资产收益率: ${item.roa}%\n`;
-    if (item.netprofit_margin) output += `- 销售净利率: ${item.netprofit_margin}%\n`;
-    if (item.grossprofit_margin) output += `- 销售毛利率: ${item.grossprofit_margin}%\n`;
-    
-    // 偿债能力指标
-    output += `\n偿债能力指标:\n`;
-    if (item.current_ratio) output += `- 流动比率: ${item.current_ratio}\n`;
-    if (item.quick_ratio) output += `- 速动比率: ${item.quick_ratio}\n`;
-    if (item.debt_to_assets) output += `- 资产负债率: ${item.debt_to_assets}%\n`;
-    
-    // 营运能力指标
-    output += `\n营运能力指标:\n`;
-    if (item.inv_turn) output += `- 存货周转率: ${item.inv_turn}\n`;
-    if (item.ar_turn) output += `- 应收账款周转率: ${item.ar_turn}\n`;
-    if (item.assets_turn) output += `- 总资产周转率: ${item.assets_turn}\n`;
-    
-    output += '\n';
-  }
-  
-  return output;
-}
+
 
 // 格式化分红送股数据
 function formatDividend(data: any[]): string {

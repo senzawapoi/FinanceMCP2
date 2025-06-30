@@ -129,7 +129,7 @@
 
 ## 🎯 工具总览
 
-本服务器提供 **12个专业金融工具**：
+本服务器提供 **11个专业金融工具**：
 
 | 工具名称 | 功能描述 | 主要特性 |
 |---------|---------|---------|
@@ -144,7 +144,6 @@
 | 🪙 **convertible_bond** | 可转债数据 | 基础信息+发行数据 |
 | 🔄 **block_trade** | 大宗交易数据 | 交易详情+营业部信息 |
 | 💹 **money_flow** | 资金流向数据 | 个股+大盘资金流向 |
-| 👔 **management_info** | 管理层分析 | 高管档案，职位分布 |
 
 ## 🔧 技术规格
 
@@ -171,7 +170,7 @@
 | 📈 股票数据 | `daily`, `us_daily`, `hk_daily` 等 | 多市场股票数据 |
 | 📊 指数数据 | `index_daily` | 市场指数 |
 | 📉 宏观经济 | `shibor`, `gdp`, `cpi` 等 | 经济指标 |
-| 🏢 公司财务 | `income`, `balancesheet`, `cashflow` 等 | 财务报表 |
+| 🏢 公司财务 | `income`, `balancesheet`, `cashflow`, `stk_managers` 等 | 财务报表+管理层信息 |
 | 💰 基金数据 | `fund_basic`, `fund_nav` 等 | 基金信息 |
 | 👨‍💼 基金经理 | `fund_manager` | 基金经理信息 |
 | 🪙 可转债 | `cb_basic`, `cb_issue` | 可转债数据 |

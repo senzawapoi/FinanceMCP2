@@ -131,7 +131,7 @@ Seamless integration with MCP-compatible clients (like Claude) for intelligent f
 
 ## 🎯 Tool Overview
 
-This server provides **12 professional financial tools**:
+This server provides **11 professional financial tools**:
 
 | Tool Name | Function Description | Key Features |
 |-----------|---------------------|--------------|
@@ -146,7 +146,6 @@ This server provides **12 professional financial tools**:
 | 🪙 **convertible_bond** | Convertible bond data | Basic info + issuance data |
 | 🔄 **block_trade** | Block trade data | Trade details + business department info |
 | 💹 **money_flow** | Money flow data | Individual stock + market money flow |
-| 👔 **management_info** | Management team analysis | Executive profiles, position distribution |
 
 ## 🔧 Technical Specifications
 
@@ -179,7 +178,6 @@ This server provides **12 professional financial tools**:
 | 🪙 Convertible Bond | `cb_basic`, `cb_issue` | Convertible bond data |
 | 🔄 Block Trade | `block_trade` | Block trade data |
 | 💹 Money Flow | `moneyflow` | Money flow data |
-| 👔 Management Info | `stk_managers` | Listed company management team |
 
 ## 🚦 Requirements
 

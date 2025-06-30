@@ -1,11 +1,11 @@
 {
-  "name": "my-mcp-server",
-  "version": "0.1.0",
+  "name": "FinanceMCP",
+  "version": "1.0.0",
   "description": "A Model Context Protocol server",
   "private": true,
   "type": "module",
   "bin": {
-    "my-mcp-server": "./build/index.js"
+    "FinanceMCP": "./build/index.js"
   },
   "files": [
     "build"

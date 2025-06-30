@@ -88,7 +88,7 @@ const timestampTool = {
 // 创建 MCP server
 const server = new Server({
     name: "FinanceMCP",
-    version: "0.2.0",
+    version: "1.0.0",
 }, {
     capabilities: {
         tools: {},

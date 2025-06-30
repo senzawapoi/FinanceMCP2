@@ -105,7 +105,7 @@ const timestampTool = {
 const server = new Server(
   {
     name: "FinanceMCP",
-    version: "0.2.0",
+    version: "1.0.0",
   },
   {
     capabilities: {

@@ -21,10 +21,11 @@ import { formatHolderNumber, formatHolderTrade } from './companyPerformanceDetai
 import { formatGenericData } from './companyPerformanceDetail/genericFormatters.js';
 import { formatAudit } from './companyPerformanceDetail/auditFormatters.js';
 import { formatManagement } from './companyPerformanceDetail/managementFormatters.js';
+import { formatCompanyBasic } from './companyPerformanceDetail/companyBasicFormatters.js';
 
 export const companyPerformance = {
   name: "company_performance",
-  description: "获取上市公司综合表现数据，包括业绩预告、业绩快报、财务指标、分红送股、主营业务构成、股东变动数据、管理层信息、资产负债表、现金流量表、利润表等完整财务报表数据",
+  description: "获取上市公司综合表现数据，包括业绩预告、业绩快报、财务指标、分红送股、主营业务构成、股东变动数据、管理层信息、公司基本信息、资产负债表、现金流量表、利润表等完整财务报表数据",
   parameters: {
     type: "object",
     properties: {
@@ -34,8 +35,8 @@ export const companyPerformance = {
       },
       data_type: {
         type: "string",
-        description: "数据类型：forecast(业绩预告)、express(业绩快报)、indicators(财务指标-包含盈利能力/偿债能力/营运能力/成长能力等全面指标)、dividend(分红送股)、mainbz(主营业务构成-融合产品/地区/行业)、holder_number(股东人数)、holder_trade(股东增减持)、managers(管理层信息)、audit(财务审计意见)、balance_basic(核心资产负债表)、balance_all(完整资产负债表)、cashflow_basic(基础现金流)、cashflow_all(完整现金流)、income_basic(核心利润表)、income_all(完整利润表)",
-        enum: ["forecast", "express", "indicators", "dividend", "mainbz", "holder_number", "holder_trade", "managers", "audit", "balance_basic", "balance_all", "cashflow_basic", "cashflow_all", "income_basic", "income_all"]
+        description: "数据类型：forecast(业绩预告)、express(业绩快报)、indicators(财务指标-包含盈利能力/偿债能力/营运能力/成长能力等全面指标)、dividend(分红送股)、mainbz(主营业务构成-融合产品/地区/行业)、holder_number(股东人数)、holder_trade(股东增减持)、managers(管理层信息)、audit(财务审计意见)、company_basic(公司基本信息)、balance_basic(核心资产负债表)、balance_all(完整资产负债表)、cashflow_basic(基础现金流)、cashflow_all(完整现金流)、income_basic(核心利润表)、income_all(完整利润表)",
+        enum: ["forecast", "express", "indicators", "dividend", "mainbz", "holder_number", "holder_trade", "managers", "audit", "company_basic", "balance_basic", "balance_all", "cashflow_basic", "cashflow_all", "income_basic", "income_all"]
       },
       start_date: {
         type: "string",
@@ -224,6 +225,10 @@ async function fetchFinancialData(
       api_name: "stk_managers",
       default_fields: "ts_code,ann_date,name,gender,lev,title,edu,national,birthday,begin_date,end_date,resume"
     },
+    company_basic: {
+      api_name: "stock_company",
+      default_fields: "ts_code,com_name,com_id,exchange,chairman,manager,secretary,reg_capital,setup_date,province,city,introduction,website,email,office,employees,main_business,business_scope"
+    },
     audit: {
       api_name: "fina_audit",
       default_fields: "ts_code,ann_date,end_date,audit_result,audit_fees,audit_agency,audit_sign"
@@ -300,6 +305,9 @@ async function fetchFinancialData(
     // 股东人数、股东增减持、管理层信息和审计意见数据
     params.params.start_date = startDate;
     params.params.end_date = endDate;
+  } else if (dataType === 'company_basic') {
+    // 上市公司基本信息，支持通过exchange参数查询特定交易所
+    // 不需要日期参数，是基础信息查询
   } else if (['balance_basic', 'balance_all'].includes(dataType)) {
     // 资产负债表数据
     if (period) {
@@ -406,6 +414,7 @@ function formatFinancialData(results: any[], tsCode: string): string {
     holder_trade: '📊 股东增减持',
     managers: '👔 管理层信息',
     audit: '🔍 财务审计意见',
+    company_basic: '🏢 上市公司基本信息',
     balance_basic: '⚖️ 核心资产负债表',
     balance_all: '⚖️ 完整资产负债表',
     cashflow_basic: '💰 基础现金流量表',
@@ -456,6 +465,9 @@ function formatFinancialData(results: any[], tsCode: string): string {
         break;
       case 'audit':
         output += formatAudit(result.data);
+        break;
+      case 'company_basic':
+        output += formatCompanyBasic(result.data);
         break;
       case 'balance_basic':
         output += formatBasicBalance(result.data);

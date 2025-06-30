@@ -59,6 +59,13 @@ Get comprehensive financial data for listed companies with smart data filtering 
 * **Position Distribution** - Position categories, title hierarchy analysis
 * **Tenure Tracking** - Appointment dates, resignation status, career timeline
 
+#### Company Basic Information ⭐️ New Feature
+* **Company Overview** - Company name, business license, registered capital, establishment date
+* **Executive Information** - Chairman, general manager, secretary, key personnel
+* **Contact Details** - Website, email, office address, business scope
+* **Regional Analysis** - Location distribution, exchange listing analysis
+* **Scale Statistics** - Employee count, capital structure, corporate age analysis
+
 ### 💰 Fund Data Query ⭐️ Complete Refactoring
 Performance optimized with 85% speed improvement (from 5.2s to 0.8s):
 * **Fund List** - Fund basic information, investment types, management fees, etc.

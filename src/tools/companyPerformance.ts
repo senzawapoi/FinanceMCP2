@@ -22,6 +22,8 @@ import { formatGenericData } from './companyPerformanceDetail/genericFormatters.
 import { formatAudit } from './companyPerformanceDetail/auditFormatters.js';
 import { formatManagement } from './companyPerformanceDetail/managementFormatters.js';
 import { formatCompanyBasic } from './companyPerformanceDetail/companyBasicFormatters.js';
+import { formatShareFloat } from './companyPerformanceDetail/shareFloatFormatters.js';
+import { formatRepurchase } from './companyPerformanceDetail/repurchaseFormatters.js';
 
 export const companyPerformance = {
   name: "company_performance",
@@ -35,8 +37,8 @@ export const companyPerformance = {
       },
       data_type: {
         type: "string",
-        description: "数据类型：forecast(业绩预告)、express(业绩快报)、indicators(财务指标-包含盈利能力/偿债能力/营运能力/成长能力等全面指标)、dividend(分红送股)、mainbz(主营业务构成-融合产品/地区/行业)、holder_number(股东人数)、holder_trade(股东增减持)、managers(管理层信息)、audit(财务审计意见)、company_basic(公司基本信息)、balance_basic(核心资产负债表)、balance_all(完整资产负债表)、cashflow_basic(基础现金流)、cashflow_all(完整现金流)、income_basic(核心利润表)、income_all(完整利润表)",
-        enum: ["forecast", "express", "indicators", "dividend", "mainbz", "holder_number", "holder_trade", "managers", "audit", "company_basic", "balance_basic", "balance_all", "cashflow_basic", "cashflow_all", "income_basic", "income_all"]
+        description: "数据类型：forecast(业绩预告)、express(业绩快报)、indicators(财务指标-包含盈利能力/偿债能力/营运能力/成长能力等全面指标)、dividend(分红送股)、mainbz(主营业务构成-融合产品/地区/行业)、holder_number(股东人数)、holder_trade(股东增减持)、managers(管理层信息)、audit(财务审计意见)、company_basic(公司基本信息)、balance_basic(核心资产负债表)、balance_all(完整资产负债表)、cashflow_basic(基础现金流)、cashflow_all(完整现金流)、income_basic(核心利润表)、income_all(完整利润表)、share_float(限售股解禁)、repurchase(股票回购)",
+        enum: ["forecast", "express", "indicators", "dividend", "mainbz", "holder_number", "holder_trade", "managers", "audit", "company_basic", "balance_basic", "balance_all", "cashflow_basic", "cashflow_all", "income_basic", "income_all", "share_float", "repurchase"]
       },
       start_date: {
         type: "string",
@@ -256,6 +258,14 @@ async function fetchFinancialData(
     income_all: {
       api_name: "income",
       default_fields: "" // 空字符串表示获取所有字段
+    },
+    share_float: {
+      api_name: "share_float",
+      default_fields: "ts_code,ann_date,float_date,float_share,float_ratio,holder_name,share_type"
+    },
+    repurchase: {
+      api_name: "repurchase",
+      default_fields: "ts_code,ann_date,end_date,proc,exp_date,vol,amount,high_limit,low_limit"
     }
   };
 
@@ -332,6 +342,14 @@ async function fetchFinancialData(
       params.params.start_date = startDate;
       params.params.end_date = endDate;
     }
+  } else if (dataType === 'share_float') {
+    // 限售股解禁数据
+    params.params.start_date = startDate;
+    params.params.end_date = endDate;
+  } else if (dataType === 'repurchase') {
+    // 股票回购数据
+    params.params.start_date = startDate;
+    params.params.end_date = endDate;
   }
 
   console.log(`请求${dataType}数据，API: ${config.api_name}，参数:`, params.params);
@@ -420,7 +438,9 @@ function formatFinancialData(results: any[], tsCode: string): string {
     cashflow_basic: '💰 基础现金流量表',
     cashflow_all: '💰 完整现金流量表',
     income_basic: '💹 核心利润表',
-    income_all: '💹 完整利润表'
+    income_all: '💹 完整利润表',
+    share_float: '🔓 限售股解禁',
+    repurchase: '🔄 股票回购'
   };
 
   for (const result of results) {
@@ -486,6 +506,12 @@ function formatFinancialData(results: any[], tsCode: string): string {
         break;
       case 'income_all':
         output += formatAllIncome(result.data);
+        break;
+      case 'share_float':
+        output += formatShareFloat(result.data);
+        break;
+      case 'repurchase':
+        output += formatRepurchase(result.data);
         break;
       default:
         output += formatGenericData(result.data, result.fields);

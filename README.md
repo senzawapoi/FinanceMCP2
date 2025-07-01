@@ -125,6 +125,15 @@ Get individual stock and market money flow data:
 * **Individual Analysis** - Individual stock money flow analysis
 * **Market Statistics** - Overall market money flow trends
 
+### 💰 Margin Trade Data ⭐️ Enhanced Feature
+Get comprehensive margin trading data from multiple sources:
+* **Margin Securities** - List of eligible margin trading securities across SSE/SZSE/BSE exchanges
+* **Trading Summary** - Daily financing balance, purchase amount, repayment amount
+* **Trading Details** - Detailed margin transaction records
+* **Securities Lending** - Securities lending volume, repayment volume
+* **Market Making** - Securities lending by market makers with inventory data
+* **Multi-Interface** - 4 different Tushare APIs for comprehensive coverage
+
 ### 🕐 Current Timestamp ⭐️ Utility Tool
 Get current time information for China timezone (UTC+8):
 * **Multiple Formats** - datetime, date, time, timestamp, readable
@@ -138,7 +147,7 @@ Seamless integration with MCP-compatible clients (like Claude) for intelligent f
 
 ## 🎯 Tool Overview
 
-This server provides **11 professional financial tools**:
+This server provides **12 professional financial tools**:
 
 | Tool Name | Function Description | Key Features |
 |-----------|---------------------|--------------|
@@ -153,6 +162,7 @@ This server provides **11 professional financial tools**:
 | 🪙 **convertible_bond** | Convertible bond data | Basic info + issuance data |
 | 🔄 **block_trade** | Block trade data | Trade details + business department info |
 | 💹 **money_flow** | Money flow data | Individual stock + market money flow |
+| 💰 **margin_trade** | Margin trade data | 4 APIs: Securities list + Trading summary/details + Market making |
 
 ## 🔧 Technical Specifications
 
@@ -185,6 +195,7 @@ This server provides **11 professional financial tools**:
 | 🪙 Convertible Bond | `cb_basic`, `cb_issue` | Convertible bond data |
 | 🔄 Block Trade | `block_trade` | Block trade data |
 | 💹 Money Flow | `moneyflow` | Money flow data |
+| 💰 Margin Trade | `margin_secs`, `margin`, `margin_detail`, `slb_len_mm` | Multiple margin trading APIs |
 
 ## 🚦 Requirements
 
@@ -277,7 +288,8 @@ Add the following to Claude's configuration file:
         "fund_manager_by_name",
         "convertible_bond",
         "block_trade",
-        "money_flow"
+        "money_flow",
+        "margin_trade"
       ]
     }
   }
@@ -304,7 +316,8 @@ If using stdio mode directly (without Supergateway), configure as follows:
         "fund_manager_by_name",
         "convertible_bond",
         "block_trade",
-        "money_flow"
+        "money_flow",
+        "margin_trade"
       ]
     }
   }
@@ -463,7 +476,28 @@ You can ask Claude:
 > "Query market money flow trends for the last week"
 > "Analyze current market main fund movements"
 
-### 10. Get Current Timestamp ⭐️ Utility Tool
+### 10. Query Margin Trade Data ⭐️ Enhanced Feature
+
+You can ask Claude:
+
+**Query Margin Trading Securities:**
+> "Get the list of margin trading eligible securities for Shanghai Stock Exchange"
+> "Show margin trading securities for Shenzhen Stock Exchange on a specific date"
+> "List all margin trading eligible ETFs across all exchanges"
+
+**Query Margin Trading Summary:**
+> "Query margin trading summary for Ping An Bank (000001.SZ) from the last month"
+> "Get financing balance and securities lending data for Kweichow Moutai (600519.SH)"
+
+**Query Margin Trading Details:**
+> "Get detailed margin trading records for CATL (300750.SZ) over the past quarter"
+> "Show margin trading transaction details for BYD (002594.SZ)"
+
+**Query Market Making Securities Lending:**
+> "Query market making securities lending data for today"
+> "Get securities lending by market makers for specific stocks"
+
+### 11. Get Current Timestamp ⭐️ Utility Tool
 
 You can ask Claude:
 
@@ -482,7 +516,7 @@ You can ask Claude:
 > "What day of the week is today?"
 > "Get current time for market analysis"
 
-### 11. Combined Data Analysis
+### 12. Combined Data Analysis
 
 You can ask Claude more complex questions:
 > "Combine recent news and stock price data to analyze Ping An Bank (000001.SZ) investment prospects"
@@ -540,6 +574,10 @@ The project currently integrates the following Tushare API interfaces:
 | Convertible Bond Issue | cb_issue | Get convertible bond issuance data ⭐️ |
 | Block Trade | block_trade | Get block trade data ⭐️ New |
 | Money Flow | moneyflow | Get individual stock and market money flow data ⭐️ New |
+| Margin Securities | margin_secs | Get margin trading eligible securities list ⭐️ Enhanced |
+| Margin Summary | margin | Get margin trading summary data ⭐️ Enhanced |
+| Margin Details | margin_detail | Get detailed margin trading records ⭐️ Enhanced |
+| Securities Lending | slb_len_mm | Get market making securities lending data ⭐️ Enhanced |
 
 ## 🔮 Future Plans
 
@@ -565,6 +603,7 @@ See the `tushare-interfaces.md` file for more potential data interfaces that cou
 - ✅ **PPI Data Fix** - Fixed PPI field mapping bug, correctly display Producer Price Index
 - ✅ **New Block Trade Tool** - Support individual stock and market-wide block trade data queries
 - ✅ **New Money Flow Tool** - Support individual stock and market money flow analysis
+- ✅ **Enhanced Margin Trade Tool** - Support 4 margin trading APIs: securities list, trading summary/details, and market making
 - ✅ **Chinese Localization** - Full Chinese localization of macroeconomic module
 - ✅ **Batch Display Optimization** - Smart batch display for large data tables, improved readability
 

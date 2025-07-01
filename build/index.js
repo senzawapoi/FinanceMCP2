@@ -13,6 +13,7 @@ import { fundManagerByName, runFundManagerByName } from "./tools/fundManagerByNa
 import { convertibleBond } from "./tools/convertibleBond.js";
 import { blockTrade } from "./tools/blockTrade.js";
 import { moneyFlow } from "./tools/moneyFlow.js";
+import { marginTrade } from "./tools/marginTrade.js";
 // 🕐 时间戳工具定义
 const timestampTool = {
     name: "current_timestamp",
@@ -153,6 +154,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
                 description: moneyFlow.description,
                 inputSchema: moneyFlow.parameters
             },
+            {
+                name: marginTrade.name,
+                description: marginTrade.description,
+                inputSchema: marginTrade.parameters
+            }
         ]
     };
 });
@@ -226,6 +232,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             const start_date = String(request.params.arguments?.start_date);
             const end_date = String(request.params.arguments?.end_date);
             return await moneyFlow.run({ ts_code, start_date, end_date });
+        }
+        case "margin_trade": {
+            const data_type = String(request.params.arguments?.data_type);
+            const ts_code = request.params.arguments?.ts_code ? String(request.params.arguments.ts_code) : undefined;
+            const start_date = String(request.params.arguments?.start_date);
+            const end_date = request.params.arguments?.end_date ? String(request.params.arguments.end_date) : undefined;
+            const exchange = request.params.arguments?.exchange ? String(request.params.arguments.exchange) : undefined;
+            return await marginTrade.run({ data_type, ts_code, start_date, end_date, exchange });
         }
         default:
             throw new Error("Unknown tool");

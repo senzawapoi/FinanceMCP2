@@ -13,6 +13,7 @@ import { formatManagement } from './companyPerformanceDetail/managementFormatter
 import { formatCompanyBasic } from './companyPerformanceDetail/companyBasicFormatters.js';
 import { formatShareFloat } from './companyPerformanceDetail/shareFloatFormatters.js';
 import { formatRepurchase } from './companyPerformanceDetail/repurchaseFormatters.js';
+import { formatTop10Holders, formatTop10FloatHolders } from './companyPerformanceDetail/top10HoldersFormatters.js';
 export const companyPerformance = {
     name: "company_performance",
     description: "获取上市公司综合表现数据，包括业绩预告、业绩快报、财务指标、分红送股、主营业务构成、股东变动数据、管理层信息、公司基本信息、资产负债表、现金流量表、利润表等完整财务报表数据",
@@ -25,8 +26,8 @@ export const companyPerformance = {
             },
             data_type: {
                 type: "string",
-                description: "数据类型：forecast(业绩预告)、express(业绩快报)、indicators(财务指标-包含盈利能力/偿债能力/营运能力/成长能力等全面指标)、dividend(分红送股)、mainbz(主营业务构成-融合产品/地区/行业)、holder_number(股东人数)、holder_trade(股东增减持)、managers(管理层信息)、audit(财务审计意见)、company_basic(公司基本信息)、balance_basic(核心资产负债表)、balance_all(完整资产负债表)、cashflow_basic(基础现金流)、cashflow_all(完整现金流)、income_basic(核心利润表)、income_all(完整利润表)、share_float(限售股解禁)、repurchase(股票回购)",
-                enum: ["forecast", "express", "indicators", "dividend", "mainbz", "holder_number", "holder_trade", "managers", "audit", "company_basic", "balance_basic", "balance_all", "cashflow_basic", "cashflow_all", "income_basic", "income_all", "share_float", "repurchase"]
+                description: "数据类型：forecast(业绩预告)、express(业绩快报)、indicators(财务指标-包含盈利能力/偿债能力/营运能力/成长能力等全面指标)、dividend(分红送股)、mainbz(主营业务构成-融合产品/地区/行业)、holder_number(股东人数)、holder_trade(股东增减持)、managers(管理层信息)、audit(财务审计意见)、company_basic(公司基本信息)、balance_basic(核心资产负债表)、balance_all(完整资产负债表)、cashflow_basic(基础现金流)、cashflow_all(完整现金流)、income_basic(核心利润表)、income_all(完整利润表)、share_float(限售股解禁)、repurchase(股票回购)、top10_holders(前十大股东)、top10_floatholders(前十大流通股东)",
+                enum: ["forecast", "express", "indicators", "dividend", "mainbz", "holder_number", "holder_trade", "managers", "audit", "company_basic", "balance_basic", "balance_all", "cashflow_basic", "cashflow_all", "income_basic", "income_all", "share_float", "repurchase", "top10_holders", "top10_floatholders"]
             },
             start_date: {
                 type: "string",
@@ -214,6 +215,14 @@ async function fetchFinancialData(dataType, tsCode, period, startDate, endDate, 
         repurchase: {
             api_name: "repurchase",
             default_fields: "ts_code,ann_date,end_date,proc,exp_date,vol,amount,high_limit,low_limit"
+        },
+        top10_holders: {
+            api_name: "top10_holders",
+            default_fields: "ts_code,ann_date,end_date,holder_name,hold_amount,hold_ratio,hold_change,holder_type"
+        },
+        top10_floatholders: {
+            api_name: "top10_floatholders",
+            default_fields: "ts_code,ann_date,end_date,holder_name,hold_amount,hold_ratio,hold_float_ratio,hold_change,holder_type"
         }
     };
     const config = apiConfigs[dataType];
@@ -310,6 +319,16 @@ async function fetchFinancialData(dataType, tsCode, period, startDate, endDate, 
         params.params.start_date = startDate;
         params.params.end_date = endDate;
     }
+    else if (['top10_holders', 'top10_floatholders'].includes(dataType)) {
+        // 前十大股东和前十大流通股东数据
+        if (period) {
+            params.params.period = period;
+        }
+        else {
+            params.params.start_date = startDate;
+            params.params.end_date = endDate;
+        }
+    }
     console.log(`请求${dataType}数据，API: ${config.api_name}，参数:`, params.params);
     // 设置请求超时
     const controller = new AbortController();
@@ -385,7 +404,9 @@ function formatFinancialData(results, tsCode) {
         income_basic: '💹 核心利润表',
         income_all: '💹 完整利润表',
         share_float: '🔓 限售股解禁',
-        repurchase: '🔄 股票回购'
+        repurchase: '🔄 股票回购',
+        top10_holders: '👥 前十大股东',
+        top10_floatholders: '🌊 前十大流通股东'
     };
     for (const result of results) {
         const typeName = dataTypeNames[result.type] || result.type;
@@ -453,6 +474,12 @@ function formatFinancialData(results, tsCode) {
                 break;
             case 'repurchase':
                 output += formatRepurchase(result.data);
+                break;
+            case 'top10_holders':
+                output += formatTop10Holders(result.data);
+                break;
+            case 'top10_floatholders':
+                output += formatTop10FloatHolders(result.data);
                 break;
             default:
                 output += formatGenericData(result.data, result.fields);

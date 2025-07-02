@@ -210,6 +210,50 @@ Before getting started, please ensure you have:
    * This token will be used to access financial data provided by Tushare
    * Note: Some premium data requires point permissions
 
+## 🎓 Free Tushare Credits for Students & Teachers
+
+### For Students - Get 2000 Free Credits
+
+[Tushare](https://tushare.pro/document/1?doc_id=360) provides **2000 free credits** for student users, covering basic stock/index/futures/options/fund/convertible bond information, daily market data, and financial reports.
+
+**How to Get Student Credits:**
+
+1. **Follow on Xiaohongshu (Little Red Book)**
+   - Search and follow Tushare's official Xiaohongshu account
+   - Like and comment on any post, mentioning your data needs and usage
+
+2. **Join Student QQ Group**
+   - Search QQ Group: **290541801**
+   - When joining, mention your university name
+
+3. **Complete Profile on Tushare**
+   - Login to [tushare.pro](https://tushare.pro)
+   - Fill in your school and personal information in Profile
+   - Use your university email address; if unavailable, provide student ID photo or Xuexin.net screenshot
+
+4. **Submit for Credits**
+   - Send screenshots of steps 1 & 3, plus your Tushare ID to group admin via QQ
+   - Receive 2000 credits after verification
+
+### For Teachers - Get 5000 Free Credits
+
+[Tushare](https://tushare.pro/document/1?doc_id=361) provides **5000 free credits** for university teachers with higher data permissions and support.
+
+**How to Get Teacher Credits:**
+
+1. **Add WeChat Contact**
+   - Add WeChat: **waditu_a**
+   - Note: "XX University Teacher"
+
+2. **Complete Profile**
+   - Login to [tushare.pro](https://tushare.pro)
+   - Update institution and personal information in Profile
+   - Provide your Tushare ID via WeChat or QQ
+
+3. **Student Template (Optional)**
+   - Download student credit template for batch student registration
+   - Arrange students to fill template and send to Tushare contact
+
 ## 🛠️ Installation & Setup
 
 ### Install via Smithery (Recommended)
@@ -326,205 +370,21 @@ If using stdio mode directly (without Supergateway), configure as follows:
 
 ## 💡 Usage Examples
 
-Here are some example queries using the FinanceMCP server:
+Once configured, you can ask Claude natural language questions about financial data:
 
-### 1. Query Stock Data
+### Basic Queries
+- **Stock Data**: "Query Apple (AAPL) stock price for the last month"
+- **Financial News**: "Search for latest news about Tesla"
+- **Company Financials**: "Show Ping An Bank's recent financial statements"
+- **Fund Data**: "Query CSI 300 ETF basic information and NAV trends"
+- **Macro Data**: "Get latest GDP and CPI data"
 
-You can ask Claude:
+### Advanced Analysis
+- **Combined Analysis**: "Analyze CATL's money flow and recent news sentiment"
+- **Multi-market**: "Compare A-share, US stock, and Hong Kong stock performance"
+- **Risk Assessment**: "Evaluate margin trading risks for specific stocks"
 
-**A-share Query:**
-> "Query Ping An Bank (000001.SZ) stock price data for the last 30 days"
-
-**US Stock Query:**
-> "Query Apple Inc. (AAPL) stock price data for the last month"
-
-**Hong Kong Stock Query:**
-> "Query Tencent Holdings (00700.HK) recent stock performance"
-
-**Forex Query:**
-> "Query USD/CNH (USDCNH.FXCM) recent exchange rate trends"
-
-**Futures Query:**
-> "Query Copper Futures (CU2501.SHF) recent market data"
-
-**Fund Query:**
-> "Query CSI 300 ETF (159919.SZ) recent NAV performance"
-
-**Bond Repo Query:**
-> "Query GC001 government bond repo (204001.SH) recent interest rate trends"
-
-**Convertible Bond Query:**
-> "Query Ping An Convertible Bond (113008.SH) recent market data"
-
-**Options Query:**
-> "Query 50ETF Options (10001313.SH) recent market data"
-
-### 2. Get Financial News ⭐️ Smart Search
-
-You can ask Claude:
-
-**Single Keyword Search:**
-> "Search for financial news related to 'WuXi AppTec'"
-> "Get the latest financial information about 'Tencent'"
-
-**Multiple Keywords Search:**
-> "Search for news related to 'Federal Reserve Interest Rate'"
-> "Get reports related to 'Bitcoin Regulation'"
-> "Search for policy news about 'New Energy Vehicle Subsidies'"
-
-**Market Hotspot Search:**
-> "Search for news related to 'ChatGPT Concept Stocks'"
-> "Get the latest developments in 'Real Estate Policy'"
-
-### 3. Query Macroeconomic Data
-
-You can ask Claude:
-> "Query GDP data for the last two years"
-> "Query the latest detailed PMI Purchasing Managers Index data"
-> "Query recent PPI Producer Price Index trends"
-
-### 4. Query Company Financial Performance ⭐️ Smart Filtering
-
-You can ask Claude:
-
-**Query Financial Statements:**
-> "Query Ping An Bank (000001.SZ) recent income statement data"
-> "Query Tencent Holdings (00700.HK) balance sheet"
-> "Query Apple Inc. (AAPL) cash flow statement"
-
-**Query Earnings Forecast and Express:**
-> "Query Kweichow Moutai (600519.SH) earnings forecast"
-> "Query BYD (002594.SZ) earnings express"
-
-**Query Financial Indicators:**
-> "Query China Merchants Bank (600036.SH) financial indicators including ROE, ROA, etc."
-
-**Query Dividends & Stock Distribution:**
-> "Query China Ping An (601318.SH) dividend and stock distribution history"
-
-**Query All Financial Data:**
-> "Query Vanke A (000002.SZ) comprehensive financial performance data"
-
-### 5. Query Fund Data ⭐️ Performance Optimized
-
-You can ask Claude:
-
-**Query Fund Basic Information:**
-> "Query CSI 300 ETF (159919.SZ) basic information"
-> "Query all ETF funds traded on exchange"
-
-**Query Fund NAV:**
-> "Query E Fund Blue Chip Select (005827.OF) recent NAV trends"
-> "Query China AMC CSI 300 ETF NAV performance"
-
-**Query Fund Holdings:**
-> "Query Invesco Great Wall CSI Liquor Index fund's heavy positions"
-> "Query Southern CSI 500 ETF holdings details"
-
-**Query Fund Dividends:**
-> "Query Fuguo Tianhui Select Growth fund dividend history"
-
-**Query All Fund Data:**
-> "Query all data for China AMC CSI 300 ETF (510330.SH)"
-
-### 6. Query Fund Manager ⭐️ Independent Tool
-
-You can ask Claude:
-
-**Query Fund Manager by Name:**
-> "Query detailed information about fund manager Zhang Kai"
-> "Search for funds managed by fund manager Liu Yanchun"
-> "Query the resume of E Fund manager Zhang Kun"
-
-### 7. Query Convertible Bond Data
-
-You can ask Claude:
-
-**Query Convertible Bond Basic Information:**
-> "Query basic information for convertible bond 110001.SH"
-
-**Query Convertible Bond Issuance Data:**
-> "Get issuance data for convertible bonds announced in December 2023"
-
-**Query All Convertible Bond Data:**
-> "Query all available data for convertible bond 128001.SZ"
-
-**Query Recent Convertible Bond Issues:**
-> "Find convertible bonds issued between January 1, 2024 and June 30, 2024"
-
-### 8. Query Block Trade Data ⭐️ New Feature
-
-You can ask Claude:
-
-**Query Individual Stock Block Trades:**
-> "Query recent block trade activity for Ping An Bank (000001.SZ)"
-> "Get block trade data for Kweichow Moutai (600519.SH) from the last week"
-
-**Query Market-wide Block Trades:**
-> "Query today's market-wide block trade activity"
-> "Get market-wide block trade statistics for the last month"
-
-### 9. Query Money Flow Data ⭐️ New Feature
-
-You can ask Claude:
-
-**Query Individual Stock Money Flow:**
-> "Query recent money flow for CATL (300750.SZ)"
-> "Analyze main fund movements for BYD (002594.SZ)"
-
-**Query Market Money Flow:**
-> "Query market money flow trends for the last week"
-> "Analyze current market main fund movements"
-
-### 10. Query Margin Trade Data ⭐️ Enhanced Feature
-
-You can ask Claude:
-
-**Query Margin Trading Securities:**
-> "Get the list of margin trading eligible securities for Shanghai Stock Exchange"
-> "Show margin trading securities for Shenzhen Stock Exchange on a specific date"
-> "List all margin trading eligible ETFs across all exchanges"
-
-**Query Margin Trading Summary:**
-> "Query margin trading summary for Ping An Bank (000001.SZ) from the last month"
-> "Get financing balance and securities lending data for Kweichow Moutai (600519.SH)"
-
-**Query Margin Trading Details:**
-> "Get detailed margin trading records for CATL (300750.SZ) over the past quarter"
-> "Show margin trading transaction details for BYD (002594.SZ)"
-
-**Query Market Making Securities Lending:**
-> "Query market making securities lending data for today"
-> "Get securities lending by market makers for specific stocks"
-
-### 11. Get Current Timestamp ⭐️ Utility Tool
-
-You can ask Claude:
-
-**Get Current Time:**
-> "What time is it now?"
-> "What's today's date?"
-> "Get current timestamp"
-
-**Different Time Formats:**
-> "Show current time in readable format"
-> "Get Unix timestamp"
-> "Show only today's date"
-> "Show only current time"
-
-**Time-aware Analysis:**
-> "What day of the week is today?"
-> "Get current time for market analysis"
-
-### 12. Combined Data Analysis
-
-You can ask Claude more complex questions:
-> "Combine recent news and stock price data to analyze Ping An Bank (000001.SZ) investment prospects"
-> "Combine macroeconomic PMI data and manufacturing stock performance to analyze current manufacturing investment opportunities"
-> "What's the current time and what important market news is there today?"
-> "Analyze CATL's money flow and recent news to judge market sentiment"
-
-Claude will call multiple tools to get the required data, then provide analysis based on this data.
+Claude will automatically call the appropriate tools and provide comprehensive analysis based on the requested data.
 
 ## 📊 Supported Data Interfaces
 

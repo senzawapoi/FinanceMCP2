@@ -149,8 +149,8 @@ export const macroEcon = {
           
         case 'cn_pmi':
           params.api_name = "cn_pmi";
-          // 根据Tushare文档使用正确的PMI字段
-          params.fields = "month,pmi010000,pmi010100,pmi010200,pmi010300,pmi010400,pmi010500,pmi010600,pmi010700,pmi010800,pmi010900,pmi011000,pmi011100,pmi011200,pmi011300,pmi011400,pmi011500,pmi011600,pmi011700,pmi011800,pmi011900,pmi012000,pmi020100,pmi020101,pmi020102,pmi020200,pmi020300,pmi020400,pmi020500,pmi020600,pmi030000";
+          // 根据Tushare文档使用所有PMI字段
+          params.fields = "month,pmi010000,pmi010100,pmi010200,pmi010300,pmi010400,pmi010500,pmi010600,pmi010700,pmi010800,pmi010900,pmi011000,pmi011100,pmi011200,pmi011300,pmi011400,pmi011500,pmi011600,pmi011700,pmi011800,pmi011900,pmi012000,pmi020100,pmi020101,pmi020102,pmi020200,pmi020201,pmi020202,pmi020300,pmi020301,pmi020302,pmi020400,pmi020401,pmi020402,pmi020500,pmi020501,pmi020502,pmi020600,pmi020601,pmi020602,pmi020700,pmi020800,pmi020900,pmi021000,pmi030000";
           // PMI数据使用月份格式
           const startMonthPMI = dateToMonth(args.start_date || defaultStartDate);
           const endMonthPMI = dateToMonth(args.end_date || defaultEndDate);
@@ -318,10 +318,73 @@ export const macroEcon = {
             return `## ${formatMonth(data.month)}\nM0: ${data.m0}亿元  同比: ${data.m0_yoy}%  环比: ${data.m0_mom}%\nM1: ${data.m1}亿元  同比: ${data.m1_yoy}%  环比: ${data.m1_mom}%\nM2: ${data.m2}亿元  同比: ${data.m2_yoy}%  环比: ${data.m2_mom}%\n`;
           }).join('\n---\n\n');
         } else if (args.indicator === 'cn_pmi') {
-          // PMI数据展示 - 使用正确的字段名
-          formattedData = econData.map((data: Record<string, any>) => {
-            return `## ${formatMonth(data.month)}\n### 制造业PMI\n制造业PMI: ${data.pmi010000}  生产指数: ${data.pmi010100}  新订单指数: ${data.pmi010200}\n新出口订单: ${data.pmi010300}  在手订单: ${data.pmi010400}  产成品库存: ${data.pmi010500}\n采购量指数: ${data.pmi010600}  进口指数: ${data.pmi010700}  购进价格指数: ${data.pmi010800}\n原材料库存: ${data.pmi010900}  从业人员指数: ${data.pmi011000}  供应商配送时间: ${data.pmi011100}\n生产经营活动预期: ${data.pmi011200}\n\n### 非制造业PMI\n商务活动指数: ${data.pmi020100}  建筑业: ${data.pmi020101}  服务业: ${data.pmi020102}\n新订单指数: ${data.pmi020200}  投入品价格: ${data.pmi020300}  销售价格: ${data.pmi020400}\n从业人员: ${data.pmi020500}  业务活动预期: ${data.pmi020600}\n\n综合PMI产出指数: ${data.pmi030000}\n`;
-          }).join('\n---\n\n');
+          // PMI数据展示 - 横向指标表格格式
+          
+          // PMI指标定义
+          const pmiIndicators = [
+            { name: '制造业PMI', field: 'pmi010000' },
+            { name: '生产指数', field: 'pmi010100' },
+            { name: '新订单指数', field: 'pmi010200' },
+            { name: '新出口订单指数', field: 'pmi010300' },
+            { name: '在手订单指数', field: 'pmi010400' },
+            { name: '产成品库存指数', field: 'pmi010500' },
+            { name: '采购量指数', field: 'pmi010600' },
+            { name: '进口指数', field: 'pmi010700' },
+            { name: '购进价格指数', field: 'pmi010800' },
+            { name: '原材料库存指数', field: 'pmi010900' },
+            { name: '从业人员指数', field: 'pmi011000' },
+            { name: '供应商配送时间指数', field: 'pmi011100' },
+            { name: '生产经营活动预期指数', field: 'pmi011200' },
+            { name: '基础原材料制造业PMI', field: 'pmi011300' },
+            { name: '消费品制造业PMI', field: 'pmi011400' },
+            { name: '装备制造业PMI', field: 'pmi011500' },
+            { name: '高技术制造业PMI', field: 'pmi011600' },
+            { name: '大型企业PMI', field: 'pmi011700' },
+            { name: '中型企业PMI', field: 'pmi011800' },
+            { name: '小型企业PMI', field: 'pmi011900' },
+            { name: '消费品制造业PMI(分类)', field: 'pmi012000' },
+            { name: '非制造业商务活动指数', field: 'pmi020100' },
+            { name: '建筑业商务活动指数', field: 'pmi020101' },
+            { name: '服务业商务活动指数', field: 'pmi020102' },
+            { name: '非制造业新订单指数', field: 'pmi020200' },
+            { name: '建筑业新订单指数', field: 'pmi020201' },
+            { name: '服务业新订单指数', field: 'pmi020202' },
+            { name: '非制造业投入品价格指数', field: 'pmi020300' },
+            { name: '建筑业投入品价格指数', field: 'pmi020301' },
+            { name: '服务业投入品价格指数', field: 'pmi020302' },
+            { name: '非制造业销售价格指数', field: 'pmi020400' },
+            { name: '建筑业销售价格指数', field: 'pmi020401' },
+            { name: '服务业销售价格指数', field: 'pmi020402' },
+            { name: '非制造业从业人员指数', field: 'pmi020500' },
+            { name: '建筑业从业人员指数', field: 'pmi020501' },
+            { name: '服务业从业人员指数', field: 'pmi020502' },
+            { name: '非制造业业务活动预期指数', field: 'pmi020600' },
+            { name: '建筑业业务活动预期指数', field: 'pmi020601' },
+            { name: '服务业业务活动预期指数', field: 'pmi020602' },
+            { name: '非制造业新出口订单指数', field: 'pmi020700' },
+            { name: '非制造业在手订单指数', field: 'pmi020800' },
+            { name: '非制造业存货指数', field: 'pmi020900' },
+            { name: '非制造业供应商配送时间指数', field: 'pmi021000' },
+            { name: '综合PMI产出指数', field: 'pmi030000' }
+          ];
+          
+          // 构建表头：月份 | 指标1 | 指标2 | ...
+          const tableHeader = '| 月份 | ' + pmiIndicators.map(indicator => indicator.name).join(' | ') + ' |';
+          const tableSeparator = '|' + '---|'.repeat(pmiIndicators.length + 1);
+          
+          // 构建数据行：每行一个月份的所有指标数据
+          const tableRows = econData.map((data: Record<string, any>) => {
+            const rowData = pmiIndicators.map(indicator => data[indicator.field] || '-').join(' | ');
+            return `| ${formatMonth(data.month)} | ${rowData} |`;
+          });
+          
+          formattedData = `## 采购经理指数(PMI)数据
+
+${tableHeader}
+${tableSeparator}
+${tableRows.join('\n')}
+
+**数据说明**：PMI指数50为荣枯分界线，高于50表示扩张，低于50表示收缩。`;
         } else if (args.indicator === 'cn_sf') {
           // 社融增量数据展示
           formattedData = econData.map((data: Record<string, any>) => {

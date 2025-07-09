@@ -320,21 +320,6 @@ Add the following to Claude's configuration file:
     "finance-data-server": {
       "url": "http://localhost:3100/sse", // If using Supergateway
       "type": "sse",
-      "disabled": false,
-      "autoApprove": [
-        "current_timestamp",
-        "finance_news",
-        "stock_data",
-        "index_data",
-        "macro_econ",
-        "company_performance",
-        "fund_data",
-        "fund_manager_by_name",
-        "convertible_bond",
-        "block_trade",
-        "money_flow",
-        "margin_trade"
-      ]
     }
   }
 }

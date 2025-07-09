@@ -77,80 +77,81 @@ export const companyPerformance = {
       const results: any[] = [];
 
       // 处理主营业务融合调用
-      let dataTypes: string[];
       if (args.data_type === 'mainbz') {
-        // 主营业务融合模式：自动调用三个主营业务类型
-        dataTypes = ['mainbz_product', 'mainbz_region', 'mainbz_industry'];
-      } else {
-        // 直接使用指定的数据类型
-        dataTypes = [args.data_type];
-      }
-
-      for (const dataType of dataTypes) {
-        try {
-          if (dataType === 'mainbz') {
-            // 特殊处理：获取三种类型的主营业务构成数据
-            const businessTypes = ['P', 'D', 'I'];
-            const businessNames = { 'P': '产品', 'D': '地区', 'I': '行业' };
-            const combinedData: any[] = [];
-            
-            for (const businessType of businessTypes) {
-              try {
-                const result = await fetchFinancialData(
-                  'mainbz',
-                  args.ts_code,
-                  args.period,
-                  args.start_date,
-                  args.end_date,
-                  TUSHARE_API_KEY,
-                  TUSHARE_API_URL,
-                  businessType
-                );
-                
-                if (result.data && result.data.length > 0) {
-                  // 为每条数据添加业务类型标识
-                  result.data.forEach((item: any) => {
-                    item.bz_type = businessNames[businessType as keyof typeof businessNames];
-                    item.bz_type_code = businessType;
-                  });
-                  combinedData.push(...result.data);
-                }
-              } catch (error) {
-                console.warn(`获取主营业务构成数据失败 (${businessNames[businessType as keyof typeof businessNames]}):`, error);
-              }
-            }
-            
-            if (combinedData.length > 0) {
-              results.push({
-                type: dataType,
-                data: combinedData,
-                fields: ['ts_code', 'end_date', 'bz_item', 'bz_sales', 'bz_profit', 'bz_cost', 'curr_type', 'bz_type', 'bz_type_code']
-              });
-            } else {
-              results.push({
-                type: dataType,
-                error: '未获取到任何主营业务构成数据'
-              });
-            }
-          } else {
-            // 普通数据类型处理
+        // 主营业务融合模式：直接在这里处理三个主营业务类型
+        const businessTypes = ['P', 'D', 'I'];
+        const businessNames = { 'P': '产品', 'D': '地区', 'I': '行业' };
+        const combinedData: any[] = [];
+        
+        for (const businessType of businessTypes) {
+          try {
             const result = await fetchFinancialData(
-              dataType,
+              'mainbz',
               args.ts_code,
               args.period,
               args.start_date,
               args.end_date,
               TUSHARE_API_KEY,
-              TUSHARE_API_URL
+              TUSHARE_API_URL,
+              businessType
             );
             
             if (result.data && result.data.length > 0) {
-              results.push({
-                type: dataType,
-                data: result.data,
-                fields: result.fields
+              // 为每条数据添加业务类型标识
+              result.data.forEach((item: any) => {
+                item.bz_type = businessNames[businessType as keyof typeof businessNames];
+                item.bz_type_code = businessType;
               });
+              combinedData.push(...result.data);
             }
+          } catch (error) {
+            console.warn(`获取主营业务构成数据失败 (${businessNames[businessType as keyof typeof businessNames]}):`, error);
+          }
+        }
+        
+        if (combinedData.length > 0) {
+          results.push({
+            type: 'mainbz',
+            data: combinedData,
+            fields: ['ts_code', 'end_date', 'bz_item', 'bz_sales', 'bz_profit', 'bz_cost', 'curr_type', 'bz_type', 'bz_type_code']
+          });
+        } else {
+          results.push({
+            type: 'mainbz',
+            error: '未获取到任何主营业务构成数据'
+          });
+        }
+        
+        // 格式化输出
+        const formattedOutput = formatFinancialData(results, args.ts_code);
+        
+        return {
+          content: [{ type: "text", text: formattedOutput }]
+        };
+      }
+
+      // 处理其他数据类型
+      const dataTypes = [args.data_type];
+
+      for (const dataType of dataTypes) {
+        try {
+          // 普通数据类型处理
+          const result = await fetchFinancialData(
+            dataType,
+            args.ts_code,
+            args.period,
+            args.start_date,
+            args.end_date,
+            TUSHARE_API_KEY,
+            TUSHARE_API_URL
+          );
+          
+          if (result.data && result.data.length > 0) {
+            results.push({
+              type: dataType,
+              data: result.data,
+              fields: result.fields
+            });
           }
         } catch (error) {
           console.warn(`获取${dataType}数据失败:`, error);

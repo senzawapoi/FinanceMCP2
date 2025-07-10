@@ -125,7 +125,8 @@ export const macroEcon = {
           
         case 'ppi':
           params.api_name = "cn_ppi";
-          params.fields = "month,ppi_yoy,ppi_mom,ppi_accu,ppi_mp_yoy,ppi_mp_mom,ppi_mp_accu,ppi_cg_yoy,ppi_cg_mom,ppi_cg_accu";
+          // 映射Tushare官方文档中的完整30个字段
+          params.fields = "month,ppi_yoy,ppi_mp_yoy,ppi_mp_qm_yoy,ppi_mp_rm_yoy,ppi_mp_p_yoy,ppi_cg_yoy,ppi_cg_f_yoy,ppi_cg_c_yoy,ppi_cg_adu_yoy,ppi_cg_dcg_yoy,ppi_mom,ppi_mp_mom,ppi_mp_qm_mom,ppi_mp_rm_mom,ppi_mp_p_mom,ppi_cg_mom,ppi_cg_f_mom,ppi_cg_c_mom,ppi_cg_adu_mom,ppi_cg_dcg_mom,ppi_accu,ppi_mp_accu,ppi_mp_qm_accu,ppi_mp_rm_accu,ppi_mp_p_accu,ppi_cg_accu,ppi_cg_f_accu,ppi_cg_c_accu,ppi_cg_adu_accu,ppi_cg_dcg_accu";
           // PPI数据使用月份格式
           const startMonthPPI = dateToMonth(args.start_date || defaultStartDate);
           const endMonthPPI = dateToMonth(args.end_date || defaultEndDate);
@@ -277,12 +278,12 @@ export const macroEcon = {
                 row += `${displayName}: ${value}%  `;
               }
             }
-            return `## ${formatDate(data.date)}\n${row}\n`;
+            return ` ${formatDate(data.date)}\n${row}\n`;
           }).join('\n---\n\n');
         } else if (args.indicator === 'shibor_quote') {
           // Shibor报价数据展示
           formattedData = econData.map((data: Record<string, any>) => {
-            return `## ${formatDate(data.date)} - ${data.bank}\n隔夜: 买价${data.on_b}% 卖价${data.on_a}%  1周: 买价${data['1w_b']}% 卖价${data['1w_a']}%\n1月: 买价${data['1m_b']}% 卖价${data['1m_a']}%  3月: 买价${data['3m_b']}% 卖价${data['3m_a']}%\n6月: 买价${data['6m_b']}% 卖价${data['6m_a']}%  1年: 买价${data['1y_b']}% 卖价${data['1y_a']}%\n`;
+            return ` ${formatDate(data.date)} - ${data.bank}\n隔夜: 买价${data.on_b}% 卖价${data.on_a}%  1周: 买价${data['1w_b']}% 卖价${data['1w_a']}%\n1月: 买价${data['1m_b']}% 卖价${data['1m_a']}%  3月: 买价${data['3m_b']}% 卖价${data['3m_a']}%\n6月: 买价${data['6m_b']}% 卖价${data['6m_a']}%  1年: 买价${data['1y_b']}% 卖价${data['1y_a']}%\n`;
           }).join('\n---\n\n');
         } else if (args.indicator === 'libor' || args.indicator === 'hibor') {
           // 其他利率数据展示
@@ -295,27 +296,44 @@ export const macroEcon = {
               }
             }
             const currencyInfo = data.curr ? ` (${data.curr})` : '';
-            return `## ${formatDate(data.date)}${currencyInfo}\n${row}\n`;
+            return ` ${formatDate(data.date)}${currencyInfo}\n${row}\n`;
           }).join('\n---\n\n');
         } else if (args.indicator === 'gdp') {
           // 季度型数据展示
           formattedData = econData.map((data: Record<string, any>) => {
-            return `## ${data.quarter}\nGDP总值: ${data.gdp}亿元  同比增长: ${data.gdp_yoy}%\n第一产业: ${data.pi}亿元  同比: ${data.pi_yoy}%\n第二产业: ${data.si}亿元  同比: ${data.si_yoy}%\n第三产业: ${data.ti}亿元  同比: ${data.ti_yoy}%\n`;
+            return ` ${data.quarter}\nGDP总值: ${data.gdp}亿元  同比增长: ${data.gdp_yoy}%\n第一产业: ${data.pi}亿元  同比: ${data.pi_yoy}%\n第二产业: ${data.si}亿元  同比: ${data.si_yoy}%\n第三产业: ${data.ti}亿元  同比: ${data.ti_yoy}%\n`;
           }).join('\n---\n\n');
         } else if (args.indicator === 'cpi') {
           // CPI数据展示
           formattedData = econData.map((data: Record<string, any>) => {
-            return `## ${formatMonth(data.month)}\n全国CPI: ${data.nt_val}  同比: ${data.nt_yoy}%  环比: ${data.nt_mom}%  累计: ${data.nt_accu}%\n城市CPI: ${data.town_val}  同比: ${data.town_yoy}%  环比: ${data.town_mom}%  累计: ${data.town_accu}%\n农村CPI: ${data.cnt_val}  同比: ${data.cnt_yoy}%  环比: ${data.cnt_mom}%  累计: ${data.cnt_accu}%\n`;
+            return ` ${formatMonth(data.month)}\n全国CPI: ${data.nt_val}  同比: ${data.nt_yoy}%  环比: ${data.nt_mom}%  累计: ${data.nt_accu}%\n城市CPI: ${data.town_val}  同比: ${data.town_yoy}%  环比: ${data.town_mom}%  累计: ${data.town_accu}%\n农村CPI: ${data.cnt_val}  同比: ${data.cnt_yoy}%  环比: ${data.cnt_mom}%  累计: ${data.cnt_accu}%\n`;
           }).join('\n---\n\n');
-                  } else if (args.indicator === 'ppi') {
-            // PPI数据展示
-            formattedData = econData.map((data: Record<string, any>) => {
-              return `## ${formatMonth(data.month)}\n全部工业品PPI: 同比: ${data.ppi_yoy}%  环比: ${data.ppi_mom}%  累计: ${data.ppi_accu}%\n生产资料PPI: 同比: ${data.ppi_mp_yoy}%  环比: ${data.ppi_mp_mom}%  累计: ${data.ppi_mp_accu}%\n生活资料PPI: 同比: ${data.ppi_cg_yoy}%  环比: ${data.ppi_cg_mom}%  累计: ${data.ppi_cg_accu}%\n`;
-            }).join('\n---\n\n');
+                          } else if (args.indicator === 'ppi') {
+          // PPI数据展示 - 完整30个字段的详细展示
+          formattedData = econData.map((data: Record<string, any>) => {
+            return ` ${formatMonth(data.month)}
+
+ 📊 全部工业品PPI
+同比: ${data.ppi_yoy}%  环比: ${data.ppi_mom}%  累计: ${data.ppi_accu}%
+
+ 🏭 生产资料PPI
+- 总体: 同比: ${data.ppi_mp_yoy}%  环比: ${data.ppi_mp_mom}%  累计: ${data.ppi_mp_accu}%
+- 采掘业: 同比: ${data.ppi_mp_qm_yoy}%  环比: ${data.ppi_mp_qm_mom}%  累计: ${data.ppi_mp_qm_accu}%
+- 原料业: 同比: ${data.ppi_mp_rm_yoy}%  环比: ${data.ppi_mp_rm_mom}%  累计: ${data.ppi_mp_rm_accu}%
+- 加工业: 同比: ${data.ppi_mp_p_yoy}%  环比: ${data.ppi_mp_p_mom}%  累计: ${data.ppi_mp_p_accu}%
+
+ 🛍️ 生活资料PPI
+- 总体: 同比: ${data.ppi_cg_yoy}%  环比: ${data.ppi_cg_mom}%  累计: ${data.ppi_cg_accu}%
+- 食品类: 同比: ${data.ppi_cg_f_yoy}%  环比: ${data.ppi_cg_f_mom}%  累计: ${data.ppi_cg_f_accu}%
+- 衣着类: 同比: ${data.ppi_cg_c_yoy}%  环比: ${data.ppi_cg_c_mom}%  累计: ${data.ppi_cg_c_accu}%
+- 一般日用品类: 同比: ${data.ppi_cg_adu_yoy}%  环比: ${data.ppi_cg_adu_mom}%  累计: ${data.ppi_cg_adu_accu}%
+- 耐用消费品类: 同比: ${data.ppi_cg_dcg_yoy}%  环比: ${data.ppi_cg_dcg_mom}%  累计: ${data.ppi_cg_dcg_accu}%
+`;
+          }).join('\n---\n\n');
         } else if (args.indicator === 'cn_m') {
           // 货币供应量数据展示
           formattedData = econData.map((data: Record<string, any>) => {
-            return `## ${formatMonth(data.month)}\nM0: ${data.m0}亿元  同比: ${data.m0_yoy}%  环比: ${data.m0_mom}%\nM1: ${data.m1}亿元  同比: ${data.m1_yoy}%  环比: ${data.m1_mom}%\nM2: ${data.m2}亿元  同比: ${data.m2_yoy}%  环比: ${data.m2_mom}%\n`;
+            return ` ${formatMonth(data.month)}\nM0: ${data.m0}亿元  同比: ${data.m0_yoy}%  环比: ${data.m0_mom}%\nM1: ${data.m1}亿元  同比: ${data.m1_yoy}%  环比: ${data.m1_mom}%\nM2: ${data.m2}亿元  同比: ${data.m2_yoy}%  环比: ${data.m2_mom}%\n`;
           }).join('\n---\n\n');
         } else if (args.indicator === 'cn_pmi') {
           // PMI数据展示 - 横向指标表格格式
@@ -378,17 +396,17 @@ export const macroEcon = {
             return `| ${formatMonth(data.month)} | ${rowData} |`;
           });
           
-          formattedData = `## 采购经理指数(PMI)数据
+          formattedData = ` 采购经理指数(PMI)数据
 
 ${tableHeader}
 ${tableSeparator}
 ${tableRows.join('\n')}
 
-**数据说明**：PMI指数50为荣枯分界线，高于50表示扩张，低于50表示收缩。`;
+数据说明：PMI指数50为荣枯分界线，高于50表示扩张，低于50表示收缩。`;
         } else if (args.indicator === 'cn_sf') {
           // 社融增量数据展示
           formattedData = econData.map((data: Record<string, any>) => {
-            return `## ${formatMonth(data.month)}\n当月增量: ${data.inc_month}亿元  累计增量: ${data.inc_cumval}亿元\n存量期末值: ${data.stk_endval}万亿元\n`;
+            return ` ${formatMonth(data.month)}\n当月增量: ${data.inc_month}亿元  累计增量: ${data.inc_cumval}亿元\n存量期末值: ${data.stk_endval}万亿元\n`;
           }).join('\n---\n\n');
         }
         
@@ -396,7 +414,7 @@ ${tableRows.join('\n')}
           content: [
             {
               type: "text",
-              text: `# ${titleMap[args.indicator]}\n\n查询时间范围: ${args.start_date || defaultStartDate} - ${args.end_date || defaultEndDate}\n数据条数: ${econData.length}条记录\n\n---\n\n${formattedData}`
+              text: ` ${titleMap[args.indicator]}\n\n查询时间范围: ${args.start_date || defaultStartDate} - ${args.end_date || defaultEndDate}\n数据条数: ${econData.length}条记录\n\n---\n\n${formattedData}`
             }
           ]
         };
@@ -410,7 +428,7 @@ ${tableRows.join('\n')}
         content: [
           {
             type: "text",
-            text: `# 获取${args.indicator}宏观经济数据失败\n\n错误信息: ${error instanceof Error ? error.message : String(error)}\n\n支持的指标类型: \n- shibor: 上海银行间同业拆放利率\n- lpr: 贷款市场报价利率\n- gdp: 国内生产总值\n- cpi: 居民消费价格指数\n- ppi: 工业生产者出厂价格指数\n- cn_m: 货币供应量\n- cn_pmi: 采购经理指数\n- cn_sf: 社会融资规模\n- shibor_quote: Shibor银行报价数据\n- libor: 伦敦银行间同业拆借利率\n- hibor: 香港银行间同业拆借利率`
+            text: ` 获取${args.indicator}宏观经济数据失败\n\n错误信息: ${error instanceof Error ? error.message : String(error)}\n\n支持的指标类型: \n- shibor: 上海银行间同业拆放利率\n- lpr: 贷款市场报价利率\n- gdp: 国内生产总值\n- cpi: 居民消费价格指数\n- ppi: 工业生产者出厂价格指数\n- cn_m: 货币供应量\n- cn_pmi: 采购经理指数\n- cn_sf: 社会融资规模\n- shibor_quote: Shibor银行报价数据\n- libor: 伦敦银行间同业拆借利率\n- hibor: 香港银行间同业拆借利率`
           }
         ]
       };

@@ -8,9 +8,7 @@ export const marginTrade = {
     properties: {
       data_type: {
         type: "string",
-        description: "数据类型",
-        enum: ["margin_secs", "margin", "margin_detail", "slb_len_mm"],
-        default: "margin"
+        description: "数据类型，可选值：margin_secs(融资融券标的股票)、margin(融资融券交易汇总)、margin_detail(融资融券交易明细)、slb_len_mm(做市借券交易汇总)"
       },
       ts_code: {
         type: "string",
@@ -26,8 +24,7 @@ export const marginTrade = {
       },
       exchange: {
         type: "string",
-        description: "交易所代码：SSE(上交所)、SZSE(深交所)、BSE(北交所)，仅margin_secs接口使用",
-        enum: ["SSE", "SZSE", "BSE"]
+        description: "交易所代码，可选值：SSE(上海证券交易所)、SZSE(深圳证券交易所)、BSE(北京证券交易所)，仅margin_secs接口使用"
       }
     },
     required: ["data_type", "start_date"]

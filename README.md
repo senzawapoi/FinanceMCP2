@@ -6,6 +6,16 @@
 
 Welcome to **FinanceMCP** - A professional financial data server based on Model Context Protocol (MCP)! This project integrates **Tushare API** to provide comprehensive real-time financial data access for language models (like Claude), supporting multi-dimensional financial data analysis including stocks, funds, bonds, macroeconomic indicators, and more.
 
+## 📺 Video Tutorial
+
+**🎥 Complete Usage Tutorial**: [FinanceMCP - Comprehensive Financial Data Query Super MCP Tool Based on Tushare Data Interface](https://www.bilibili.com/video/BV1qeNnzEEQi/?share_source=copy_web&vd_source=9dab1cef4f662ff8e4e4a96790c3417c)
+
+Watch our detailed bilibili video tutorial to learn how to:
+- 🔧 Install and configure FinanceMCP
+- 📊 Query various types of financial data
+- 💡 Use advanced features and analysis capabilities
+- 🚀 Integrate with Claude and other MCP clients
+
 ## 🌟 Core Features
 
 ### 📈 Multi-Market Stock Data

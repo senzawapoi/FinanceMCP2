@@ -4,6 +4,16 @@
 
 欢迎使用 **FinanceMCP** - 基于模型上下文协议（MCP）的专业金融数据服务器！本项目通过集成 **Tushare API** 为语言模型（如Claude）提供全面的实时金融数据访问能力，支持股票、基金、债券、宏观经济指标等多维度金融数据分析。
 
+## 📺 视频教程
+
+**🎥 完整使用教程**：[FinanceMCP，基于tushare数据接口的金融数据全面查询的超级金融领域的MCP](https://www.bilibili.com/video/BV1qeNnzEEQi/?share_source=copy_web&vd_source=9dab1cef4f662ff8e4e4a96790c3417c)
+
+观看我们详细的bilibili视频教程，学习如何：
+- 🔧 安装和配置FinanceMCP
+- 📊 查询各种类型的金融数据
+- 💡 使用高级功能和分析能力
+- 🚀 与Claude等MCP客户端集成
+
 ## 🌟 核心特性
 
 ### 📈 多市场股票数据

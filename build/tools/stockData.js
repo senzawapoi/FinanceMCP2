@@ -1,4 +1,5 @@
 import { TUSHARE_CONFIG } from '../config.js';
+import { calculateMACD, calculateKDJ, calculateRSI, calculateBOLL, calculateSMA, parseIndicatorParams, formatIndicatorParams, calculateRequiredDays, calculateExtendedStartDate, filterDataToUserRange } from './stockDataDetail/index.js';
 export const stockData = {
     name: "stock_data",
     description: "获取指定股票的历史行情数据，支持A股、美股、港股、外汇、期货、基金、债券逆回购、可转债、期权",
@@ -21,6 +22,10 @@ export const stockData = {
                 type: "string",
                 description: "结束日期，格式为YYYYMMDD，如'20230131'"
             },
+            indicators: {
+                type: "string",
+                description: "需要计算的技术指标，多个指标用空格分隔。支持的指标：macd(MACD指标)、rsi(相对强弱指标)、kdj(随机指标)、boll(布林带)、ma5(5日均线)、ma10(10日均线)、ma20(20日均线)、ma60(60日均线)。支持自定义参数，例如：'macd(12,26,9) rsi(14) kdj(9,3,3) boll(20,2) ma(10)' 或使用默认参数 'macd rsi kdj'"
+            }
         },
         required: ["code", "market_type"]
     },
@@ -35,6 +40,9 @@ export const stockData = {
             const marketType = args.market_type.trim().toLowerCase();
             console.log(`使用的市场类型: ${marketType}`);
             console.log(`使用Tushare API获取${marketType}市场股票${args.code}的行情数据`);
+            // 解析技术指标参数
+            const requestedIndicators = args.indicators ? args.indicators.trim().split(/\s+/) : [];
+            console.log('请求的技术指标:', requestedIndicators);
             // 使用全局配置中的Tushare API设置
             const TUSHARE_API_KEY = TUSHARE_CONFIG.API_TOKEN;
             const TUSHARE_API_URL = TUSHARE_CONFIG.API_URL;
@@ -44,6 +52,17 @@ export const stockData = {
             const oneMonthAgo = new Date();
             oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
             const defaultStartDate = oneMonthAgo.toISOString().slice(0, 10).replace(/-/g, '');
+            // 用户请求的时间范围
+            const userStartDate = args.start_date || defaultStartDate;
+            const userEndDate = args.end_date || defaultEndDate;
+            // 如果有技术指标请求，计算需要的历史数据并扩展获取范围
+            let actualStartDate = userStartDate;
+            let actualEndDate = userEndDate;
+            if (requestedIndicators.length > 0) {
+                const requiredDays = calculateRequiredDays(requestedIndicators);
+                actualStartDate = calculateExtendedStartDate(userStartDate, requiredDays);
+                console.log(`技术指标需要${requiredDays}天历史数据，扩展开始日期从 ${userStartDate} 到 ${actualStartDate}`);
+            }
             // 验证市场类型
             const validMarkets = ['cn', 'us', 'hk', 'fx', 'futures', 'fund', 'repo', 'convertible_bond', 'options'];
             if (!validMarkets.includes(marketType)) {
@@ -54,8 +73,8 @@ export const stockData = {
                 token: TUSHARE_API_KEY,
                 params: {
                     ts_code: args.code,
-                    start_date: args.start_date || defaultStartDate,
-                    end_date: args.end_date || defaultEndDate
+                    start_date: actualStartDate,
+                    end_date: actualEndDate
                 }
                 // 不设置fields参数，默认返回所有字段
             };
@@ -100,21 +119,21 @@ export const stockData = {
                     if (!args.start_date && !args.end_date) {
                         // 如果都没指定，使用默认的end_date作为trade_date
                         params.params = {
-                            trade_date: defaultEndDate
+                            trade_date: actualEndDate
                         };
                     }
                     else if (args.end_date && !args.start_date) {
                         // 只指定了end_date，使用作为trade_date
                         params.params = {
-                            trade_date: args.end_date
+                            trade_date: actualEndDate
                         };
                     }
                     else {
                         // 如果指定了start_date或日期范围，保持原有逻辑但添加ts_code
                         params.params = {
                             ts_code: args.code,
-                            start_date: args.start_date || defaultStartDate,
-                            end_date: args.end_date || defaultEndDate
+                            start_date: actualStartDate,
+                            end_date: actualEndDate
                         };
                     }
                     // 如果指定了具体的期权代码，添加到params中
@@ -154,14 +173,87 @@ export const stockData = {
                 // 获取字段名
                 const fields = data.data.fields;
                 // 将数据转换为对象数组
-                const stockData = data.data.items.map((item) => {
+                let stockData = data.data.items.map((item) => {
                     const result = {};
                     fields.forEach((field, index) => {
                         result[field] = item[index];
                     });
                     return result;
                 });
-                console.log(`成功获取到${stockData.length}条${args.code}股票数据记录`);
+                console.log(`成功获取到${stockData.length}条${args.code}股票数据记录（扩展数据范围）`);
+                // 计算技术指标
+                let indicators = {};
+                if (requestedIndicators.length > 0 && ['cn', 'us', 'hk', 'fund'].includes(marketType)) {
+                    // 只对有完整OHLCV数据的市场计算技术指标
+                    const closes = stockData.map((d) => parseFloat(d.close)).reverse(); // 按时间正序
+                    const highs = stockData.map((d) => parseFloat(d.high)).reverse();
+                    const lows = stockData.map((d) => parseFloat(d.low)).reverse();
+                    for (const indicator of requestedIndicators) {
+                        try {
+                            const { name, params } = parseIndicatorParams(indicator);
+                            switch (name) {
+                                case 'macd':
+                                    if (params.length !== 3) {
+                                        throw new Error(`MACD指标需要3个参数，格式：macd(快线,慢线,信号线)，如：macd(12,26,9)`);
+                                    }
+                                    indicators.macd = calculateMACD(closes, params[0], params[1], params[2]);
+                                    break;
+                                case 'rsi':
+                                    if (params.length !== 1) {
+                                        throw new Error(`RSI指标需要1个参数，格式：rsi(周期)，如：rsi(14)`);
+                                    }
+                                    indicators.rsi = calculateRSI(closes, params[0]);
+                                    break;
+                                case 'kdj':
+                                    if (params.length !== 3) {
+                                        throw new Error(`KDJ指标需要3个参数，格式：kdj(K周期,K平滑,D平滑)，如：kdj(9,3,3)`);
+                                    }
+                                    indicators.kdj = calculateKDJ(highs, lows, closes, params[0], params[1], params[2]);
+                                    break;
+                                case 'boll':
+                                    if (params.length !== 2) {
+                                        throw new Error(`布林带指标需要2个参数，格式：boll(周期,标准差倍数)，如：boll(20,2)`);
+                                    }
+                                    indicators.boll = calculateBOLL(closes, params[0], params[1]);
+                                    break;
+                                case 'ma':
+                                    if (params.length !== 1) {
+                                        throw new Error(`移动平均线需要1个参数，格式：ma(周期)，如：ma(5)、ma(10)、ma(20)`);
+                                    }
+                                    const maPeriod = params[0];
+                                    indicators[`ma${maPeriod}`] = calculateSMA(closes, maPeriod);
+                                    break;
+                                default:
+                                    throw new Error(`不支持的技术指标: ${name}，支持的指标：macd(12,26,9)、rsi(14)、kdj(9,3,3)、boll(20,2)、ma(周期)`);
+                            }
+                        }
+                        catch (error) {
+                            console.error(`解析技术指标 ${indicator} 时出错:`, error);
+                            throw new Error(`技术指标参数错误: ${indicator}`);
+                        }
+                    }
+                    // 将技术指标数据逆序回来，以匹配原始数据的时间顺序（最新日期在前）
+                    Object.keys(indicators).forEach(key => {
+                        if (typeof indicators[key] === 'object' && indicators[key] !== null) {
+                            if (Array.isArray(indicators[key])) {
+                                indicators[key] = indicators[key].reverse();
+                            }
+                            else {
+                                // 对于MACD、KDJ、BOLL等对象类型的指标
+                                Object.keys(indicators[key]).forEach(subKey => {
+                                    if (Array.isArray(indicators[key][subKey])) {
+                                        indicators[key][subKey] = indicators[key][subKey].reverse();
+                                    }
+                                });
+                            }
+                        }
+                    });
+                }
+                // 过滤数据到用户请求的时间范围
+                if (requestedIndicators.length > 0) {
+                    stockData = filterDataToUserRange(stockData, userStartDate, userEndDate);
+                    console.log(`过滤到用户请求时间范围，剩余${stockData.length}条记录`);
+                }
                 // 生成市场类型标题
                 const marketTitleMap = {
                     'cn': 'A股',
@@ -176,6 +268,7 @@ export const stockData = {
                 };
                 // 格式化输出（根据不同市场类型构建表格格式）
                 let formattedData = '';
+                let indicatorData = '';
                 if (marketType === 'fx') {
                     // 外汇数据表格展示
                     formattedData = `| 交易日期 | 买入开盘 | 买入最高 | 买入最低 | 买入收盘 | 卖出开盘 | 卖出最高 | 卖出最低 | 卖出收盘 | 报价笔数 |\n`;
@@ -217,13 +310,13 @@ export const stockData = {
                     });
                 }
                 else {
-                    // 股票数据表格展示（A股、美股、港股、基金等）- 只显示基础核心字段
+                    // 股票数据表格展示（A股、美股、港股、基金等）
                     if (stockData.length > 0) {
-                        // 只显示最基础的7个核心字段
+                        // 基础字段
                         const coreFields = ['trade_date', 'open', 'close', 'high', 'low', 'vol', 'amount'];
                         const availableFields = Object.keys(stockData[0]);
                         const displayFields = coreFields.filter(field => availableFields.includes(field));
-                        // 生成表头
+                        // 生成字段名映射
                         const fieldNameMap = {
                             'trade_date': '交易日期',
                             'open': '开盘',
@@ -233,13 +326,98 @@ export const stockData = {
                             'vol': '成交量',
                             'amount': '成交额'
                         };
-                        const headers = displayFields.map(field => fieldNameMap[field] || field).join(' | ');
-                        formattedData = `| ${headers} |\n`;
-                        formattedData += `|${displayFields.map(() => '--------').join('|')}|\n`;
+                        // 如果有技术指标，添加技术指标列
+                        const indicatorHeaders = [];
+                        const hasIndicators = Object.keys(indicators).length > 0;
+                        if (hasIndicators) {
+                            // 添加技术指标表头
+                            if (indicators.macd) {
+                                indicatorHeaders.push('MACD_DIF', 'MACD_DEA', 'MACD');
+                            }
+                            if (indicators.rsi) {
+                                indicatorHeaders.push('RSI');
+                            }
+                            if (indicators.kdj) {
+                                indicatorHeaders.push('KDJ_K', 'KDJ_D', 'KDJ_J');
+                            }
+                            if (indicators.boll) {
+                                indicatorHeaders.push('BOLL_UP', 'BOLL_MID', 'BOLL_LOW');
+                            }
+                            // 添加移动平均线
+                            const maIndicators = Object.keys(indicators).filter(key => key.startsWith('ma') && key !== 'macd');
+                            maIndicators.forEach(ma => {
+                                indicatorHeaders.push(ma.toUpperCase());
+                            });
+                        }
+                        // 组合所有表头
+                        const allHeaders = [...displayFields.map(field => fieldNameMap[field] || field), ...indicatorHeaders];
+                        formattedData = `| ${allHeaders.join(' | ')} |\n`;
+                        formattedData += `|${allHeaders.map(() => '--------').join('|')}|\n`;
                         // 生成数据行
-                        stockData.forEach((data) => {
-                            const row = displayFields.map(field => data[field] || 'N/A').join(' | ');
-                            formattedData += `| ${row} |\n`;
+                        stockData.forEach((data, index) => {
+                            const basicRow = displayFields.map(field => data[field] || 'N/A');
+                            // 添加技术指标数据
+                            const indicatorRow = [];
+                            if (hasIndicators) {
+                                if (indicators.macd) {
+                                    indicatorRow.push(isNaN(indicators.macd.dif[index]) ? 'N/A' : indicators.macd.dif[index].toFixed(4), isNaN(indicators.macd.dea[index]) ? 'N/A' : indicators.macd.dea[index].toFixed(4), isNaN(indicators.macd.macd[index]) ? 'N/A' : indicators.macd.macd[index].toFixed(4));
+                                }
+                                if (indicators.rsi) {
+                                    indicatorRow.push(isNaN(indicators.rsi[index]) ? 'N/A' : indicators.rsi[index].toFixed(2));
+                                }
+                                if (indicators.kdj) {
+                                    indicatorRow.push(isNaN(indicators.kdj.k[index]) ? 'N/A' : indicators.kdj.k[index].toFixed(2), isNaN(indicators.kdj.d[index]) ? 'N/A' : indicators.kdj.d[index].toFixed(2), isNaN(indicators.kdj.j[index]) ? 'N/A' : indicators.kdj.j[index].toFixed(2));
+                                }
+                                if (indicators.boll) {
+                                    indicatorRow.push(isNaN(indicators.boll.upper[index]) ? 'N/A' : indicators.boll.upper[index].toFixed(2), isNaN(indicators.boll.middle[index]) ? 'N/A' : indicators.boll.middle[index].toFixed(2), isNaN(indicators.boll.lower[index]) ? 'N/A' : indicators.boll.lower[index].toFixed(2));
+                                }
+                                // 添加移动平均线数据
+                                const maIndicators = Object.keys(indicators).filter(key => key.startsWith('ma') && key !== 'macd');
+                                maIndicators.forEach(ma => {
+                                    indicatorRow.push(isNaN(indicators[ma][index]) ? 'N/A' : indicators[ma][index].toFixed(2));
+                                });
+                            }
+                            const fullRow = [...basicRow, ...indicatorRow];
+                            formattedData += `| ${fullRow.join(' | ')} |\n`;
+                        });
+                    }
+                }
+                // 生成技术指标说明（如果有技术指标）
+                if (Object.keys(indicators).length > 0) {
+                    indicatorData = `\n\n## 📊 技术指标说明\n`;
+                    // 记录实际使用的参数，用于说明中显示
+                    const indicatorParams = {};
+                    for (const indicator of requestedIndicators) {
+                        try {
+                            const { name, params } = parseIndicatorParams(indicator);
+                            indicatorParams[name] = formatIndicatorParams(name, params);
+                        }
+                        catch {
+                            // 忽略解析错误，继续处理其他指标
+                        }
+                    }
+                    if (indicators.macd) {
+                        const params = indicatorParams.macd || '(参数未知)';
+                        indicatorData += `- **MACD${params}**: DIF(快线)、DEA(慢线)、MACD(柱状图)\n`;
+                    }
+                    if (indicators.rsi) {
+                        const params = indicatorParams.rsi || '(参数未知)';
+                        indicatorData += `- **RSI${params}**: 相对强弱指标，范围0-100，>70超买，<30超卖\n`;
+                    }
+                    if (indicators.kdj) {
+                        const params = indicatorParams.kdj || '(参数未知)';
+                        indicatorData += `- **KDJ${params}**: 随机指标，K线、D线、J线，>80超买，<20超卖\n`;
+                    }
+                    if (indicators.boll) {
+                        const params = indicatorParams.boll || '(参数未知)';
+                        indicatorData += `- **BOLL${params}**: 布林带，上轨、中轨、下轨\n`;
+                    }
+                    // 处理各种MA指标，过滤掉非MA指标
+                    const maIndicators = Object.keys(indicators).filter(key => key.startsWith('ma') && key !== 'macd');
+                    if (maIndicators.length > 0) {
+                        maIndicators.forEach(ma => {
+                            const period = ma.replace('ma', '');
+                            indicatorData += `- **${ma.toUpperCase()}(${period})**: 移动平均线，常用判断趋势方向\n`;
                         });
                     }
                 }
@@ -247,7 +425,7 @@ export const stockData = {
                     content: [
                         {
                             type: "text",
-                            text: `# ${args.code} ${marketTitleMap[marketType]}行情数据\n\n${formattedData}`
+                            text: `# ${args.code} ${marketTitleMap[marketType]}行情数据\n\n${formattedData}${indicatorData}`
                         }
                     ]
                 };
@@ -262,7 +440,7 @@ export const stockData = {
                 content: [
                     {
                         type: "text",
-                        text: `# 获取股票${args.code}数据失败\n\n无法从Tushare API获取数据：${error instanceof Error ? error.message : String(error)}\n\n请检查股票代码和市场类型是否正确：\n- A股格式："000001.SZ"\n- 美股格式："AAPL"\n- 港股格式："00700.HK"\n- 外汇格式："USDCNH.FXCM"（美元人民币）\n- 期货格式："CU2501.SHF"\n- 基金格式："159919.SZ"\n- 债券逆回购格式："204001.SH"\n- 可转债格式："113008.SH"\n- 期权格式："10001313.SH"`
+                        text: `# 获取股票${args.code}数据失败\n\n无法从Tushare API获取数据：${error instanceof Error ? error.message : String(error)}\n\n请检查股票代码和市场类型是否正确：\n- A股格式："000001.SZ"\n- 美股格式："AAPL"\n- 港股格式："00700.HK"\n- 外汇格式："USDCNH.FXCM"（美元人民币）\n- 期货格式："CU2501.SHF"\n- 基金格式："159919.SZ"\n- 债券逆回购格式："204001.SH"\n- 可转债格式："113008.SH"\n- 期权格式："10001313.SH"\n\n技术指标使用说明（必须明确指定参数）：\n- **MACD**: macd(快线,慢线,信号线) - 例：macd(12,26,9)\n- **RSI**: rsi(周期) - 例：rsi(14)\n- **KDJ**: kdj(K周期,K平滑,D平滑) - 例：kdj(9,3,3)\n- **布林带**: boll(周期,标准差倍数) - 例：boll(20,2)\n- **移动平均线**: ma(周期) - 例：ma(5)、ma(10)、ma(20)\n\n使用示例：\n- "macd(12,26,9) rsi(14)"\n- "kdj(9,3,3) boll(20,2) ma(30)"\n- "macd(5,10,5) ma(5) ma(10)"`
                     }
                 ]
             };

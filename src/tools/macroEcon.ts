@@ -308,9 +308,9 @@ export const macroEcon = {
           formattedData = econData.map((data: Record<string, any>) => {
             return ` ${formatMonth(data.month)}\n全国CPI: ${data.nt_val}  同比: ${data.nt_yoy}%  环比: ${data.nt_mom}%  累计: ${data.nt_accu}%\n城市CPI: ${data.town_val}  同比: ${data.town_yoy}%  环比: ${data.town_mom}%  累计: ${data.town_accu}%\n农村CPI: ${data.cnt_val}  同比: ${data.cnt_yoy}%  环比: ${data.cnt_mom}%  累计: ${data.cnt_accu}%\n`;
           }).join('\n---\n\n');
-                          } else if (args.indicator === 'ppi') {
+                  } else if (args.indicator === 'ppi') {
           // PPI数据展示 - 完整30个字段的详细展示
-          formattedData = econData.map((data: Record<string, any>) => {
+            formattedData = econData.map((data: Record<string, any>) => {
             return ` ${formatMonth(data.month)}
 
  📊 全部工业品PPI
@@ -329,7 +329,7 @@ export const macroEcon = {
 - 一般日用品类: 同比: ${data.ppi_cg_adu_yoy}%  环比: ${data.ppi_cg_adu_mom}%  累计: ${data.ppi_cg_adu_accu}%
 - 耐用消费品类: 同比: ${data.ppi_cg_dcg_yoy}%  环比: ${data.ppi_cg_dcg_mom}%  累计: ${data.ppi_cg_dcg_accu}%
 `;
-          }).join('\n---\n\n');
+            }).join('\n---\n\n');
         } else if (args.indicator === 'cn_m') {
           // 货币供应量数据展示
           formattedData = econData.map((data: Record<string, any>) => {

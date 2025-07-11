@@ -16,144 +16,7 @@ Watch our detailed bilibili video tutorial to learn how to:
 - 💡 Use advanced features and analysis capabilities
 - 🚀 Integrate with Claude and other MCP clients
 
-## 🌟 Core Features
 
-### 📈 Multi-Market Stock Data
-Support stock data queries from major global markets:
-* **A-Shares** (Shanghai & Shenzhen) - e.g., Ping An Bank (000001.SZ)
-* **US Stocks** (NASDAQ, NYSE, etc.) - e.g., Apple (AAPL)
-* **Hong Kong Stocks** (HKEX) - e.g., Tencent Holdings (00700.HK)
-* **Forex** (Major currency pairs) - e.g., USD/CNH (USDCNH.FXCM)
-* **Futures** (Commodity & financial futures) - e.g., Copper Futures (CU2501.SHF)
-* **Funds** (ETFs, LOFs, etc.) - e.g., CSI 300 ETF (159919.SZ)
-* **Bond Repos** (Government & corporate bonds) - e.g., GC001 (204001.SH)
-* **Convertible Bonds** (Including conversion value, premium) - e.g., Ping An CB (113008.SH)
-* **Options** (Stock & index options) - e.g., 50ETF Options (10001313.SH)
-
-### 📊 Index Data Query
-Get data for major market indices like Shanghai Composite Index, Shenzhen Component Index, etc.
-
-### 📰 Financial News Search ⭐️ Smart Optimization
-Get financial news content from mainstream financial media through real search API, supporting intelligent search with single or multiple keywords:
-* **Supported Sources**: Sina Finance, Wallstreetcn, 10jqka, Eastmoney, Yuncaijing, Phoenix News, JRJ, etc.
-* **Search Function**: Support single keywords like 'WuXi AppTec', 'Tencent', or multiple keywords separated by spaces like 'Federal Reserve Interest Rate', 'Bitcoin Regulation'
-* **Smart Matching**: System intelligently searches relevant historical news
-* **Real-time Updates**: Provide latest financial news and market dynamics
-
-### 🏢 Company Financial Performance Analysis ⭐️ Complete Integration
-Get comprehensive financial data for listed companies with smart data filtering and batch display:
-
-#### Financial Statements (Fully Integrated)
-* **Income Statement** - Operating revenue, net profit, gross margin, etc., supporting basic and complete versions
-* **Balance Sheet** - Total assets, liabilities, shareholders' equity, etc., with smart empty field filtering
-* **Cash Flow Statement** - Operating, investing, financing cash flows with clearer categorized display
-
-#### Company Performance Data
-* **Earnings Forecast** - Net profit change predictions, forecast types
-* **Earnings Express** - Quick financial data, year-over-year growth rates
-* **Financial Indicators** - ROE, ROA, current ratio, debt-to-asset ratio, etc.
-* **Dividends & Stock Distribution** - Cash dividends, stock splits, key dates
-
-#### Main Business Composition
-* **By Product Analysis** - Main product revenue, profit, cost composition
-* **By Region Analysis** - Regional revenue distribution, regional performance comparison
-* **By Industry Analysis** - Industry revenue composition, industry competitive position
-
-#### Shareholder Information
-* **Shareholder Count** - Shareholder number change trends
-* **Shareholder Trading** - Important shareholder buy/sell activities, shareholding changes
-
-#### Management Information ⭐️ New Feature
-* **Management Team** - Senior executives, directors, supervisors information
-* **Profile Analysis** - Gender, education, nationality, age statistics
-* **Position Distribution** - Position categories, title hierarchy analysis
-* **Tenure Tracking** - Appointment dates, resignation status, career timeline
-
-#### Company Basic Information ⭐️ New Feature
-* **Company Overview** - Company name, business license, registered capital, establishment date
-* **Executive Information** - Chairman, general manager, secretary, key personnel
-* **Contact Details** - Website, email, office address, business scope
-* **Regional Analysis** - Location distribution, exchange listing analysis
-* **Scale Statistics** - Employee count, capital structure, corporate age analysis
-
-### 💰 Fund Data Query ⭐️ Complete Refactoring
-Performance optimized with 85% speed improvement (from 5.2s to 0.8s):
-* **Fund List** - Fund basic information, investment types, management fees, etc.
-* **Fund NAV** - Unit NAV, cumulative NAV, adjusted NAV, etc., with automatic share data integration
-* **Fund Dividends** - Dividend plans, cash dividends, ex-dividend dates, etc.
-* **Fund Holdings** - Heavy positions, market value ratios, shareholding percentages, etc.
-* **Fund Managers** - Manager profiles, tenure, managed funds, etc. (now independent tool)
-
-### 👨‍💼 Fund Manager Query ⭐️ Independent Tool
-Query detailed information by fund manager name:
-* **Personal Background** - Gender, birth year, education, nationality
-* **Career History** - Managed fund list, tenure, departure status
-* **Professional Resume** - Detailed resume information, career development track
-
-### 📈 Macroeconomic Data ⭐️ Chinese Optimization
-Get key macroeconomic indicator data with full Chinese localization:
-* **Shibor Rates** - Shanghai Interbank Offered Rate
-* **LPR Rates** - Loan Prime Rate
-* **GDP** - Gross Domestic Product
-* **CPI** - Consumer Price Index
-* **PPI** - Producer Price Index (fixed field mapping bug)
-* **Money Supply** - M0, M1, M2 money supply data
-* **PMI Index** - Manufacturing, services, composite PMI with 30+ detailed sub-indicators
-* **Social Financing** - Total Social Financing data
-* **Shibor Quotes** - Bank quote data (bid price, ask price)
-* **Libor Rates** - London Interbank Offered Rate
-* **Hibor Rates** - Hong Kong Interbank Offered Rate
-
-### 🪙 Convertible Bond Data ⭐️ Professional Tool
-Get comprehensive non-market data for convertible bonds:
-
-#### Basic Information Query
-* **Bond Details** - Bond name, underlying stock code/name, maturity period, par value
-* **Trading Info** - Exchange, listing date, delisting date, issue date
-* **Conversion Terms** - Initial conversion price, current conversion price, conversion period
-* **Bond Clauses** - Interest rate clause, put clause, forced redemption clause, resale clause
-
-#### Issuance Data Query
-* **Issue Overview** - Planned/actual issue size, issue price, issue method, issue cost
-* **Online Issuance** - Subscription code/name, issue date, subscription volume, winning rate
-* **Shareholder Allotment** - Allotment code/name, record date, payment date, allotment ratio
-* **Offline Issuance** - Issue volume, deposit ratio, subscription statistics
-* **Underwriting Info** - Lead underwriter, underwriting volume
-
-### 🔄 Block Trade Data ⭐️ New Feature
-Get detailed block trade data:
-* **Trade Details** - Transaction price, volume, amount
-* **Trading Parties** - Buyer and seller business departments
-* **Market Statistics** - Support whole market or individual stock block trade queries
-* **Time Range** - Flexible date range queries
-
-### 💹 Money Flow Data ⭐️ New Feature
-Get individual stock and market money flow data:
-* **Main Funds** - Main fund net inflow amount and net ratio
-* **Super Large Orders** - Super large order fund flow statistics
-* **Large/Medium/Small Orders** - Various fund inflow and outflow situations
-* **Individual Analysis** - Individual stock money flow analysis
-* **Market Statistics** - Overall market money flow trends
-
-### 💰 Margin Trade Data ⭐️ Enhanced Feature
-Get comprehensive margin trading data from multiple sources:
-* **Margin Securities** - List of eligible margin trading securities across SSE/SZSE/BSE exchanges
-* **Trading Summary** - Daily financing balance, purchase amount, repayment amount
-* **Trading Details** - Detailed margin transaction records
-* **Securities Lending** - Securities lending volume, repayment volume
-* **Market Making** - Securities lending by market makers with inventory data
-* **Multi-Interface** - 4 different Tushare APIs for comprehensive coverage
-
-### 🕐 Current Timestamp ⭐️ Utility Tool
-Get current time information for China timezone (UTC+8):
-* **Multiple Formats** - datetime, date, time, timestamp, readable
-* **China Timezone** - Accurate UTC+8 timezone calculation
-* **Weekday Info** - Chinese weekday display
-* **Real-time Precision** - Current timestamp accurate to seconds
-* **Beautiful Display** - Markdown format with timezone information
-
-### 🤖 MCP Integration
-Seamless integration with MCP-compatible clients (like Claude) for intelligent financial analysis.
 
 ## 🎯 Tool Overview
 
@@ -161,18 +24,18 @@ This server provides **12 professional financial tools**:
 
 | Tool Name | Function Description | Key Features |
 |-----------|---------------------|--------------|
-| 🕐 **current_timestamp** | Current timestamp | China timezone, multiple formats |
-| 📰 **finance_news** | Financial news search | Smart keyword search, multi-media sources |
-| 📈 **stock_data** | Stock data query | Global multi-market, 9 financial instruments |
-| 📊 **index_data** | Index data query | Major market indices |
-| 📉 **macro_econ** | Macroeconomic data | 11 economic indicators, Chinese optimized |
-| 🏢 **company_performance** | Company financial analysis | Financial statements integrated, management info |
-| 💰 **fund_data** | Fund data query | 5 major fund data types, performance optimized |
-| 👨‍💼 **fund_manager_by_name** | Fund manager query | Query detailed info by name |
-| 🪙 **convertible_bond** | Convertible bond data | Basic info + issuance data |
-| 🔄 **block_trade** | Block trade data | Trade details + business department info |
-| 💹 **money_flow** | Money flow data | Individual stock + market money flow |
-| 💰 **margin_trade** | Margin trade data | 4 APIs: Securities list + Trading summary/details + Market making |
+| 🕐 **current_timestamp** | Current timestamp utility | UTC+8 timezone, multiple formats (datetime/date/time/timestamp/readable), Chinese weekday display |
+| 📰 **finance_news** | Financial news search | Smart keyword search across 7+ media sources (Sina, Wallstreetcn, 10jqka, etc.), supports single/multiple keyword queries |
+| 📈 **stock_data** | Stock & technical indicator data | A-Shares/US/HK/Forex/Futures/Funds/Bonds/Options + Technical indicators (MACD/RSI/KDJ/BOLL/MA) with smart data prefetch |
+| 📊 **index_data** | Index data query | Major market indices (Shanghai Composite, Shenzhen Component, etc.) with historical data |
+| 📉 **macro_econ** | Macroeconomic data | 11 indicators: Shibor/LPR/GDP/CPI/PPI/Money Supply/PMI(30+ sub-indicators)/Social Financing/Libor/Hibor |
+| 🏢 **company_performance** | Company financial analysis | Financial statements (Income/Balance/Cash Flow) + Management info + Company basics + Performance data (13 data types) |
+| 💰 **fund_data** | Fund data query | Fund list/NAV/dividends/holdings/performance with 85% speed optimization (5.2s→0.8s), automatic share data integration |
+| 👨‍💼 **fund_manager_by_name** | Fund manager query | Personal background, career history, managed funds list, professional resume by manager name |
+| 🪙 **convertible_bond** | Convertible bond data | Basic info (bond details/trading/conversion terms/clauses) + Issuance data (online/offline/underwriting) |
+| 🔄 **block_trade** | Block trade data | Trade details (price/volume/amount) + Trading parties (buyer/seller business departments) + Market statistics |
+| 💹 **money_flow** | Money flow data | Main/Super large/Large/Medium/Small order flows + Individual stock analysis + Market trend statistics |
+| 💰 **margin_trade** | Margin trade data | 4 APIs: Margin securities list (SSE/SZSE/BSE) + Trading summary/details + Market making with inventory data |
 
 ## 🔧 Technical Specifications
 
@@ -180,6 +43,7 @@ This server provides **12 professional financial tools**:
 - **Primary API**: [Tushare Pro](https://tushare.pro) - Professional financial data platform
 - **Coverage**: Chinese mainland markets, Hong Kong, US markets, and global indices
 - **Update Frequency**: Real-time to daily, depending on data type
+- **Integrated Endpoints**: Over 40 Tushare API endpoints across all tools
 - **Historical Data**: Multi-year historical coverage for most data types
 
 ### Supported Markets & Instruments

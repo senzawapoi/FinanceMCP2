@@ -2,6 +2,28 @@ English version: see README_EN.md
 
 [![English Version](https://img.shields.io/badge/English-README_EN.md-blue?logo=github)](README_EN.md)
 
+# FinanceMCP - 专业金融数据MCP服务器 🚀
+
+## 📑 目录（Table of Contents）
+- [🌐 公网部署服务（推荐，无需本地部署！） ⭐ 推荐体验](#公网部署服务推荐无需本地部署-⭐-推荐体验)
+- [📺 视频教程](#视频教程)
+- [⭐ 核心特性](#核心特性)
+- [🎯 工具总览](#工具总览)
+- [🎯 技术指标系统详解](#技术指标系统详解)
+- [🔧 技术规格](#技术规格)
+- [🎓 学生和教师免费积分获取](#学生和教师免费积分获取)
+- [🛠️ 安装与配置](#安装与配置)
+- [🚀 启动服务器](#启动服务器)
+- [📝 配置MCP客户端](#配置mcp客户端)
+- [💡 使用示例](#使用示例)
+- [📊 数据接口支持](#数据接口支持)
+- [🔮 未来规划](#未来规划)
+- [📈 最新更新](#最新更新)
+- [📄 许可证](#许可证)
+- [👨‍💻 作者](#作者)
+- [🤝 贡献](#贡献)
+- [⭐ 支持项目](#支持项目)
+
 [![smithery badge](https://smithery.ai/badge/@guangxiangdebizi/FinanceMCP)](https://smithery.ai/server/@guangxiangdebizi/FinanceMCP)
 
 欢迎使用 **FinanceMCP** - 基于模型上下文协议（MCP）的专业金融数据服务器！本项目通过集成 **Tushare API** 为语言模型（如Claude）提供全面的实时金融数据访问能力，支持股票、基金、债券、宏观经济指标等多维度金融数据分析。
@@ -267,7 +289,7 @@ npx supergateway --stdio "node build/index.js" --port 3100
 - 欢迎在使用过程中提供反馈和改进建议
 - 如需生产环境使用，建议本地部署以确保稳定性
 
----
+⭐ 推荐体验
 
 ### 💻 本地部署配置
 

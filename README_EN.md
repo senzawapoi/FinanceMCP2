@@ -2,6 +2,26 @@
 
 # FinanceMCP - Professional Financial Data MCP Server 🚀
 
+## 📑 Table of Contents
+- [🌐 Public Cloud Service (Recommended, no local deployment!) ⭐ Best Experience](#public-cloud-service-recommended-no-local-deployment--best-experience)
+- [📺 Video Tutorial](#video-tutorial)
+- [⭐ Core Features](#core-features)
+- [🎯 Tool Overview](#tool-overview)
+- [🎯 Technical Indicator System Details](#technical-indicator-system-details)
+- [🔧 Technical Specifications](#technical-specifications)
+- [🎓 Free Points for Students & Teachers](#free-points-for-students--teachers)
+- [🛠️ Installation & Configuration](#installation--configuration)
+- [🚀 Start the Server](#start-the-server)
+- [📝 MCP Client Configuration](#mcp-client-configuration)
+- [💡 Usage Examples](#usage-examples)
+- [📊 Supported Data APIs](#supported-data-apis)
+- [🔮 Roadmap](#roadmap)
+- [📈 Latest Updates](#latest-updates)
+- [📄 License](#license)
+- [👨‍💻 Author](#author)
+- [🤝 Contributing](#contributing)
+- [⭐ Support](#support)
+
 [![smithery badge](https://smithery.ai/badge/@guangxiangdebizi/FinanceMCP)](https://smithery.ai/server/@guangxiangdebizi/FinanceMCP)
 
 Welcome to **FinanceMCP** - a professional financial data server based on the Model Context Protocol (MCP)! This project integrates **Tushare API** to provide comprehensive real-time financial data access for language models (such as Claude), supporting multi-dimensional financial data analysis including stocks, funds, bonds, macroeconomic indicators, and more.
@@ -225,7 +245,7 @@ npx supergateway --stdio "node build/index.js" --port 3100
 
 To use this server in Claude or other MCP clients, you have several options:
 
-### 🌐 Public Cloud Service (Recommended, no local deployment!)
+### 🌐 Public Cloud Service (Recommended, no local deployment!) ⭐ Best Experience
 
 **🎉 Public Cloud Service** - We have deployed FinanceMCP on the public cloud, you can use it directly, no local setup needed!
 

@@ -24,7 +24,7 @@ export const stockData = {
             },
             indicators: {
                 type: "string",
-                description: "需要计算的技术指标，多个指标用空格分隔。支持的指标：macd(MACD指标)、rsi(相对强弱指标)、kdj(随机指标)、boll(布林带)、ma5(5日均线)、ma10(10日均线)、ma20(20日均线)、ma60(60日均线)。支持自定义参数，例如：'macd(12,26,9) rsi(14) kdj(9,3,3) boll(20,2) ma(10)' 或使用默认参数 'macd rsi kdj'"
+                description: "需要计算的技术指标，多个指标用空格分隔。支持的指标：macd(MACD指标)、rsi(相对强弱指标)、kdj(随机指标)、boll(布林带)、ma5(5日均线)、ma10(10日均线)、ma20(20日均线)、ma60(60日均线)。必须明确指定参数，例如：'macd(12,26,9) rsi(14) kdj(9,3,3) boll(20,2) ma(10)'"
             }
         },
         required: ["code", "market_type"]

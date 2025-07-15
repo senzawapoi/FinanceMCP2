@@ -21,7 +21,22 @@
 
 **🎉 Ready to use, no deployment needed!**
 
-We provide a free public cloud service that you can configure directly in Claude without local installation or API keys:
+We provide multiple free public cloud service options:
+
+### 🌐 Web Online Experience
+**🚀 The simplest way to get started!**
+
+Visit our online experience website: **[http://106.14.205.176:3222/](http://106.14.205.176:3222/)**
+
+- ✨ **Zero Configuration Experience** - No setup required, just open and use
+- 🤖 **Integrated AI Model** - Chat directly with AI assistant for financial analysis
+- 💬 **Intelligent Interaction** - Natural language queries for real-time financial data
+- 📱 **Multi-device Support** - Compatible with desktop, mobile, and tablet
+
+> ⚠️ **Service Notice**: This is a personal small server. Please use responsibly and do not attack or abuse the service.
+
+### ⚙️ Claude Desktop Configuration
+You can also configure directly in Claude without local installation or API keys:
 
 ```json
 {

@@ -28,6 +28,7 @@ English version: see README_EN.md
 
 ### 🌐 Web在线体验版
 **🚀 最简单的使用方式！**
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/3b6e2310-afb2-407d-805d-b1a6b9ff6ea6" />
 
 访问我们的在线体验网站：**[http://106.14.205.176:3222/](http://106.14.205.176:3222/)**
 
@@ -35,6 +36,11 @@ English version: see README_EN.md
 - 🤖 **集成大模型** - 直接与AI助手对话，获取金融分析
 - 💬 **智能交互** - 自然语言提问，实时获取金融数据
 - 📱 **多端适配** - 支持电脑、手机、平板访问
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/40d435a5-741d-41f3-a471-56bd5386d132" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/188c7222-5d60-4076-9a65-664755fea6ee" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/73c6f17d-8133-458b-bb26-95422e33b4d7" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/64307568-70d5-425f-b3bc-2bf1d2e97ff2" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/e3fbaa7f-25f0-4787-aab2-0d3caad1aeae" />
 
 > ⚠️ **服务说明**：这是个人提供的小型服务器，请文明使用，切勿攻击或滥用。
 
@@ -42,7 +48,7 @@ English version: see README_EN.md
 您也可以直接在Claude中配置使用，无需本地安装和API密钥：
 =======
 我们提供公网免费服务，您可以直接在Claude中配置使用，无需本地安装和API密钥：
->>>>>>> 34491384d2909fc5603f5784c0c81707e806b919
+>>>>>>> 
 
 ```json
 {

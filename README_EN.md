@@ -15,6 +15,7 @@
 - [🚀 Quick Start](#-quick-start)
 - [💡 Example Queries](#-example-queries)
 - [🔧 Local Deployment](#-local-deployment)
+- [🆕 What's New](#-whats-new)
 - [📄 License](#-license)
 
 ## 🌟 Public Cloud Service (Free)
@@ -54,7 +55,7 @@ You can also configure directly in Claude without local installation or API keys
 **Service Benefits:**
 - ✅ **Zero Configuration** - No registration or API keys needed
 - ✅ **24/7 Availability** - Server runs continuously
-- ✅ **Full Features** - All 12 tools and technical indicators
+- ✅ **Full Features** - All 13 tools and technical indicators
 - ✅ **Real-time Data** - Connected to Tushare professional data
 
 > 📺 **Tutorial Video**: [Complete FinanceMCP Usage Guide](https://www.bilibili.com/video/BV1qeNnzEEQi/)
@@ -83,6 +84,7 @@ You can also configure directly in Claude without local installation or API keys
 | 📊 **index_data** | Index data | Major market indices historical data |
 | 📉 **macro_econ** | Macroeconomic data | 11 indicators: GDP/CPI/PPI/PMI/Shibor, etc. |
 | 🏢 **company_performance** | Company financial analysis | Financial statements + management + fundamentals, 13 data types |
+| 🏛️ **company_performance_hk** | Hong Kong stocks financial analysis | HK stocks income statement, balance sheet, cash flow statement |
 | 💰 **fund_data** | Fund data | NAV/holdings/dividends, 85% performance optimized |
 | 👨‍💼 **fund_manager_by_name** | Fund manager query | Personal background, managed funds list |
 | 🪙 **convertible_bond** | Convertible bond data | Basic info + issuance data + conversion terms |
@@ -108,7 +110,7 @@ User Request → Parameter Parsing → Data Requirement Calculation → Extended
 1. **Smart Pre-fetching** - Automatically calculates and fetches additional historical data needed for indicators
 2. **Parameter Enforcement** - Avoids calculation differences caused by default parameters
 3. **High Performance** - Fund data query performance improved 85% (5.2s→0.8s)
-4. **Data Integration** - Seamless integration of 40+ Tushare API endpoints
+4. **Data Integration** - Seamless integration of 43+ Tushare API endpoints
 
 ## 🚀 Quick Start
 
@@ -124,35 +126,65 @@ After configuration, simply ask questions directly in Claude!
 
 ## 💡 Example Queries
 
-### 📈 Stock Technical Analysis
+<details>
+<summary><strong>📈 Stock Technical Analysis</strong></summary>
+
 ```
 "Analyze Moutai (600519.SH) technical status, calculate MACD(12,26,9), RSI(14), KDJ(9,3,3)"
 "Check CATL (300750.SZ) Bollinger Bands BOLL(20,2) and four moving averages MA(5,10,20,60)"
 "Apple Inc. (AAPL) stock trend and MACD indicator analysis for the past month"
 ```
 
-### 📊 Comprehensive Analysis
+</details>
+
+<details>
+<summary><strong>📊 Comprehensive Analysis</strong></summary>
+
 ```
 "Comprehensive analysis of BYD: financial status, technical indicators, money flow, latest news"
 "Compare performance of A-shares, US stocks, and HK stocks markets including major indices and technical indicators"
 "Evaluate CATL's investment value: fundamentals + technicals + money flow"
 ```
 
-### 📰 News & Macro
+</details>
+
+<details>
+<summary><strong>📰 News & Macro</strong></summary>
+
 ```
 "Search latest policies and market dynamics for new energy vehicle sector"
 "Analyze current macroeconomic situation: GDP, CPI, PPI, PMI data"
 "Fed rate hike impact on Chinese stock market, related news and data"
 ```
 
-### 💰 Funds & Bonds
+</details>
+
+<details>
+<summary><strong>💰 Funds & Bonds</strong></summary>
+
 ```
 "Query CSI 300 ETF latest NAV and holdings structure"
 "Analyze Zhang Kun's fund performance"
 "Convertible bond market overview and investment opportunities"
 ```
 
+</details>
+
+<details>
+<summary><strong>🏛️ Hong Kong Stocks</strong></summary>
+
+```
+"Get Tencent Holdings (00700.HK) 2024 income statement with key financial ratios"
+"Analyze Alibaba (09988.HK) balance sheet and financial structure"
+"Compare China Construction Bank (00939.HK) cash flow performance over multiple periods"
+```
+
+</details>
+
 ## 🔧 Local Deployment
+
+<details>
+<summary><strong>🛠️ Complete Local Deployment Guide</strong></summary>
 
 If you need local deployment, follow these steps:
 
@@ -160,7 +192,8 @@ If you need local deployment, follow these steps:
 - **Node.js >= 18** - Download from [nodejs.org](https://nodejs.org/)
 - **Tushare API Token** - Get from [tushare.pro](https://tushare.pro)
 
-### Getting Tushare API Token
+<details>
+<summary><strong>📝 Getting Tushare API Token</strong></summary>
 
 1. **Register Account** - Visit [tushare.pro](https://tushare.pro/register) to register
 2. **Get Token** - Obtain API Token from personal center
@@ -171,6 +204,8 @@ If you need local deployment, follow these steps:
 - Join student QQ group: **290541801**
 - Complete personal information (school email/student ID)
 - Submit application materials to administrators
+
+</details>
 
 ### Installation Steps
 
@@ -229,6 +264,7 @@ Configuration file locations:
         "index_data",
         "macro_econ",
         "company_performance",
+        "company_performance_hk",
         "fund_data",
         "fund_manager_by_name",
         "convertible_bond",
@@ -257,6 +293,7 @@ Configuration file locations:
         "index_data",
         "macro_econ",
         "company_performance",
+        "company_performance_hk",
         "fund_data",
         "fund_manager_by_name",
         "convertible_bond",
@@ -271,6 +308,30 @@ Configuration file locations:
 
 ### Verify Installation
 After configuration, restart Claude Desktop and ask: "Get current time". If it returns time information, the installation is successful.
+
+</details>
+
+## 🆕 What's New
+
+### 🏛️ Hong Kong Stocks Financial Analysis Module
+
+**Latest Addition**: We've added comprehensive Hong Kong stocks financial analysis capabilities!
+
+<details>
+<summary><strong>📊 New Features</strong></summary>
+
+- **🏛️ company_performance_hk** - Dedicated Hong Kong stocks financial analysis tool
+- **📈 Income Statement Analysis** - Revenue, profit margins, earnings per share, comprehensive income
+- **💰 Balance Sheet Analysis** - Assets, liabilities, equity structure with key financial ratios  
+- **💸 Cash Flow Analysis** - Operating, investing, financing activities with free cash flow calculation
+- **🎯 Smart Data Processing** - Automatic financial ratio calculations and multi-period comparisons
+- **🌟 Enhanced User Experience** - Structured tables, intelligent categorization, and trend analysis
+
+**Supported Companies**: All Hong Kong Stock Exchange listed companies including Tencent (00700.HK), Alibaba (09988.HK), China Construction Bank (00939.HK), and more.
+
+**API Integration**: Based on [Tushare Hong Kong stocks financial data API](https://tushare.pro/document/2?doc_id=389) with full data format optimization.
+
+</details>
 
 ## 📄 License
 

@@ -85,6 +85,7 @@ You can also configure directly in Claude without local installation or API keys
 | 📉 **macro_econ** | Macroeconomic data | 11 indicators: GDP/CPI/PPI/PMI/Shibor, etc. |
 | 🏢 **company_performance** | Company financial analysis | Financial statements + management + fundamentals, 13 data types |
 | 🏛️ **company_performance_hk** | Hong Kong stocks financial analysis | HK stocks income statement, balance sheet, cash flow statement |
+| 🇺🇸 **company_performance_us** | US stocks financial analysis | US stocks 4 major financial statements + comprehensive indicators |
 | 💰 **fund_data** | Fund data | NAV/holdings/dividends, 85% performance optimized |
 | 👨‍💼 **fund_manager_by_name** | Fund manager query | Personal background, managed funds list |
 | 🪙 **convertible_bond** | Convertible bond data | Basic info + issuance data + conversion terms |

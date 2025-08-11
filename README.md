@@ -90,6 +90,7 @@
 | 📉 **macro_econ** | 宏观经济数据 | 11指标：GDP/CPI/PPI/PMI/Shibor等 |
 | 🏢 **company_performance** | A股公司财务分析 | 财务报表+管理层+基本面，13数据类型 |
 | 🏛️ **company_performance_hk** | 港股公司财务分析 | 港股利润表、资产负债表、现金流量表 |
+| 🇺🇸 **company_performance_us** | 美股公司财务分析 | 美股4大财务报表+综合财务指标分析 |
 | 💰 **fund_data** | 基金数据 | 净值/持仓/分红，85%性能优化 |
 | 👨‍💼 **fund_manager_by_name** | 基金经理查询 | 个人背景、管理基金列表 |
 | 🪙 **convertible_bond** | 可转债数据 | 基本信息+发行数据+转换条款 |
@@ -186,6 +187,18 @@
 
 </details>
 
+<details>
+<summary><strong>🇺🇸 美股分析</strong></summary>
+
+```
+"分析英伟达(NVDA) 2024年财务表现，包括利润表和现金流"
+"获取苹果(AAPL)资产负债表，重点关注现金储备和负债结构"
+"对比特斯拉(TSLA)多期财务指标，分析盈利能力变化趋势"
+"查看微软(MSFT)综合财务指标，包括ROE、ROA、毛利率等"
+```
+
+</details>
+
 ## 🔧 本地部署
 
 <details>
@@ -270,6 +283,7 @@ npx supergateway --stdio "node build/index.js" --port 3100
         "macro_econ",
         "company_performance",
         "company_performance_hk",
+        "company_performance_us",
         "fund_data",
         "fund_manager_by_name",
         "convertible_bond",
@@ -299,6 +313,7 @@ npx supergateway --stdio "node build/index.js" --port 3100
         "macro_econ",
         "company_performance",
         "company_performance_hk",
+        "company_performance_us",
         "fund_data",
         "fund_manager_by_name",
         "convertible_bond",
@@ -318,12 +333,33 @@ npx supergateway --stdio "node build/index.js" --port 3100
 
 ## 🆕 最新更新
 
-### 🏛️ 港股财务分析模块
+### 🇺🇸 美股财务分析模块 (NEW!)
 
-**最新添加**：我们新增了全面的港股财务分析功能！
+**最新添加**：我们新增了完整的美股财务分析功能！
 
 <details>
 <summary><strong>📊 新增功能</strong></summary>
+
+- **🇺🇸 company_performance_us** - 专业的美股财务分析工具
+- **📈 利润表分析** - 营业收入、毛利率、净利润、每股收益分析
+- **💰 资产负债表分析** - 资产、负债、股东权益结构与财务比率
+- **💸 现金流量表分析** - 经营、投资、筹资现金流与自由现金流
+- **📊 综合财务指标** - ROE、ROA、盈利能力、成长性、偿债能力等
+- **🎯 智能数据处理** - 多期对比分析、趋势计算、关键指标提取
+- **🌟 中英文兼容** - 支持中英文财务科目智能识别
+
+**支持公司**：覆盖主要美股和中概股，包括英伟达(NVDA)、苹果(AAPL)、特斯拉(TSLA)、微软(MSFT)等。
+
+**API集成**：基于[Tushare美股财务数据API](https://tushare.pro/document/2?doc_id=394)，4大数据接口完整集成。
+
+</details>
+
+### 🏛️ 港股财务分析模块
+
+**已添加**：我们新增了全面的港股财务分析功能！
+
+<details>
+<summary><strong>📊 功能特色</strong></summary>
 
 - **🏛️ company_performance_hk** - 专门的港股财务分析工具
 - **📈 利润表分析** - 营业额、利润率、每股收益、综合收益分析

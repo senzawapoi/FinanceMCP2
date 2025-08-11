@@ -182,6 +182,18 @@ After configuration, simply ask questions directly in Claude!
 
 </details>
 
+<details>
+<summary><strong>🇺🇸 US Stocks Analysis</strong></summary>
+
+```
+"Get NVIDIA (NVDA) 2024 income statement and profitability analysis"
+"Analyze Apple Inc. (AAPL) balance sheet structure and financial health"
+"Compare Tesla (TSLA) cash flow performance over multiple periods"
+"Get Microsoft (MSFT) comprehensive financial indicators and ratio analysis"
+```
+
+</details>
+
 ## 🔧 Local Deployment
 
 <details>
@@ -266,6 +278,7 @@ Configuration file locations:
         "macro_econ",
         "company_performance",
         "company_performance_hk",
+        "company_performance_us",
         "fund_data",
         "fund_manager_by_name",
         "convertible_bond",
@@ -295,6 +308,7 @@ Configuration file locations:
         "macro_econ",
         "company_performance",
         "company_performance_hk",
+        "company_performance_us",
         "fund_data",
         "fund_manager_by_name",
         "convertible_bond",
@@ -331,6 +345,27 @@ After configuration, restart Claude Desktop and ask: "Get current time". If it r
 **Supported Companies**: All Hong Kong Stock Exchange listed companies including Tencent (00700.HK), Alibaba (09988.HK), China Construction Bank (00939.HK), and more.
 
 **API Integration**: Based on [Tushare Hong Kong stocks financial data API](https://tushare.pro/document/2?doc_id=389) with full data format optimization.
+
+</details>
+
+### 🇺🇸 US Stocks Financial Analysis Module (NEW!)
+
+**Latest Enhancement**: We've added comprehensive US stocks financial analysis capabilities!
+
+<details>
+<summary><strong>📊 New Features</strong></summary>
+
+- **🇺🇸 company_performance_us** - Dedicated US stocks financial analysis tool
+- **📈 Income Statement Analysis** - Revenue, operating income, net income, EPS with detailed profitability metrics
+- **💰 Balance Sheet Analysis** - Assets, liabilities, shareholders' equity with comprehensive financial ratios
+- **💸 Cash Flow Statement** - Operating, investing, financing activities with free cash flow analysis
+- **📊 Financial Indicators** - 40+ comprehensive financial metrics including profitability, growth, solvency ratios
+- **🎯 Multi-Period Comparison** - Automatic trend analysis and period-over-period comparisons
+- **🌟 Bilingual Support** - Chinese and English financial terminology recognition
+
+**Supported Companies**: All US-listed companies including NVIDIA (NVDA), Apple (AAPL), Tesla (TSLA), Microsoft (MSFT), and more.
+
+**API Integration**: Based on Tushare US stocks financial data APIs with optimized data formatting and comprehensive indicator calculations.
 
 </details>
 

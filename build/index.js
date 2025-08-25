@@ -16,6 +16,7 @@ import { moneyFlow } from "./tools/moneyFlow.js";
 import { marginTrade } from "./tools/marginTrade.js";
 import { companyPerformance_hk } from "./tools/companyPerformance_hk.js";
 import { companyPerformance_us } from "./tools/companyPerformance_us.js";
+import { csiIndexConstituents } from "./tools/csiIndexConstituents.js";
 // 🕐 时间戳工具定义
 const timestampTool = {
     name: "current_timestamp",
@@ -170,6 +171,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
                 name: companyPerformance_us.name,
                 description: companyPerformance_us.description,
                 inputSchema: companyPerformance_us.parameters
+            },
+            {
+                name: csiIndexConstituents.name,
+                description: csiIndexConstituents.description,
+                inputSchema: csiIndexConstituents.parameters
             }
         ]
     };
@@ -269,6 +275,12 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             const end_date = String(request.params.arguments?.end_date);
             const period = request.params.arguments?.period ? String(request.params.arguments.period) : undefined;
             return await companyPerformance_us.run({ ts_code, data_type, start_date, end_date, period });
+        }
+        case "csi_index_constituents": {
+            const index_code = String(request.params.arguments?.index_code);
+            const start_date = String(request.params.arguments?.start_date);
+            const end_date = String(request.params.arguments?.end_date);
+            return await csiIndexConstituents.run({ index_code, start_date, end_date });
         }
         default:
             throw new Error("Unknown tool");

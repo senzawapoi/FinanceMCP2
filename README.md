@@ -2,7 +2,7 @@
 
 # FinanceMCP - 专业金融数据MCP服务器 🚀
 
-[![smithery badge](https://smithery.ai/badge/@guangxiangdebizi/FinanceMCP)](https://smithery.ai/server/@guangxiangdebizi/FinanceMCP)
+[![smithery badge](https://smithery.ai/badge/@guangxiangdebizi/finance-mcp)](https://smithery.ai/server/@guangxiangdebizi/finance-mcp)
 
 **基于MCP协议的专业金融数据服务器，集成Tushare API，为Claude等AI助手提供实时金融数据和技术指标分析。**
 

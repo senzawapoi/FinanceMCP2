@@ -188,8 +188,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             return await timestampTool.run({ format });
         }
         case "finance_news": {
-            const query = String(request.params.arguments?.query);
-            return await financeNews.run({ query });
+            const keyword = String(request.params.arguments?.keyword);
+            const start_date = String(request.params.arguments?.start_date);
+            const end_date = String(request.params.arguments?.end_date);
+            return await financeNews.run({ keyword, start_date, end_date });
         }
         case "stock_data": {
             const code = String(request.params.arguments?.code);

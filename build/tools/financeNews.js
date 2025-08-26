@@ -79,63 +79,101 @@ async function searchFinanceNewsByTushare(keyword, startDate, endDate) {
     // 支持的新闻来源（Tushare 文档列出的 src 标识）
     const sources = ['sina', 'wallstreetcn', '10jqka', 'eastmoney', 'yuncaijing', 'fenghuang', 'jinrongjie', 'cls', 'yicai'];
     const fetchOneSource = async (src) => {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), TUSHARE_CONFIG.TIMEOUT);
-        try {
-            const body = {
-                api_name: 'news',
-                token: TUSHARE_CONFIG.API_TOKEN,
-                params: {
-                    src,
-                    start_date: startDate,
-                    end_date: endDate
-                },
-                fields: 'datetime,content,title,channels'
-            };
-            const resp = await fetch(TUSHARE_CONFIG.API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(body),
-                signal: controller.signal
-            });
-            clearTimeout(timeoutId);
-            if (!resp.ok) {
-                throw new Error(`Tushare请求失败: ${resp.status}`);
+        const aggregated = [];
+        const MAX_PER_CALL = 1500;
+        const toDate = (s) => new Date(s.replace(/-/g, '/'));
+        const addOneSecond = (s) => {
+            const d = toDate(s);
+            d.setSeconds(d.getSeconds() + 1);
+            const pad = (n) => n.toString().padStart(2, '0');
+            return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+        };
+        let cursorStart = startDate;
+        let safetyCounter = 0; // 防无限循环
+        while (true) {
+            if (safetyCounter++ > 200) {
+                console.warn(`来源 ${src} 拉取次数过多，提前停止`);
+                break;
             }
-            const data = await resp.json();
-            if (data.code !== 0) {
-                throw new Error(`Tushare返回错误: ${data.msg || data.message || '未知错误'}`);
-            }
-            const fields = data.data?.fields ?? [];
-            const items = data.data?.items ?? [];
-            const idxDatetime = fields.indexOf('datetime');
-            const idxContent = fields.indexOf('content');
-            const idxTitle = fields.indexOf('title');
-            // channels 可选
-            const results = [];
-            for (const row of items) {
-                const title = row[idxTitle] ?? '';
-                const content = row[idxContent] ?? '';
-                const datetime = row[idxDatetime] ?? '';
-                const textForMatch = `${title}\n${content}`;
-                if (containsKeywords(textForMatch, keywords)) {
-                    results.push({
-                        title: String(title || '').trim(),
-                        summary: String(content || '').trim(),
-                        url: '',
-                        source: `Tushare:${src}`,
-                        publishTime: String(datetime || '').trim(),
-                        keywords
-                    });
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), TUSHARE_CONFIG.TIMEOUT);
+            try {
+                const body = {
+                    api_name: 'news',
+                    token: TUSHARE_CONFIG.API_TOKEN,
+                    params: {
+                        src,
+                        start_date: cursorStart,
+                        end_date: endDate
+                    },
+                    fields: 'datetime,content,title,channels'
+                };
+                const resp = await fetch(TUSHARE_CONFIG.API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body),
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+                if (!resp.ok) {
+                    throw new Error(`Tushare请求失败: ${resp.status}`);
                 }
+                const data = await resp.json();
+                if (data.code !== 0) {
+                    throw new Error(`Tushare返回错误: ${data.msg || data.message || '未知错误'}`);
+                }
+                const fields = data.data?.fields ?? [];
+                const items = data.data?.items ?? [];
+                if (!items.length) {
+                    break; // 没有更多数据
+                }
+                const idxDatetime = fields.indexOf('datetime');
+                const idxContent = fields.indexOf('content');
+                const idxTitle = fields.indexOf('title');
+                // 过滤并收集
+                let batchMaxDatetime = null;
+                for (const row of items) {
+                    const title = row[idxTitle] ?? '';
+                    const content = row[idxContent] ?? '';
+                    const datetime = String(row[idxDatetime] ?? '').trim();
+                    if (datetime) {
+                        if (!batchMaxDatetime || toDate(datetime) > toDate(batchMaxDatetime)) {
+                            batchMaxDatetime = datetime;
+                        }
+                    }
+                    const textForMatch = `${title}\n${content}`;
+                    if (containsKeywords(textForMatch, keywords)) {
+                        aggregated.push({
+                            title: String(title || '').trim(),
+                            summary: String(content || '').trim(),
+                            url: '',
+                            source: `Tushare:${src}`,
+                            publishTime: datetime,
+                            keywords
+                        });
+                    }
+                }
+                // 若不足上限，认为已取尽
+                if (items.length < MAX_PER_CALL) {
+                    break;
+                }
+                // 达到上限，推进游标；若无法解析时间或已到终点，则停止
+                if (!batchMaxDatetime) {
+                    break;
+                }
+                const nextStart = addOneSecond(batchMaxDatetime);
+                if (toDate(nextStart) >= toDate(endDate)) {
+                    break;
+                }
+                cursorStart = nextStart;
             }
-            return results;
+            catch (err) {
+                clearTimeout(timeoutId);
+                console.error(`获取来源 ${src} 时出错:`, err);
+                break;
+            }
         }
-        catch (err) {
-            clearTimeout(timeoutId);
-            console.error(`获取来源 ${src} 时出错:`, err);
-            return [];
-        }
+        return aggregated;
     };
     const settled = await Promise.allSettled(sources.map(src => fetchOneSource(src)));
     const all = [];

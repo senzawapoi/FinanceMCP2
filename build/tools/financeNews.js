@@ -33,7 +33,9 @@ export const financeNews = {
             const startDate = args.start_date.trim();
             const endDate = args.end_date.trim();
             console.log(`开始从 Tushare 获取财经新闻，关键字: ${keyword}，起始日期: ${startDate}，结束日期: ${endDate}`);
-            const newsResults = await searchFinanceNewsByTushare(keyword, startDate, endDate);
+            const logs = [];
+            logs.push(`[START] keyword="${keyword}" start_date="${startDate}" end_date="${endDate}"`);
+            const newsResults = await searchFinanceNewsByTushare(keyword, startDate, endDate, logs);
             if (newsResults.length === 0) {
                 return {
                     content: [
@@ -49,11 +51,16 @@ export const financeNews = {
             const formattedNews = newsResults.map((news) => {
                 return `${news.title}\n来源: ${news.source}  时间: ${news.publishTime}\n摘要: ${news.summary}${news.url ? `\n链接: ${news.url}` : ''}\n`;
             }).join('\n---\n\n');
+            logs.push(`[DONE] total_results=${newsResults.length}`);
             return {
                 content: [
                     {
                         type: "text",
                         text: `# ${keyword} 财经新闻搜索结果\n\n${formattedNews}\n\n数据来源: Tushare 新闻快讯接口 (<https://tushare.pro/document/2?doc_id=143>)`
+                    },
+                    {
+                        type: "text",
+                        text: `## 调用日志\n\n${logs.join('\n')}`
                     }
                 ]
             };
@@ -71,7 +78,7 @@ export const financeNews = {
         }
     }
 };
-async function searchFinanceNewsByTushare(keyword, startDate, endDate) {
+async function searchFinanceNewsByTushare(keyword, startDate, endDate, logs) {
     if (!TUSHARE_CONFIG.API_TOKEN) {
         throw new Error('请配置TUSHARE_TOKEN环境变量');
     }
@@ -92,9 +99,12 @@ async function searchFinanceNewsByTushare(keyword, startDate, endDate) {
         let safetyCounter = 0; // 防无限循环
         while (true) {
             if (safetyCounter++ > 200) {
-                console.warn(`来源 ${src} 拉取次数过多，提前停止`);
+                const msg = `来源 ${src} 拉取次数过多(>200)，提前停止`;
+                console.warn(msg);
+                logs?.push(`[WARN] ${msg}`);
                 break;
             }
+            logs?.push(`[CALL] src=${src} range=[${cursorStart} ~ ${endDate}] attempt=${safetyCounter}`);
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), TUSHARE_CONFIG.TIMEOUT);
             try {
@@ -116,15 +126,21 @@ async function searchFinanceNewsByTushare(keyword, startDate, endDate) {
                 });
                 clearTimeout(timeoutId);
                 if (!resp.ok) {
-                    throw new Error(`Tushare请求失败: ${resp.status}`);
+                    const msg = `Tushare请求失败: HTTP ${resp.status}`;
+                    logs?.push(`[ERROR] src=${src} ${msg}`);
+                    throw new Error(msg);
                 }
                 const data = await resp.json();
                 if (data.code !== 0) {
-                    throw new Error(`Tushare返回错误: ${data.msg || data.message || '未知错误'}`);
+                    const msg = `Tushare返回错误: ${data.msg || data.message || '未知错误'}`;
+                    logs?.push(`[ERROR] src=${src} ${msg}`);
+                    throw new Error(msg);
                 }
                 const fields = data.data?.fields ?? [];
                 const items = data.data?.items ?? [];
+                logs?.push(`[RESP] src=${src} items=${items.length}`);
                 if (!items.length) {
+                    logs?.push(`[STOP] src=${src} 无更多数据`);
                     break; // 没有更多数据
                 }
                 const idxDatetime = fields.indexOf('datetime');
@@ -132,6 +148,7 @@ async function searchFinanceNewsByTushare(keyword, startDate, endDate) {
                 const idxTitle = fields.indexOf('title');
                 // 过滤并收集
                 let batchMaxDatetime = null;
+                let filteredCount = 0;
                 for (const row of items) {
                     const title = row[idxTitle] ?? '';
                     const content = row[idxContent] ?? '';
@@ -151,18 +168,24 @@ async function searchFinanceNewsByTushare(keyword, startDate, endDate) {
                             publishTime: datetime,
                             keywords
                         });
+                        filteredCount++;
                     }
                 }
+                logs?.push(`[FILTER] src=${src} matched=${filteredCount}`);
                 // 若不足上限，认为已取尽
                 if (items.length < MAX_PER_CALL) {
+                    logs?.push(`[STOP] src=${src} 本批少于${MAX_PER_CALL}条，结束`);
                     break;
                 }
                 // 达到上限，推进游标；若无法解析时间或已到终点，则停止
                 if (!batchMaxDatetime) {
+                    logs?.push(`[STOP] src=${src} 无法确定批次最大时间，结束`);
                     break;
                 }
                 const nextStart = addOneSecond(batchMaxDatetime);
+                logs?.push(`[ADVANCE] src=${src} next_start=${nextStart} (from max=${batchMaxDatetime})`);
                 if (toDate(nextStart) >= toDate(endDate)) {
+                    logs?.push(`[STOP] src=${src} 下一起始时间>=结束时间 (${nextStart} >= ${endDate})，结束`);
                     break;
                 }
                 cursorStart = nextStart;
@@ -170,6 +193,7 @@ async function searchFinanceNewsByTushare(keyword, startDate, endDate) {
             catch (err) {
                 clearTimeout(timeoutId);
                 console.error(`获取来源 ${src} 时出错:`, err);
+                logs?.push(`[ERROR] src=${src} ${err instanceof Error ? err.message : String(err)}`);
                 break;
             }
         }
@@ -183,5 +207,6 @@ async function searchFinanceNewsByTushare(keyword, startDate, endDate) {
         }
     }
     const uniqueNews = removeDuplicates(all);
+    logs?.push(`[SUMMARY] aggregated=${all.length} unique=${uniqueNews.length}`);
     return uniqueNews.slice(0, 50);
 }

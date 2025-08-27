@@ -116,7 +116,15 @@ export const stockData = {
                     params.api_name = "opt_daily";
                     // 不设置fields，返回所有可用字段
                     // 期权接口优先使用trade_date，如果没有指定则使用end_date作为trade_date
-                    if (!args.start_date && !args.end_date) {
+                    if (requestedIndicators.length > 0) {
+                        // 如请求技术指标，必须用区间以便获取足够历史
+                        params.params = {
+                            ts_code: args.code,
+                            start_date: actualStartDate,
+                            end_date: actualEndDate
+                        };
+                    }
+                    else if (!args.start_date && !args.end_date) {
                         // 如果都没指定，使用默认的end_date作为trade_date
                         params.params = {
                             trade_date: actualEndDate
@@ -183,11 +191,33 @@ export const stockData = {
                 console.log(`成功获取到${stockData.length}条${args.code}股票数据记录（扩展数据范围）`);
                 // 计算技术指标
                 let indicators = {};
-                if (requestedIndicators.length > 0 && ['cn', 'us', 'hk', 'fund'].includes(marketType)) {
-                    // 只对有完整OHLCV数据的市场计算技术指标
-                    const closes = stockData.map((d) => parseFloat(d.close)).reverse(); // 按时间正序
-                    const highs = stockData.map((d) => parseFloat(d.high)).reverse();
-                    const lows = stockData.map((d) => parseFloat(d.low)).reverse();
+                if (requestedIndicators.length > 0 && ['cn', 'us', 'hk', 'fund', 'futures', 'convertible_bond', 'options', 'fx'].includes(marketType)) {
+                    // 对具有可用于OHLC的市场计算技术指标
+                    // 构建按时间正序的价格序列
+                    const mid = (a, b) => {
+                        const x = parseFloat(a);
+                        const y = parseFloat(b);
+                        if (!isNaN(x) && !isNaN(y))
+                            return (x + y) / 2;
+                        if (!isNaN(x))
+                            return x;
+                        if (!isNaN(y))
+                            return y;
+                        return NaN;
+                    };
+                    let closes = [];
+                    let highs = [];
+                    let lows = [];
+                    if (marketType === 'fx') {
+                        closes = stockData.map((d) => mid(d.bid_close, d.ask_close)).reverse();
+                        highs = stockData.map((d) => mid(d.bid_high, d.ask_high)).reverse();
+                        lows = stockData.map((d) => mid(d.bid_low, d.ask_low)).reverse();
+                    }
+                    else {
+                        closes = stockData.map((d) => parseFloat(d.close)).reverse();
+                        highs = stockData.map((d) => parseFloat(d.high)).reverse();
+                        lows = stockData.map((d) => parseFloat(d.low)).reverse();
+                    }
                     for (const indicator of requestedIndicators) {
                         try {
                             const { name, params } = parseIndicatorParams(indicator);
@@ -270,19 +300,87 @@ export const stockData = {
                 let formattedData = '';
                 let indicatorData = '';
                 if (marketType === 'fx') {
-                    // 外汇数据表格展示
-                    formattedData = `| 交易日期 | 买入开盘 | 买入最高 | 买入最低 | 买入收盘 | 卖出开盘 | 卖出最高 | 卖出最低 | 卖出收盘 | 报价笔数 |\n`;
-                    formattedData += `|---------|---------|---------|---------|---------|---------|---------|---------|---------|----------|\n`;
-                    stockData.forEach((data) => {
-                        formattedData += `| ${data.trade_date} | ${data.bid_open || 'N/A'} | ${data.bid_high || 'N/A'} | ${data.bid_low || 'N/A'} | ${data.bid_close || 'N/A'} | ${data.ask_open || 'N/A'} | ${data.ask_high || 'N/A'} | ${data.ask_low || 'N/A'} | ${data.ask_close || 'N/A'} | ${data.tick_qty || 'N/A'} |\n`;
+                    // 外汇数据表格展示（追加技术指标列）
+                    const hasIndicators = Object.keys(indicators).length > 0;
+                    const indicatorHeaders = [];
+                    if (hasIndicators) {
+                        if (indicators.macd)
+                            indicatorHeaders.push('MACD_DIF', 'MACD_DEA', 'MACD');
+                        if (indicators.rsi)
+                            indicatorHeaders.push('RSI');
+                        if (indicators.kdj)
+                            indicatorHeaders.push('KDJ_K', 'KDJ_D', 'KDJ_J');
+                        if (indicators.boll)
+                            indicatorHeaders.push('BOLL_UP', 'BOLL_MID', 'BOLL_LOW');
+                        const maIndicators = Object.keys(indicators).filter(key => key.startsWith('ma') && key !== 'macd');
+                        maIndicators.forEach(ma => indicatorHeaders.push(ma.toUpperCase()));
+                    }
+                    const baseHeaders = ['交易日期', '买入开盘', '买入最高', '买入最低', '买入收盘', '卖出开盘', '卖出最高', '卖出最低', '卖出收盘', '报价笔数'];
+                    const headers = [...baseHeaders, ...indicatorHeaders];
+                    formattedData = `| ${headers.join(' | ')} |\n`;
+                    formattedData += `|${headers.map(() => '--------').join('|')}|\n`;
+                    stockData.forEach((data, index) => {
+                        const baseRow = [data.trade_date, data.bid_open || 'N/A', data.bid_high || 'N/A', data.bid_low || 'N/A', data.bid_close || 'N/A', data.ask_open || 'N/A', data.ask_high || 'N/A', data.ask_low || 'N/A', data.ask_close || 'N/A', data.tick_qty || 'N/A'];
+                        const indicatorRow = [];
+                        if (hasIndicators) {
+                            if (indicators.macd) {
+                                indicatorRow.push(isNaN(indicators.macd.dif[index]) ? 'N/A' : indicators.macd.dif[index].toFixed(4), isNaN(indicators.macd.dea[index]) ? 'N/A' : indicators.macd.dea[index].toFixed(4), isNaN(indicators.macd.macd[index]) ? 'N/A' : indicators.macd.macd[index].toFixed(4));
+                            }
+                            if (indicators.rsi)
+                                indicatorRow.push(isNaN(indicators.rsi[index]) ? 'N/A' : indicators.rsi[index].toFixed(2));
+                            if (indicators.kdj)
+                                indicatorRow.push(isNaN(indicators.kdj.k[index]) ? 'N/A' : indicators.kdj.k[index].toFixed(2), isNaN(indicators.kdj.d[index]) ? 'N/A' : indicators.kdj.d[index].toFixed(2), isNaN(indicators.kdj.j[index]) ? 'N/A' : indicators.kdj.j[index].toFixed(2));
+                            if (indicators.boll)
+                                indicatorRow.push(isNaN(indicators.boll.upper[index]) ? 'N/A' : indicators.boll.upper[index].toFixed(2), isNaN(indicators.boll.middle[index]) ? 'N/A' : indicators.boll.middle[index].toFixed(2), isNaN(indicators.boll.lower[index]) ? 'N/A' : indicators.boll.lower[index].toFixed(2));
+                            const maIndicators = Object.keys(indicators).filter(key => key.startsWith('ma') && key !== 'macd');
+                            maIndicators.forEach(ma => {
+                                indicatorRow.push(isNaN(indicators[ma][index]) ? 'N/A' : indicators[ma][index].toFixed(2));
+                            });
+                        }
+                        const row = [...baseRow, ...indicatorRow];
+                        formattedData += `| ${row.join(' | ')} |\n`;
                     });
                 }
                 else if (marketType === 'futures') {
-                    // 期货数据表格展示
-                    formattedData = `| 交易日期 | 开盘 | 最高 | 最低 | 收盘 | 结算 | 涨跌1 | 涨跌2 | 成交量 | 持仓量 |\n`;
-                    formattedData += `|---------|------|------|------|------|------|-------|-------|--------|--------|\n`;
-                    stockData.forEach((data) => {
-                        formattedData += `| ${data.trade_date} | ${data.open || 'N/A'} | ${data.high || 'N/A'} | ${data.low || 'N/A'} | ${data.close || 'N/A'} | ${data.settle || 'N/A'} | ${data.change1 || 'N/A'} | ${data.change2 || 'N/A'} | ${data.vol || 'N/A'} | ${data.oi || 'N/A'} |\n`;
+                    // 期货数据表格展示（追加技术指标列）
+                    const hasIndicators = Object.keys(indicators).length > 0;
+                    const indicatorHeaders = [];
+                    if (hasIndicators) {
+                        if (indicators.macd)
+                            indicatorHeaders.push('MACD_DIF', 'MACD_DEA', 'MACD');
+                        if (indicators.rsi)
+                            indicatorHeaders.push('RSI');
+                        if (indicators.kdj)
+                            indicatorHeaders.push('KDJ_K', 'KDJ_D', 'KDJ_J');
+                        if (indicators.boll)
+                            indicatorHeaders.push('BOLL_UP', 'BOLL_MID', 'BOLL_LOW');
+                        const maIndicators = Object.keys(indicators).filter(key => key.startsWith('ma') && key !== 'macd');
+                        maIndicators.forEach(ma => indicatorHeaders.push(ma.toUpperCase()));
+                    }
+                    const baseHeaders = ['交易日期', '开盘', '最高', '最低', '收盘', '结算', '涨跌1', '涨跌2', '成交量', '持仓量'];
+                    const headers = [...baseHeaders, ...indicatorHeaders];
+                    formattedData = `| ${headers.join(' | ')} |\n`;
+                    formattedData += `|${headers.map(() => '--------').join('|')}|\n`;
+                    stockData.forEach((data, index) => {
+                        const baseRow = [data.trade_date, data.open || 'N/A', data.high || 'N/A', data.low || 'N/A', data.close || 'N/A', data.settle || 'N/A', data.change1 || 'N/A', data.change2 || 'N/A', data.vol || 'N/A', data.oi || 'N/A'];
+                        const indicatorRow = [];
+                        if (hasIndicators) {
+                            if (indicators.macd) {
+                                indicatorRow.push(isNaN(indicators.macd.dif[index]) ? 'N/A' : indicators.macd.dif[index].toFixed(4), isNaN(indicators.macd.dea[index]) ? 'N/A' : indicators.macd.dea[index].toFixed(4), isNaN(indicators.macd.macd[index]) ? 'N/A' : indicators.macd.macd[index].toFixed(4));
+                            }
+                            if (indicators.rsi)
+                                indicatorRow.push(isNaN(indicators.rsi[index]) ? 'N/A' : indicators.rsi[index].toFixed(2));
+                            if (indicators.kdj)
+                                indicatorRow.push(isNaN(indicators.kdj.k[index]) ? 'N/A' : indicators.kdj.k[index].toFixed(2), isNaN(indicators.kdj.d[index]) ? 'N/A' : indicators.kdj.d[index].toFixed(2), isNaN(indicators.kdj.j[index]) ? 'N/A' : indicators.kdj.j[index].toFixed(2));
+                            if (indicators.boll)
+                                indicatorRow.push(isNaN(indicators.boll.upper[index]) ? 'N/A' : indicators.boll.upper[index].toFixed(2), isNaN(indicators.boll.middle[index]) ? 'N/A' : indicators.boll.middle[index].toFixed(2), isNaN(indicators.boll.lower[index]) ? 'N/A' : indicators.boll.lower[index].toFixed(2));
+                            const maIndicators = Object.keys(indicators).filter(key => key.startsWith('ma') && key !== 'macd');
+                            maIndicators.forEach(ma => {
+                                indicatorRow.push(isNaN(indicators[ma][index]) ? 'N/A' : indicators[ma][index].toFixed(2));
+                            });
+                        }
+                        const row = [...baseRow, ...indicatorRow];
+                        formattedData += `| ${row.join(' | ')} |\n`;
                     });
                 }
                 else if (marketType === 'repo') {
@@ -294,19 +392,87 @@ export const stockData = {
                     });
                 }
                 else if (marketType === 'convertible_bond') {
-                    // 可转债数据表格展示
-                    formattedData = `| 交易日期 | 开盘 | 最高 | 最低 | 收盘 | 涨跌 | 涨跌幅(%) | 成交量(手) | 成交金额(万元) | 纯债价值 | 纯债溢价率(%) | 转股价值 | 转股溢价率(%) |\n`;
-                    formattedData += `|---------|------|------|------|------|------|-----------|------------|---------------|----------|---------------|----------|---------------|\n`;
-                    stockData.forEach((data) => {
-                        formattedData += `| ${data.trade_date} | ${data.open || 'N/A'} | ${data.high || 'N/A'} | ${data.low || 'N/A'} | ${data.close || 'N/A'} | ${data.change || 'N/A'} | ${data.pct_chg || 'N/A'} | ${data.vol || 'N/A'} | ${data.amount || 'N/A'} | ${data.bond_value || 'N/A'} | ${data.bond_over_rate || 'N/A'} | ${data.cb_value || 'N/A'} | ${data.cb_over_rate || 'N/A'} |\n`;
+                    // 可转债数据表格展示（追加技术指标列）
+                    const hasIndicators = Object.keys(indicators).length > 0;
+                    const indicatorHeaders = [];
+                    if (hasIndicators) {
+                        if (indicators.macd)
+                            indicatorHeaders.push('MACD_DIF', 'MACD_DEA', 'MACD');
+                        if (indicators.rsi)
+                            indicatorHeaders.push('RSI');
+                        if (indicators.kdj)
+                            indicatorHeaders.push('KDJ_K', 'KDJ_D', 'KDJ_J');
+                        if (indicators.boll)
+                            indicatorHeaders.push('BOLL_UP', 'BOLL_MID', 'BOLL_LOW');
+                        const maIndicators = Object.keys(indicators).filter(key => key.startsWith('ma') && key !== 'macd');
+                        maIndicators.forEach(ma => indicatorHeaders.push(ma.toUpperCase()));
+                    }
+                    const baseHeaders = ['交易日期', '开盘', '最高', '最低', '收盘', '涨跌', '涨跌幅(%)', '成交量(手)', '成交金额(万元)', '纯债价值', '纯债溢价率(%)', '转股价值', '转股溢价率(%)'];
+                    const headers = [...baseHeaders, ...indicatorHeaders];
+                    formattedData = `| ${headers.join(' | ')} |\n`;
+                    formattedData += `|${headers.map(() => '--------').join('|')}|\n`;
+                    stockData.forEach((data, index) => {
+                        const baseRow = [data.trade_date, data.open || 'N/A', data.high || 'N/A', data.low || 'N/A', data.close || 'N/A', data.change || 'N/A', data.pct_chg || 'N/A', data.vol || 'N/A', data.amount || 'N/A', data.bond_value || 'N/A', data.bond_over_rate || 'N/A', data.cb_value || 'N/A', data.cb_over_rate || 'N/A'];
+                        const indicatorRow = [];
+                        if (hasIndicators) {
+                            if (indicators.macd) {
+                                indicatorRow.push(isNaN(indicators.macd.dif[index]) ? 'N/A' : indicators.macd.dif[index].toFixed(4), isNaN(indicators.macd.dea[index]) ? 'N/A' : indicators.macd.dea[index].toFixed(4), isNaN(indicators.macd.macd[index]) ? 'N/A' : indicators.macd.macd[index].toFixed(4));
+                            }
+                            if (indicators.rsi)
+                                indicatorRow.push(isNaN(indicators.rsi[index]) ? 'N/A' : indicators.rsi[index].toFixed(2));
+                            if (indicators.kdj)
+                                indicatorRow.push(isNaN(indicators.kdj.k[index]) ? 'N/A' : indicators.kdj.k[index].toFixed(2), isNaN(indicators.kdj.d[index]) ? 'N/A' : indicators.kdj.d[index].toFixed(2), isNaN(indicators.kdj.j[index]) ? 'N/A' : indicators.kdj.j[index].toFixed(2));
+                            if (indicators.boll)
+                                indicatorRow.push(isNaN(indicators.boll.upper[index]) ? 'N/A' : indicators.boll.upper[index].toFixed(2), isNaN(indicators.boll.middle[index]) ? 'N/A' : indicators.boll.middle[index].toFixed(2), isNaN(indicators.boll.lower[index]) ? 'N/A' : indicators.boll.lower[index].toFixed(2));
+                            const maIndicators = Object.keys(indicators).filter(key => key.startsWith('ma') && key !== 'macd');
+                            maIndicators.forEach(ma => {
+                                indicatorRow.push(isNaN(indicators[ma][index]) ? 'N/A' : indicators[ma][index].toFixed(2));
+                            });
+                        }
+                        const row = [...baseRow, ...indicatorRow];
+                        formattedData += `| ${row.join(' | ')} |\n`;
                     });
                 }
                 else if (marketType === 'options') {
-                    // 期权数据表格展示
-                    formattedData = `| 交易日期 | 交易所 | 昨结算 | 前收盘 | 开盘 | 最高 | 最低 | 收盘 | 结算 | 成交量(手) | 成交金额(万元) | 持仓量(手) |\n`;
-                    formattedData += `|---------|--------|--------|--------|------|------|------|------|------|------------|---------------|------------|\n`;
-                    stockData.forEach((data) => {
-                        formattedData += `| ${data.trade_date} | ${data.exchange || 'N/A'} | ${data.pre_settle || 'N/A'} | ${data.pre_close || 'N/A'} | ${data.open || 'N/A'} | ${data.high || 'N/A'} | ${data.low || 'N/A'} | ${data.close || 'N/A'} | ${data.settle || 'N/A'} | ${data.vol || 'N/A'} | ${data.amount || 'N/A'} | ${data.oi || 'N/A'} |\n`;
+                    // 期权数据表格展示（追加技术指标列）
+                    const hasIndicators = Object.keys(indicators).length > 0;
+                    const indicatorHeaders = [];
+                    if (hasIndicators) {
+                        if (indicators.macd)
+                            indicatorHeaders.push('MACD_DIF', 'MACD_DEA', 'MACD');
+                        if (indicators.rsi)
+                            indicatorHeaders.push('RSI');
+                        if (indicators.kdj)
+                            indicatorHeaders.push('KDJ_K', 'KDJ_D', 'KDJ_J');
+                        if (indicators.boll)
+                            indicatorHeaders.push('BOLL_UP', 'BOLL_MID', 'BOLL_LOW');
+                        const maIndicators = Object.keys(indicators).filter(key => key.startsWith('ma') && key !== 'macd');
+                        maIndicators.forEach(ma => indicatorHeaders.push(ma.toUpperCase()));
+                    }
+                    const baseHeaders = ['交易日期', '交易所', '昨结算', '前收盘', '开盘', '最高', '最低', '收盘', '结算', '成交量(手)', '成交金额(万元)', '持仓量(手)'];
+                    const headers = [...baseHeaders, ...indicatorHeaders];
+                    formattedData = `| ${headers.join(' | ')} |\n`;
+                    formattedData += `|${headers.map(() => '--------').join('|')}|\n`;
+                    stockData.forEach((data, index) => {
+                        const baseRow = [data.trade_date, data.exchange || 'N/A', data.pre_settle || 'N/A', data.pre_close || 'N/A', data.open || 'N/A', data.high || 'N/A', data.low || 'N/A', data.close || 'N/A', data.settle || 'N/A', data.vol || 'N/A', data.amount || 'N/A', data.oi || 'N/A'];
+                        const indicatorRow = [];
+                        if (hasIndicators) {
+                            if (indicators.macd) {
+                                indicatorRow.push(isNaN(indicators.macd.dif[index]) ? 'N/A' : indicators.macd.dif[index].toFixed(4), isNaN(indicators.macd.dea[index]) ? 'N/A' : indicators.macd.dea[index].toFixed(4), isNaN(indicators.macd.macd[index]) ? 'N/A' : indicators.macd.macd[index].toFixed(4));
+                            }
+                            if (indicators.rsi)
+                                indicatorRow.push(isNaN(indicators.rsi[index]) ? 'N/A' : indicators.rsi[index].toFixed(2));
+                            if (indicators.kdj)
+                                indicatorRow.push(isNaN(indicators.kdj.k[index]) ? 'N/A' : indicators.kdj.k[index].toFixed(2), isNaN(indicators.kdj.d[index]) ? 'N/A' : indicators.kdj.d[index].toFixed(2), isNaN(indicators.kdj.j[index]) ? 'N/A' : indicators.kdj.j[index].toFixed(2));
+                            if (indicators.boll)
+                                indicatorRow.push(isNaN(indicators.boll.upper[index]) ? 'N/A' : indicators.boll.upper[index].toFixed(2), isNaN(indicators.boll.middle[index]) ? 'N/A' : indicators.boll.middle[index].toFixed(2), isNaN(indicators.boll.lower[index]) ? 'N/A' : indicators.boll.lower[index].toFixed(2));
+                            const maIndicators = Object.keys(indicators).filter(key => key.startsWith('ma') && key !== 'macd');
+                            maIndicators.forEach(ma => {
+                                indicatorRow.push(isNaN(indicators[ma][index]) ? 'N/A' : indicators[ma][index].toFixed(2));
+                            });
+                        }
+                        const row = [...baseRow, ...indicatorRow];
+                        formattedData += `| ${row.join(' | ')} |\n`;
                     });
                 }
                 else {

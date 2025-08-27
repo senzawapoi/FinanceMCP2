@@ -37,7 +37,33 @@ Visit our online experience website: **[http://106.14.205.176:3222/](http://106.
 > ⚠️ **Service Notice**: This is a personal small server. Please use responsibly and do not attack or abuse the service.
 
 ### ⚙️ Claude Desktop Configuration
-You can also configure directly in Claude without local installation or API keys:
+
+#### 🆕 Latest Version (v3.0.0) - Streamable HTTP with Your API Key
+**🎯 Recommended for production use with your own Tushare token:**
+
+```json
+{
+  "mcpServers": {
+    "finance-mcp": {
+      "disabled": false,
+      "timeout": 600,
+      "type": "streamableHttp",
+      "url": "http://106.14.205.176:8080/mcp",
+      "headers": {
+        "X-Tushare-Token": "your_tushare_token_here"
+      }
+    }
+  }
+}
+```
+
+**🔑 How to get your Tushare token:**
+1. Register at [tushare.pro](https://tushare.pro/register)
+2. Get your API token from personal center
+3. Replace `your_tushare_token_here` with your actual token
+
+#### 🎁 Legacy Free Service (Limited)
+You can also use our shared service without API keys (may have rate limits):
 
 ```json
 {
@@ -53,10 +79,12 @@ You can also configure directly in Claude without local installation or API keys
 ```
 
 **Service Benefits:**
-- ✅ **Zero Configuration** - No registration or API keys needed
+- ✅ **Latest Version (v3.0.0)** - Use your own API key for unlimited access
 - ✅ **24/7 Availability** - Server runs continuously
-- ✅ **Full Features** - All 13 tools and technical indicators
+- ✅ **Full Features** - All 14 tools and technical indicators
 - ✅ **Real-time Data** - Connected to Tushare professional data
+- ✅ **No Rate Limits** - With your own token, enjoy unlimited API calls
+- ✅ **Production Ready** - Stable streamable HTTP protocol
 
 > 📺 **Tutorial Video**: [Complete FinanceMCP Usage Guide](https://www.bilibili.com/video/BV1qeNnzEEQi/)
 
@@ -222,12 +250,30 @@ If you need local deployment, follow these steps:
 
 ### Installation Steps
 
-#### Method 1: Install via Smithery (Recommended)
+#### Method 1: Install via npm package (Recommended)
+```bash
+# Global installation
+npm install -g finance-mcp
+
+# Or local installation
+npm install finance-mcp
+```
+
+After installation, you can use it directly:
+```bash
+# If globally installed
+finance-mcp
+
+# If locally installed
+npx finance-mcp
+```
+
+#### Method 2: Install via Smithery
 ```bash
 npx -y @smithery/cli install @guangxiangdebizi/finance-mcp --client claude
 ```
 
-#### Method 2: Manual Installation
+#### Method 3: Manual Installation
 ```bash
 # 1. Clone the repository
 git clone https://github.com/guangxiangdebizi/FinanceMCP.git
@@ -312,6 +358,25 @@ After configuration, restart Claude Desktop and ask: "Get current time". If it r
 
 ## 🆕 What's New
 
+### 🚀 Version 3.0.0 - Production Ready Release
+
+**Latest Major Update**: We've released version 3.0.0 with enhanced production capabilities!
+
+<details>
+<summary><strong>🎯 New Features in v3.0.0</strong></summary>
+
+- **📦 NPM Package** - Now available as `finance-mcp` on npm registry
+- **🌐 Public Cloud Service** - Production-ready deployment at `http://106.14.205.176:8080/mcp`
+- **🔑 Custom API Keys** - Use your own Tushare token for unlimited access
+- **⚡ Streamable HTTP** - Enhanced protocol support for better performance
+- **🛡️ Production Stability** - Improved error handling and session management
+- **📈 No Rate Limits** - With your own token, enjoy unlimited API calls
+- **🔧 Easy Installation** - Simple npm install and configuration
+
+**Migration Guide**: Update your Claude configuration to use the new streamable HTTP endpoint with your own API key for the best experience.
+
+</details>
+
 ### 🏛️ Hong Kong Stocks Financial Analysis Module
 
 **Latest Addition**: We've added comprehensive Hong Kong stocks financial analysis capabilities!
@@ -363,4 +428,4 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 **📧 Email**: guangxiangdebizi@gmail.com  
 **🔗 GitHub**: [guangxiangdebizi](https://github.com/guangxiangdebizi)
 
-⭐ If this project helps you, please give us a Star! 
+⭐ If this project helps you, please give us a Star!

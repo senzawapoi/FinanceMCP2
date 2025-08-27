@@ -28,5 +28,5 @@ RUN chown -R appuser:appgroup /app
 # 切换到非 root 用户
 USER appuser
 
-# 默认启动命令
-CMD ["node", "build/index.js"]
+# 默认启动命令（Streamable HTTP）
+CMD ["node", "build/httpServer.js"]

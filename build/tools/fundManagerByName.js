@@ -1,3 +1,4 @@
+import { TUSHARE_CONFIG } from '../config.js';
 // 基金经理按姓名查询工具
 export const fundManagerByName = {
     name: "fund_manager_by_name",
@@ -267,13 +268,8 @@ function formatFundManagerData(data, name) {
 // 工具实现函数
 export async function runFundManagerByName(args) {
     try {
-        const TUSHARE_API_KEY = process.env.TUSHARE_TOKEN;
-        const TUSHARE_API_URL = "https://api.tushare.pro";
-        if (!TUSHARE_API_KEY) {
-            return {
-                content: [{ type: "text", text: "错误: 未设置TUSHARE_TOKEN环境变量" }]
-            };
-        }
+        const TUSHARE_API_KEY = TUSHARE_CONFIG.API_TOKEN;
+        const TUSHARE_API_URL = TUSHARE_CONFIG.API_URL;
         const data = await fetchFundManagerData(args.name, args.ann_date, TUSHARE_API_KEY, TUSHARE_API_URL);
         const formattedOutput = formatFundManagerData(data, args.name);
         return {

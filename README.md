@@ -201,7 +201,7 @@
 
 </details>
 
-## 🔧 本地部署
+## 🔧 本地部署（Streamable HTTP）
 
 <details>
 <summary><strong>🛠️ 完整本地部署指南</strong></summary>
@@ -253,15 +253,17 @@ npm run build
 
 ### 启动服务
 
-**方法1：直接运行(stdio模式)**
+**Streamable HTTP 模式（推荐）**
 ```bash
-node build/index.js
+npm run build
+node build/httpServer.js
+# 或
+npm start
 ```
 
-**方法2：使用Supergateway(推荐用于开发)**
-```bash
-npx supergateway --stdio "node build/index.js" --port 3100
-```
+服务启动后：
+- MCP 端点: `http://localhost:3000/mcp`
+- 健康检查: `http://localhost:3000/health`
 
 ### Claude配置
 
@@ -269,14 +271,20 @@ npx supergateway --stdio "node build/index.js" --port 3100
 - **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
 - **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
 
-#### 配置1：stdio模式
+#### 最新配置：Streamable HTTP 模式（通过 Header 传入 Tushare Token）
 ```json
 {
   "mcpServers": {
     "finance-data-server": {
-      "command": "node",
-      "args": ["C:/path/to/FinanceMCP/build/index.js"],
-      "disabled": false,
+      "type": "streamableHttp",
+      "url": "http://localhost:3000/mcp",
+      "timeout": 600,
+      "headers": {
+        "X-Tushare-Token": "your_tushare_token"
+        // 也可使用以下任一方式：
+        // "Authorization": "Bearer your_tushare_token"
+        // "X-Api-Key": "your_tushare_token"
+      },
       "autoApprove": [
         "current_timestamp",
         "finance_news",
@@ -299,36 +307,11 @@ npx supergateway --stdio "node build/index.js" --port 3100
 }
 ```
 
-#### 配置2：Supergateway模式(使用端口3100)
-```json
-{
-  "mcpServers": {
-    "finance-data-server": {
-      "url": "http://localhost:3100/sse",
-      "type": "sse",
-      "disabled": false,
-      "timeout": 600,
-      "autoApprove": [
-        "current_timestamp",
-        "finance_news",
-        "stock_data",
-        "index_data",
-        "macro_econ",
-        "company_performance",
-        "company_performance_hk",
-        "company_performance_us",
-        "fund_data",
-        "fund_manager_by_name",
-        "convertible_bond",
-        "block_trade",
-        "money_flow",
-        "margin_trade",
-        "csi_index_constituents"
-      ]
-    }
-  }
-}
-```
+#### 传递 Token 的 Header 规则
+- 优先从 `X-Tushare-Token` 读取；
+- 若未提供，则尝试 `Authorization: Bearer <token>`；
+- 再次回退读取 `X-Api-Key`；
+- 若 Header 中未提供，则回退使用服务端环境变量 `TUSHARE_TOKEN`（可选）。
 
 ### 验证安装
 配置完成后，重启Claude桌面版并询问："获取当前时间"。如果返回时间信息，说明安装成功。

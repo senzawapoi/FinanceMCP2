@@ -194,7 +194,7 @@ After configuration, simply ask questions directly in Claude!
 
 </details>
 
-## 🔧 Local Deployment
+## 🔧 Local Deployment (Streamable HTTP)
 
 <details>
 <summary><strong>🛠️ Complete Local Deployment Guide</strong></summary>
@@ -246,15 +246,17 @@ npm run build
 
 ### Start Server
 
-**Method 1: Direct run (stdio mode)**
+**Streamable HTTP (recommended)**
 ```bash
-node build/index.js
+npm run build
+node build/httpServer.js
+# or
+npm start
 ```
 
-**Method 2: Use Supergateway (recommended for development)**
-```bash
-npx supergateway --stdio "node build/index.js" --port 3100
-```
+After starting:
+- MCP endpoint: `http://localhost:3000/mcp`
+- Health: `http://localhost:3000/health`
 
 ### Claude Configuration
 
@@ -262,14 +264,20 @@ Configuration file locations:
 - **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
 - **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
 
-#### Configuration 1: stdio mode
+#### Latest: Streamable HTTP (Token via headers)
 ```json
 {
   "mcpServers": {
     "finance-data-server": {
-      "command": "node",
-      "args": ["C:/path/to/FinanceMCP/build/index.js"],
-      "disabled": false,
+      "type": "streamableHttp",
+      "url": "http://localhost:3000/mcp",
+      "timeout": 600,
+      "headers": {
+        "X-Tushare-Token": "your_tushare_token"
+        // Or
+        // "Authorization": "Bearer your_tushare_token"
+        // "X-Api-Key": "your_tushare_token"
+      },
       "autoApprove": [
         "current_timestamp",
         "finance_news",
@@ -291,35 +299,11 @@ Configuration file locations:
 }
 ```
 
-#### Configuration 2: Supergateway mode (if using port 3100)
-```json
-{
-  "mcpServers": {
-    "finance-data-server": {
-      "url": "http://localhost:3100/sse",
-      "type": "sse",
-      "disabled": false,
-      "timeout": 600,
-      "autoApprove": [
-        "current_timestamp",
-        "finance_news",
-        "stock_data",
-        "index_data",
-        "macro_econ",
-        "company_performance",
-        "company_performance_hk",
-        "company_performance_us",
-        "fund_data",
-        "fund_manager_by_name",
-        "convertible_bond",
-        "block_trade",
-        "money_flow",
-        "margin_trade"
-      ]
-    }
-  }
-}
-```
+#### Header Token Resolution
+- Prefer `X-Tushare-Token`.
+- Fallback to `Authorization: Bearer <token>`.
+- Fallback to `X-Api-Key`.
+- If none provided, server may fallback to `TUSHARE_TOKEN` env var (optional).
 
 ### Verify Installation
 After configuration, restart Claude Desktop and ask: "Get current time". If it returns time information, the installation is successful.

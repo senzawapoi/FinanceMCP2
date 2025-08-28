@@ -21,6 +21,7 @@ import { marginTrade } from "./tools/marginTrade.js";
 import { companyPerformance_hk } from "./tools/companyPerformance_hk.js";
 import { companyPerformance_us } from "./tools/companyPerformance_us.js";
 import { csiIndexConstituents } from "./tools/csiIndexConstituents.js";
+import { dragonTigerInst } from "./tools/dragonTigerInst.js";
 
 
 
@@ -198,6 +199,12 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         description: csiIndexConstituents.description,
         inputSchema: csiIndexConstituents.parameters
       }
+      ,
+      {
+        name: dragonTigerInst.name,
+        description: dragonTigerInst.description,
+        inputSchema: dragonTigerInst.parameters
+      }
     ]
   };
 });
@@ -319,6 +326,12 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       const start_date = String(request.params.arguments?.start_date);
       const end_date = String(request.params.arguments?.end_date);
       return await csiIndexConstituents.run({ index_code, start_date, end_date });
+    }
+
+    case "dragon_tiger_inst": {
+      const trade_date = String(request.params.arguments?.trade_date);
+      const ts_code = request.params.arguments?.ts_code ? String(request.params.arguments.ts_code) : undefined;
+      return await dragonTigerInst.run({ trade_date, ts_code });
     }
 
     default:

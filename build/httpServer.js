@@ -18,6 +18,7 @@ import { marginTrade } from "./tools/marginTrade.js";
 import { companyPerformance_hk } from "./tools/companyPerformance_hk.js";
 import { companyPerformance_us } from "./tools/companyPerformance_us.js";
 import { csiIndexConstituents } from "./tools/csiIndexConstituents.js";
+import { dragonTigerInst } from "./tools/dragonTigerInst.js";
 // 时间戳工具（保留）
 const timestampTool = {
     name: "current_timestamp",
@@ -71,7 +72,8 @@ const toolList = [
     { name: marginTrade.name, description: marginTrade.description, inputSchema: marginTrade.parameters },
     { name: companyPerformance_hk.name, description: companyPerformance_hk.description, inputSchema: companyPerformance_hk.parameters },
     { name: companyPerformance_us.name, description: companyPerformance_us.description, inputSchema: companyPerformance_us.parameters },
-    { name: csiIndexConstituents.name, description: csiIndexConstituents.description, inputSchema: csiIndexConstituents.parameters }
+    { name: csiIndexConstituents.name, description: csiIndexConstituents.description, inputSchema: csiIndexConstituents.parameters },
+    { name: dragonTigerInst.name, description: dragonTigerInst.description, inputSchema: dragonTigerInst.parameters }
 ];
 const sessions = new Map();
 function extractTokenFromHeaders(req) {
@@ -234,6 +236,11 @@ app.post('/mcp', async (req, res) => {
                             index_code: String(args?.index_code),
                             start_date: String(args?.start_date),
                             end_date: String(args?.end_date),
+                        });
+                    case 'dragon_tiger_inst':
+                        return await dragonTigerInst.run({
+                            trade_date: String(args?.trade_date),
+                            ts_code: args?.ts_code ? String(args.ts_code) : undefined,
                         });
                     default:
                         throw new Error(`Unknown tool: ${name}`);

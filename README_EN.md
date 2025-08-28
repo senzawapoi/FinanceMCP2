@@ -110,6 +110,7 @@ You can also use our shared service without API keys (may have rate limits):
 | 📰 **finance_news** | Financial news search | Smart keyword search, 7+ media sources |
 | 📈 **stock_data** | Stock + technical indicators | 9 markets + 5 technical indicators, smart pre-fetching |
 | 📊 **index_data** | Index data | Major market indices historical data |
+| 🧱 **csi_index_constituents** | CSI index constituents summary | CSI-only; index range + all constituents with weights and returns |
 | 📉 **macro_econ** | Macroeconomic data | 11 indicators: GDP/CPI/PPI/PMI/Shibor, etc. |
 | 🏢 **company_performance** | Company financial analysis | Financial statements + management + fundamentals, 13 data types |
 | 🏛️ **company_performance_hk** | Hong Kong stocks financial analysis | HK stocks income statement, balance sheet, cash flow statement |
@@ -120,6 +121,7 @@ You can also use our shared service without API keys (may have rate limits):
 | 🔄 **block_trade** | Block trade data | Trade details + counterparty information |
 | 💹 **money_flow** | Money flow data | Main/super-large/large/medium/small order flow analysis |
 | 💰 **margin_trade** | Margin trading data | 4 APIs: eligible stocks/summary/details/securities lending |
+| 🐯 **dragon_tiger_inst** | Dragon-Tiger institutional details | By trade date (optional code); buy/sell/net and reason table |
 
 ## 🎯 Technical Highlights
 
@@ -173,6 +175,7 @@ After configuration, simply ask questions directly in Claude!
 "Comprehensive analysis of BYD: financial status, technical indicators, money flow, latest news"
 "Compare performance of A-shares, US stocks, and HK stocks markets including major indices and technical indicators"
 "Evaluate CATL's investment value: fundamentals + technicals + money flow"
+"Get CSI 300 (000300.SH) CSI constituents summary from 2024-01-01 to 2024-06-30"
 ```
 
 </details>
@@ -206,6 +209,16 @@ After configuration, simply ask questions directly in Claude!
 "Get Tencent Holdings (00700.HK) 2024 income statement with key financial ratios"
 "Analyze Alibaba (09988.HK) balance sheet and financial structure"
 "Compare China Construction Bank (00939.HK) cash flow performance over multiple periods"
+```
+
+</details>
+
+<details>
+<summary><strong>🐯 Dragon-Tiger List</strong></summary>
+
+```
+"Query dragon-tiger institutional details for 20240525"
+"Query dragon-tiger institutional details for 20240525 (focus 000001.SZ)"
 ```
 
 </details>

@@ -49,9 +49,10 @@ function deduplicateByContent(items: NewsItem[], threshold = 0.8): NewsItem[] {
   return representatives;
 }
 
-async function fetchTushareNewsBatch(maxTotal: number): Promise<NewsItem[]> {
+async function fetchTushareNewsBatch(maxTotal: number, logs?: string[]): Promise<NewsItem[]> {
   if (!TUSHARE_CONFIG.API_TOKEN) {
-    throw new Error('请配置TUSHARE_TOKEN环境变量');
+    logs?.push('[WARN] 未配置 TUSHARE_TOKEN，无法从 Tushare 获取数据');
+    return [];
   }
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), TUSHARE_CONFIG.TIMEOUT);
@@ -71,11 +72,15 @@ async function fetchTushareNewsBatch(maxTotal: number): Promise<NewsItem[]> {
     });
     clearTimeout(timeoutId);
     if (!resp.ok) {
-      throw new Error(`Tushare请求失败: ${resp.status}`);
+      const msg = `Tushare请求失败: HTTP ${resp.status}`;
+      logs?.push(`[ERROR] ${msg}`);
+      return [];
     }
     const data = await resp.json();
     if (data.code !== 0) {
-      throw new Error(`Tushare返回错误: ${data.msg || data.message || '未知错误'}`);
+      const msg = `Tushare返回错误: ${data.msg || data.message || '未知错误'}`;
+      logs?.push(`[ERROR] ${msg}`);
+      return [];
     }
     const fields: string[] = data.data?.fields ?? [];
     const items: any[][] = data.data?.items ?? [];
@@ -97,10 +102,13 @@ async function fetchTushareNewsBatch(maxTotal: number): Promise<NewsItem[]> {
         keywords: []
       });
     }
+    logs?.push(`[INFO] 从 Tushare 获取原始条数: ${results.length}`);
     return results;
   } catch (err) {
     clearTimeout(timeoutId);
-    console.error('获取Tushare新闻失败:', err);
+    const msg = `获取Tushare新闻失败: ${err instanceof Error ? err.message : String(err)}`;
+    console.error(msg);
+    logs?.push(`[ERROR] ${msg}`);
     return [];
   }
 }
@@ -114,18 +122,25 @@ export const hotNews = {
   },
   async run(_args?: {}) {
     try {
-      const raw = await fetchTushareNewsBatch(1500);
+      const logs: string[] = [];
+      logs.push('[START] hot_news_7x24 获取最新批次（不传任何筛选参数）');
+      const raw = await fetchTushareNewsBatch(1500, logs);
       const deduped = deduplicateByContent(raw, 0.8);
+      logs.push(`[INFO] 去重后条数: ${deduped.length}`);
 
       if (deduped.length === 0) {
-        return { content: [{ type: 'text', text: '# 7x24 热点\n\n暂无数据' }] };
+        const hint = '可能原因：1) 未配置 Tushare Token；2) 被频控限制；3) 网络/服务异常。';
+        return { content: [
+          { type: 'text', text: `# 7x24 热点\n\n暂无数据\n${hint}` },
+          { type: 'text', text: `## 调用日志\n\n${logs.join('\n')}` }
+        ] };
       }
 
       // 逐条仅展示摘要（如有标题可作为前缀），不展示来源/时间/分隔线
       const formattedList = deduped.map(n => {
         const title = n.title ? `${n.title}\n` : '';
         return `${title}${n.summary}`.trim();
-      }).join('\n\n');
+      }).join('\n---\n\n');
 
       // 底部统计：来源统计 + 时间范围/日期
       const sourceCounts = new Map<string, number>();

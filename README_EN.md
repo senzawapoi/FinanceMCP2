@@ -27,7 +27,7 @@ We provide multiple free public cloud service options:
 ### 🌐 Web Online Experience
 **🚀 The simplest way to get started!**
 
-Visit our online experience website: **[http://106.14.205.176:3222/](http://106.14.205.176:3222/)**
+Visit our online experience website: **[http://106.14.205.176:3090/](http://106.14.205.176:3090/)**
 
 - ✨ **Zero Configuration Experience** - No setup required, just open and use
 - 🤖 **Integrated AI Model** - Chat directly with AI assistant for financial analysis
@@ -38,7 +38,7 @@ Visit our online experience website: **[http://106.14.205.176:3222/](http://106.
 
 ### ⚙️ Claude Desktop Configuration
 
-#### 🆕 Latest Version (v3.0.0) - Streamable HTTP with Your API Key
+#### 🆕 Latest Version (v4.0.0) - Streamable HTTP with Your API Key
 **🎯 Recommended for production use with your own Tushare token:**
 
 ```json
@@ -79,7 +79,7 @@ You can also use our shared service without API keys (may have rate limits):
 ```
 
 **Service Benefits:**
-- ✅ **Latest Version (v3.0.0)** - Use your own API key for unlimited access
+- ✅ **Latest Version (v4.0.0)** - Use your own API key for unlimited access
 - ✅ **24/7 Availability** - Server runs continuously
 - ✅ **Full Features** - All 14 tools and technical indicators
 - ✅ **Real-time Data** - Connected to Tushare professional data
@@ -372,12 +372,18 @@ After configuration, restart Claude Desktop and ask: "Get current time". If it r
 
 ## 🆕 What's New
 
-### 🚀 Version 3.0.0 - Production Ready Release
+### 🚀 Version 4.0.0 - Enhanced Web Experience Release
 
-**Latest Major Update**: We've released version 3.0.0 with enhanced production capabilities!
+**Latest Major Update**: We've released version 4.0.0 with comprehensive web experience and enhanced features!
 
 <details>
-<summary><strong>🎯 New Features in v3.0.0</strong></summary>
+<summary><strong>🎯 New Features in v4.0.0</strong></summary>
+
+- **🌐 Web Online Experience** - Brand new web interface at `http://106.14.205.176:3090/`
+- **🤖 Integrated AI Model** - Direct chat with AI assistant for financial analysis
+- **💬 Intelligent Interaction** - Natural language queries for real-time financial data
+- **📱 Multi-device Support** - Compatible with desktop, mobile, and tablet
+- **✨ Zero Configuration Experience** - No setup required, just open and use
 
 - **📦 NPM Package** - Now available as `finance-mcp` on npm registry
 - **🌐 Public Cloud Service** - Production-ready deployment at `http://106.14.205.176:8080/mcp`

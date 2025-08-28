@@ -1,5 +1,6 @@
 import { TUSHARE_CONFIG } from '../config.js';
 import { removeDuplicates, containsKeywords } from './crawler/utils.js';
+import { searchBaiduNews } from './crawler/baiduNews.js';
 export const financeNews = {
     name: "finance_news",
     description: "基于 Tushare 新闻快讯接口的财经新闻查询，按关键字过滤结果",
@@ -35,8 +36,33 @@ export const financeNews = {
             console.log(`开始从 Tushare 获取财经新闻，关键字: ${keyword}，起始日期: ${startDate}，结束日期: ${endDate}`);
             const logs = [];
             logs.push(`[START] keyword="${keyword}" start_date="${startDate}" end_date="${endDate}"`);
-            const newsResults = await searchFinanceNewsByTushare(keyword, startDate, endDate, logs);
-            if (newsResults.length === 0) {
+            const keywordsArr = keyword.split(' ').filter(k => k.trim().length > 0);
+            const [tushareSettle, baiduSettle] = await Promise.allSettled([
+                searchFinanceNewsByTushare(keyword, startDate, endDate, logs),
+                (async () => {
+                    logs.push(`[BAIDU] start keywords=${JSON.stringify(keywordsArr)}`);
+                    const items = await searchBaiduNews(keywordsArr);
+                    logs.push(`[BAIDU] got=${items.length}`);
+                    const filtered = items.filter(it => containsKeywords(`${it.title}\n${it.summary}`, keywordsArr));
+                    logs.push(`[BAIDU] filtered=${filtered.length}`);
+                    return filtered;
+                })()
+            ]);
+            let combined = [];
+            if (tushareSettle.status === 'fulfilled') {
+                combined.push(...tushareSettle.value);
+            }
+            else {
+                logs.push(`[ERROR] tushare ${tushareSettle.reason instanceof Error ? tushareSettle.reason.message : String(tushareSettle.reason)}`);
+            }
+            if (baiduSettle.status === 'fulfilled') {
+                combined.push(...baiduSettle.value);
+            }
+            else {
+                logs.push(`[ERROR] baidu ${baiduSettle.reason instanceof Error ? baiduSettle.reason.message : String(baiduSettle.reason)}`);
+            }
+            const uniqueCombined = removeDuplicates(combined).slice(0, 50);
+            if (uniqueCombined.length === 0) {
                 return {
                     content: [
                         {
@@ -46,12 +72,12 @@ export const financeNews = {
                     ]
                 };
             }
-            console.log(`搜索完成，共找到 ${newsResults.length} 条新闻`);
+            console.log(`搜索完成，合并后共找到 ${uniqueCombined.length} 条新闻`);
             // 简化返回格式，参考stock_data的格式
-            const formattedNews = newsResults.map((news) => {
+            const formattedNews = uniqueCombined.map((news) => {
                 return `${news.title}\n来源: ${news.source}  时间: ${news.publishTime}\n摘要: ${news.summary}${news.url ? `\n链接: ${news.url}` : ''}\n`;
             }).join('\n---\n\n');
-            logs.push(`[DONE] total_results=${newsResults.length}`);
+            logs.push(`[DONE] total_results=${uniqueCombined.length}`);
             return {
                 content: [
                     {

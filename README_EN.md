@@ -107,7 +107,7 @@ You can also use our shared service without API keys (may have rate limits):
 | Tool Name | Function Description | Core Features |
 |-----------|---------------------|---------------|
 | 🕐 **current_timestamp** | Current timestamp | UTC+8 timezone, multiple output formats |
-| 📰 **finance_news** | Financial news search | Smart keyword search, 7+ media sources |
+| 📰 **finance_news** | Financial news search | Baidu News crawler; input: `query` (space-separated keywords, OR filter) |
 | 📈 **stock_data** | Stock + technical indicators | 9 markets + 5 technical indicators, smart pre-fetching |
 | 📊 **index_data** | Index data | Major market indices historical data |
 | 🧱 **csi_index_constituents** | CSI index constituents summary | CSI-only; index range + all constituents with weights and returns |
@@ -122,6 +122,7 @@ You can also use our shared service without API keys (may have rate limits):
 | 💹 **money_flow** | Money flow data | Main/super-large/large/medium/small order flow analysis |
 | 💰 **margin_trade** | Margin trading data | 4 APIs: eligible stocks/summary/details/securities lending |
 | 🐯 **dragon_tiger_inst** | Dragon-Tiger institutional details | By trade date (optional code); buy/sell/net and reason table |
+| 🔥 **hot_news_7x24** | 7×24 Hot News | Based on Tushare latest batch (up to 1500 items), 80% content-similarity dedup, entries separated by `---` |
 
 ## 🎯 Technical Highlights
 

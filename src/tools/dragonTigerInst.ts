@@ -59,26 +59,35 @@ export const dragonTigerInst = {
           };
         }
 
-        // 字段顺序按需求固定
-        const desired = ['trade_date','ts_code','exalter','side','buy','buy_rate','sell','sell_rate','net_buy','reason'];
+        // 字段顺序按需求固定（移除 trade_date 列）
+        const desired = ['ts_code','exalter','buy','buy_rate','sell','sell_rate','net_buy','reason'];
         const headers = desired.filter(h => fields.includes(h));
 
         let table = `| ${headers.join(' | ')} |\n`;
         table += `|${headers.map(() => '--------').join('|')}|\n`;
+        let totalBuy = 0;
+        let totalSell = 0;
+        let totalNet = 0;
         for (const row of items) {
           const obj: Record<string, any> = {};
           fields.forEach((f: string, idx: number) => obj[f] = row[idx]);
-          const side = obj.side === 0 ? '买入前5' : obj.side === 1 ? '卖出前5' : obj.side;
           const line = headers.map(h => {
-            if (h === 'side') return String(side ?? 'N/A');
             const v = obj[h];
             return (v === null || v === undefined || v === '') ? 'N/A' : String(v);
           });
           table += `| ${line.join(' | ')} |\n`;
+          const buyVal = Number(obj.buy);
+          const sellVal = Number(obj.sell);
+          const netVal = Number(obj.net_buy);
+          if (!isNaN(buyVal)) totalBuy += buyVal;
+          if (!isNaN(sellVal)) totalSell += sellVal;
+          if (!isNaN(netVal)) totalNet += netVal;
         }
 
         const title = `# 龙虎榜机构明细 ${args.trade_date}${args.ts_code ? ` - ${args.ts_code}` : ''}`;
-        return { content: [ { type: 'text', text: `${title}\n\n${table}` } ] };
+        const fmt = (n: number) => n.toLocaleString('zh-CN', { maximumFractionDigits: 2 });
+        const summary = `\n\n## 当日资金统计\n- 买入额合计: ${fmt(totalBuy)} 元\n- 卖出额合计: ${fmt(totalSell)} 元\n- 净流入: ${fmt(totalNet)} 元`;
+        return { content: [ { type: 'text', text: `${title}\n\n${table}${summary}` } ] };
       } finally {
         clearTimeout(timeoutId);
       }

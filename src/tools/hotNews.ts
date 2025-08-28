@@ -115,7 +115,7 @@ async function fetchTushareNewsBatch(maxTotal: number, logs?: string[]): Promise
 
 export const hotNews = {
   name: 'hot_news_7x24',
-  description: '7x24热点：从Tushare新闻接口抓取单次上限1500条，并按80%相似度去重',
+  description: '7x24热点：从Tushare新闻接口获取最新的财经、政治、科技、体育、娱乐、军事、社会、国际等新闻',
   parameters: {
     type: 'object',
     properties: {}

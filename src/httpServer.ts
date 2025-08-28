@@ -20,6 +20,7 @@ import { companyPerformance_hk } from "./tools/companyPerformance_hk.js";
 import { companyPerformance_us } from "./tools/companyPerformance_us.js";
 import { csiIndexConstituents } from "./tools/csiIndexConstituents.js";
 import { dragonTigerInst } from "./tools/dragonTigerInst.js";
+import { hotNews } from "./tools/hotNews.js";
 
 // 时间戳工具（保留）
 const timestampTool = {
@@ -72,7 +73,8 @@ const toolList = [
   { name: companyPerformance_hk.name, description: companyPerformance_hk.description, inputSchema: companyPerformance_hk.parameters },
   { name: companyPerformance_us.name, description: companyPerformance_us.description, inputSchema: companyPerformance_us.parameters },
   { name: csiIndexConstituents.name, description: csiIndexConstituents.description, inputSchema: csiIndexConstituents.parameters },
-  { name: dragonTigerInst.name, description: dragonTigerInst.description, inputSchema: dragonTigerInst.parameters }
+  { name: dragonTigerInst.name, description: dragonTigerInst.description, inputSchema: dragonTigerInst.parameters },
+  { name: hotNews.name, description: hotNews.description, inputSchema: hotNews.parameters }
 ];
 
 interface Session { id: string; createdAt: Date; lastActivity: Date }
@@ -149,9 +151,7 @@ app.post('/mcp', async (req: Request, res: Response) => {
             return await timestampTool.run({ format: args?.format ? String(args.format) : undefined });
           case 'finance_news':
             return await financeNews.run({
-              keyword: String(args?.keyword),
-              start_date: String(args?.start_date),
-              end_date: String(args?.end_date)
+              query: String(args?.query)
             });
           case 'stock_data':
             return await stockData.run({
@@ -249,6 +249,8 @@ app.post('/mcp', async (req: Request, res: Response) => {
               trade_date: String(args?.trade_date),
               ts_code: args?.ts_code ? String(args.ts_code) : undefined,
             });
+          case 'hot_news_7x24':
+            return await hotNews.run({});
           default:
             throw new Error(`Unknown tool: ${name}`);
         }

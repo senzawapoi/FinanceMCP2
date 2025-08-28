@@ -22,6 +22,7 @@ import { companyPerformance_hk } from "./tools/companyPerformance_hk.js";
 import { companyPerformance_us } from "./tools/companyPerformance_us.js";
 import { csiIndexConstituents } from "./tools/csiIndexConstituents.js";
 import { dragonTigerInst } from "./tools/dragonTigerInst.js";
+import { hotNews } from "./tools/hotNews.js";
 
 
 
@@ -205,6 +206,12 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         description: dragonTigerInst.description,
         inputSchema: dragonTigerInst.parameters
       }
+      ,
+      {
+        name: hotNews.name,
+        description: hotNews.description,
+        inputSchema: hotNews.parameters
+      }
     ]
   };
 });
@@ -218,10 +225,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     }
 
     case "finance_news": {
-      const keyword = String(request.params.arguments?.keyword);
-      const start_date = String(request.params.arguments?.start_date);
-      const end_date = String(request.params.arguments?.end_date);
-      return await financeNews.run({ keyword, start_date, end_date });
+      const query = String(request.params.arguments?.query);
+      return await financeNews.run({ query });
     }
 
     case "stock_data": {
@@ -332,6 +337,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       const trade_date = String(request.params.arguments?.trade_date);
       const ts_code = request.params.arguments?.ts_code ? String(request.params.arguments.ts_code) : undefined;
       return await dragonTigerInst.run({ trade_date, ts_code });
+    }
+
+    case "hot_news_7x24": {
+      return await hotNews.run({});
     }
 
     default:

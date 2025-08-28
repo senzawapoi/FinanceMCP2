@@ -189,6 +189,72 @@ export const stockData = {
                     return result;
                 });
                 console.log(`成功获取到${stockData.length}条${args.code}股票数据记录（扩展数据范围）`);
+                // 对A股强制应用前复权（qfq）：使用最新交易日因子进行归一
+                if (marketType === 'cn' && stockData.length > 0) {
+                    try {
+                        const afParams = {
+                            api_name: 'adj_factor',
+                            token: TUSHARE_API_KEY,
+                            params: {
+                                ts_code: args.code,
+                                start_date: actualStartDate,
+                                end_date: actualEndDate
+                            },
+                            fields: 'trade_date,adj_factor'
+                        };
+                        const afResp = await fetch(TUSHARE_API_URL, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(afParams),
+                            signal: controller.signal
+                        });
+                        if (!afResp.ok)
+                            throw new Error(`adj_factor 请求失败: ${afResp.status}`);
+                        const afJson = await afResp.json();
+                        if (afJson.code !== 0)
+                            throw new Error(`adj_factor 返回错误: ${afJson.msg}`);
+                        const afFields = afJson.data?.fields ?? [];
+                        const afItems = afJson.data?.items ?? [];
+                        const idxDate = afFields.indexOf('trade_date');
+                        const idxFactor = afFields.indexOf('adj_factor');
+                        const factorMap = new Map();
+                        for (const row of afItems) {
+                            const d = String(row[idxDate]);
+                            const f = Number(row[idxFactor]);
+                            if (!isNaN(f))
+                                factorMap.set(d, f);
+                        }
+                        // 找到stockData中最新交易日的因子
+                        const latestDate = stockData
+                            .map((r) => String(r.trade_date))
+                            .sort((a, b) => b.localeCompare(a))[0];
+                        const latestFactor = factorMap.get(latestDate);
+                        if (latestFactor && !isNaN(latestFactor)) {
+                            stockData = stockData.map((row) => {
+                                const f = factorMap.get(String(row.trade_date));
+                                if (f && !isNaN(f)) {
+                                    const ratio = f / latestFactor; // 前复权：price * f / f_latest
+                                    const adj = (v) => (v == null || v === '' || isNaN(Number(v))) ? v : Number(v) * ratio;
+                                    return {
+                                        ...row,
+                                        open: adj(row.open),
+                                        high: adj(row.high),
+                                        low: adj(row.low),
+                                        close: adj(row.close)
+                                    };
+                                }
+                                return row;
+                            });
+                            console.log(`已应用前复权(基于最新交易日因子)到 ${args.code} 的OHLC价格`);
+                        }
+                        else {
+                            console.warn('未找到最新交易日复权因子，跳过前复权');
+                        }
+                    }
+                    catch (e) {
+                        console.warn('应用前复权失败，继续返回未复权数据:', e);
+                    }
+                }
                 // 计算技术指标
                 let indicators = {};
                 if (requestedIndicators.length > 0 && ['cn', 'us', 'hk', 'fund', 'futures', 'convertible_bond', 'options', 'fx'].includes(marketType)) {
@@ -299,6 +365,7 @@ export const stockData = {
                 // 格式化输出（根据不同市场类型构建表格格式）
                 let formattedData = '';
                 let indicatorData = '';
+                const titleSuffix = marketType === 'cn' ? '（前复权）' : '';
                 if (marketType === 'fx') {
                     // 外汇数据表格展示（追加技术指标列）
                     const hasIndicators = Object.keys(indicators).length > 0;
@@ -591,7 +658,7 @@ export const stockData = {
                     content: [
                         {
                             type: "text",
-                            text: `# ${args.code} ${marketTitleMap[marketType]}行情数据\n\n${formattedData}${indicatorData}`
+                            text: `# ${args.code} ${marketTitleMap[marketType]}行情数据${titleSuffix}\n\n${formattedData}${indicatorData}`
                         }
                     ]
                 };

@@ -19,6 +19,7 @@ src/
 import express, { Request, Response } from "express";
 import cors from "cors";
 import { randomUUID } from "node:crypto";
+import "dotenv/config";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { CallToolRequestSchema, ListToolsRequestSchema, CallToolResult, Tool } from "@modelcontextprotocol/sdk/types.js";
 
@@ -52,7 +53,7 @@ function createMCPServer(): Server {
 }
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = Number(process.env.PORT) || 3000;
 app.use(cors({ origin: "*" }));
 app.use(express.json({ limit: "10mb" }));
 
@@ -61,22 +62,10 @@ app.get("/health", (_req: Request, res: Response) => {
   res.json({ status: "healthy", transport: "streamable-http", activeSessions: sessions.size });
 });
 
-// Streamable HTTP 主端点：POST /mcp（JSON-RPC），GET /mcp（SSE可选）
+// Streamable HTTP 主端点：POST /mcp（JSON-RPC）
 app.all("/mcp", async (req: Request, res: Response) => {
   const sessionIdHeader = req.headers["mcp-session-id"] as string | undefined;
   const method = req.method.toUpperCase();
-
-  if (method === "GET") {
-    const accept = req.headers.accept || "";
-    if (!accept.includes("text/event-stream")) {
-      return res.status(400).json({ jsonrpc: "2.0", error: { code: -32600, message: "Accept must include text/event-stream" }, id: null });
-    }
-    res.writeHead(200, { "Content-Type": "text/event-stream", "Cache-Control": "no-cache", "Connection": "keep-alive" });
-    res.write("data: {\"type\":\"connection\",\"status\":\"established\"}\n\n");
-    const keep = setInterval(() => res.write(": keepalive\n\n"), 30000);
-    req.on("close", () => clearInterval(keep));
-    return;
-  }
 
   if (method === "POST") {
     const body = req.body;
@@ -219,19 +208,18 @@ async function processBusiness(param1: string, param2?: string) {
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
     "express": "^4.18.2",
-    "cors": "^2.8.5"
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5"
   },
   "devDependencies": {
     "@types/node": "^20.11.24",
     "@types/express": "^4.17.21",
     "@types/cors": "^2.8.17",
-    "typescript": "^5.3.3",
-    "supergateway": "^1.0.0"
+    "typescript": "^5.3.3"
   },
   "scripts": {
     "build": "tsc",
-    "start:http": "node build/index.js --http",
-    "start:gateway": "npx supergateway --streamableHttp \"http://localhost:3000\" --port 3100"
+    "start:http": "node build/index.js --http"
   }
 }
 ```
@@ -245,6 +233,17 @@ npm run start:http   # 启动 http://localhost:3000/mcp
 # 2) 网关代理（可选，将3000代理为3100）
 npm run start:gateway  # 提供 http://localhost:3100/mcp 和 /health
 ```
+
+> 说明：采用 `npm run start:http` 直连时，已是标准的 Streamable HTTP 协议，**不需要**再部署 supergateway，除非你确有以下网关层需求。
+
+#### 何时需要 supergateway（可选）
+- 需要同时提供 SSE 端点给仅支持 SSE 的客户端（网关暴露 `/sse`）。
+- 需要在边缘/网关层做统一的鉴权、注入或重写请求头、限流、访问日志等策略。
+- 需要跨域/CORS 代理、端口整合或与现有反向代理体系对接（如统一暴露 3100）。
+- 需要将多个后端 MCP 服务通过网关做路由/聚合（多实例、多后端切换）。
+- 某些工具/客户端仅支持 stdio/SSE，需要网关做传输转换。
+
+如果你的 AI 客户端原生支持 `streamableHttp` 并直接指向 `http://localhost:3000/mcp`，则**完全不必**引入 supergateway。
 
 #### 客户端配置方式（Streamable HTTP）
 
@@ -272,6 +271,8 @@ npm run start:gateway  # 提供 http://localhost:3100/mcp 和 /health
   }
 }
 ```
+
+ 
 
 #### 传自定义请求头（客户端）
 

@@ -321,7 +321,6 @@ npm run build
 npm run start:sse
 ```
 
-
 服务启动后：
 - MCP 端点: `http://localhost:3000/mcp`
 - 健康检查: `http://localhost:3000/health`

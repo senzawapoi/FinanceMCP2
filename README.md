@@ -123,7 +123,6 @@
 | 💹 **money_flow** | 资金流向数据 | 主力/超大单/大单/中单/小单流向分析 |
 | 💰 **margin_trade** | 融资融券数据 | 4个API：标的股票/汇总/明细/转融券 |
 | 🐯 **dragon_tiger_inst** | 龙虎榜机构明细 | 指定交易日(可选代码)，买卖额/比例/净额/理由表格 |
-| 🧱 **csi_index_constituents** | CSI指数成分与权重摘要 | 仅支持中证指数公司(CSI)，指数区间行情+全部成分股权重与区间涨跌幅 |
 | 🔥 **hot_news_7x24** | 7×24 热点 | 基于 Tushare 最新批次（单次至多1500条），内容相似度80%去重，条目间以`---`分隔 |
 
 ## 🎯 技术亮点
@@ -315,6 +314,13 @@ node build/httpServer.js
 # 或
 npm start
 ```
+
+**SSE 模式**
+```bash
+npm run build
+npm run sse
+```
+
 
 服务启动后：
 - MCP 端点: `http://localhost:3000/mcp`

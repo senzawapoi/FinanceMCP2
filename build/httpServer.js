@@ -104,9 +104,16 @@ app.get('/health', (_req, res) => {
 });
 app.get('/mcp', (req, res) => {
     const accept = req.headers.accept || '';
-    if (typeof accept === 'string' && accept.includes('text/event-stream')) {
-        res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', 'Connection': 'keep-alive' });
-        res.write('data: {"type":"connection","status":"established"}\n\n');
+    const forceSse = req.query.sse === '1' || req.query.sse === 'true';
+    if (forceSse || (typeof accept === 'string' && accept.includes('text/event-stream'))) {
+        res.writeHead(200, {
+            'Content-Type': 'text/event-stream; charset=utf-8',
+            'Cache-Control': 'no-cache, no-transform',
+            'Connection': 'keep-alive',
+            'X-Accel-Buffering': 'no'
+        });
+        // 仅发送注释型心跳，避免发送非 JSON-RPC 的 data 事件
+        res.write(': stream established\n\n');
         const keep = setInterval(() => res.write(': keepalive\n\n'), 30000);
         req.on('close', () => clearInterval(keep));
         return;
@@ -256,6 +263,21 @@ app.post('/mcp', async (req, res) => {
         }
     }
     return res.status(400).json({ jsonrpc: '2.0', error: { code: -32601, message: `Method not found: ${method}` }, id: body.id });
+});
+// 兼容性终止路由：部分客户端在结束会话时会调用此端点
+app.post('/mcp/terminate', (_req, res) => {
+    return res.status(200).json({ ok: true });
+});
+// 备用别名
+app.post('/terminate', (_req, res) => {
+    return res.status(200).json({ ok: true });
+});
+// 兼容 GET 终止
+app.get('/mcp/terminate', (_req, res) => {
+    return res.status(200).json({ ok: true });
+});
+app.get('/terminate', (_req, res) => {
+    return res.status(200).json({ ok: true });
 });
 app.listen(PORT, () => {
     console.log(`Streamable HTTP MCP Server http://localhost:${PORT}`);

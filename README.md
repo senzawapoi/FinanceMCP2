@@ -312,13 +312,13 @@ npm run build
 npm run build
 node build/httpServer.js
 # 或
-npm start
+npm run start:http
 ```
 
 **SSE 模式**
 ```bash
 npm run build
-npm run sse
+npm run start:sse
 ```
 
 

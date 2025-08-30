@@ -122,6 +122,7 @@ You can also use our shared service without API keys (may have rate limits):
 | 💹 **money_flow** | Money flow data | Main/super-large/large/medium/small order flow analysis |
 | 💰 **margin_trade** | Margin trading data | 4 APIs: eligible stocks/summary/details/securities lending |
 | 🐯 **dragon_tiger_inst** | Dragon-Tiger institutional details | By trade date (optional code); buy/sell/net and reason table |
+| 🧱 **csi_index_constituents** | CSI index constituents summary | CSI-only; index range summary + all constituents with weights and returns |
 | 🔥 **hot_news_7x24** | 7×24 Hot News | Based on Tushare latest batch (up to 1500 items), 80% content-similarity dedup, entries separated by `---` |
 
 ## 🎯 Technical Highlights

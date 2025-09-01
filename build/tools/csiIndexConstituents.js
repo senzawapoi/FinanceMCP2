@@ -130,6 +130,72 @@ async function getStockDaily(ts_code, start, end) {
     const rows = await callTushare('daily', { ts_code, start_date: start, end_date: end }, 'trade_date,open,high,low,close');
     return rows;
 }
+async function getDailyBasicMapByDate(date) {
+    // 拉取指定交易日全市场基础指标，构建 ts_code -> 估值映射
+    const rows = await callTushare('daily_basic', { trade_date: date }, 'ts_code,pe_ttm,pb,dv_ratio');
+    const out = {};
+    for (const r of rows) {
+        const code = String(r.ts_code || '').trim();
+        if (!code)
+            continue;
+        const peTtm = r.pe_ttm != null ? Number(r.pe_ttm) : null;
+        const pb = r.pb != null ? Number(r.pb) : null;
+        const dvRatio = r.dv_ratio != null ? Number(r.dv_ratio) : null; // 按百分比数值
+        out[code] = {
+            pe_ttm: isFinite(Number(peTtm)) ? peTtm : null,
+            pb: isFinite(Number(pb)) ? pb : null,
+            dividend_yield_pct: isFinite(Number(dvRatio)) ? dvRatio : null
+        };
+    }
+    return out;
+}
+async function getNearestDailyBasicMap(end, maxBackDays = 10) {
+    for (let i = 0; i <= maxBackDays; i++) {
+        const d = addDaysYYYYMMDD(end, -i);
+        try {
+            const map = await getDailyBasicMapByDate(d);
+            if (Object.keys(map).length > 0) {
+                return { date: d, map };
+            }
+        }
+        catch {
+            // 忽略该日错误，继续回退
+        }
+    }
+    return { date: null, map: {} };
+}
+async function getFinaIndicatorLatest(ts_code, end) {
+    // 限定窗口，避免返回过多数据：向前约 800 天
+    const start = addDaysYYYYMMDD(end, -800);
+    try {
+        const rows = await callTushare('fina_indicator', { ts_code, start_date: start, end_date: end }, 'ts_code,ann_date,end_date,roe,roa,netprofit_margin,ocfps,debt_to_assets,or_yoy');
+        if (!rows || rows.length === 0)
+            return null;
+        const sorted = [...rows].sort((a, b) => {
+            const aKey = String(a.ann_date || a.end_date || '');
+            const bKey = String(b.ann_date || b.end_date || '');
+            return bKey.localeCompare(aKey);
+        });
+        const top = sorted[0] || {};
+        const roe = top.roe != null ? Number(top.roe) : null; // 已为百分比
+        const roa = top.roa != null ? Number(top.roa) : null; // 已为百分比
+        const npm = top.netprofit_margin != null ? Number(top.netprofit_margin) : null; // 已为百分比
+        const ocfps = top.ocfps != null ? Number(top.ocfps) : null; // 元
+        const dta = top.debt_to_assets != null ? Number(top.debt_to_assets) : null; // 百分比
+        const orYoy = top.or_yoy != null ? Number(top.or_yoy) : null; // 百分比
+        return {
+            roe_pct: isFinite(Number(roe)) ? roe : null,
+            roa_pct: isFinite(Number(roa)) ? roa : null,
+            netprofit_margin_pct: isFinite(Number(npm)) ? npm : null,
+            ocfps: isFinite(Number(ocfps)) ? ocfps : null,
+            debt_to_assets_pct: isFinite(Number(dta)) ? dta : null,
+            revenue_yoy_pct: isFinite(Number(orYoy)) ? orYoy : null
+        };
+    }
+    catch {
+        return null;
+    }
+}
 async function getIndexWeights(index_code, end) {
     const norm = normalizeIndexCode(index_code);
     // 回退最多120天找到最近一次权重
@@ -149,13 +215,13 @@ async function getIndexWeights(index_code, end) {
 }
 export const csiIndexConstituents = {
     name: 'csi_index_constituents',
-    description: '获取中证指数公司(CSI)指数的区间行情与成分股权重摘要。仅支持CSI指数，如 000300.SH/000905.SH/000852.SH；输入日期支持YYYYMMDD或YYYY-MM-DD。输出包括指数与全部成分股（按权重降序）的区间价格摘要与区间涨跌幅。',
+    description: '获取中证指数公司(CSI)指数（含行业/主题）的区间行情、成分权重与估值/财务摘要（PE TTM、PB、股息率、ROE、ROA、净利率、每股经营现金流、资产负债率、营收同比）。',
     parameters: {
         type: 'object',
         properties: {
             index_code: {
                 type: 'string',
-                description: "指数代码(仅限CSI)，如 '000300.SH'、'000905.SH'，也支持 'sh000300'、'sz399006' 形式"
+                description: "指数代码(仅限CSI，含行业/主题)。请使用 .SH/.SZ 形式且能在 Tushare index_weight 查询到权重的代码，例如中证证券公司 '399975.SZ'；也支持宽基 '000300.SH'、'000905.SH'，以及 'sh000300'、'sz399006' 形式"
             },
             start_date: {
                 type: 'string',
@@ -194,10 +260,14 @@ export const csiIndexConstituents = {
             // 并发拉取全部成分股行情
             const stockRows = await Promise.all(allConstituents.map(c => getStockDaily(normalizeIndexCode(c.ts_code), start, end).catch(() => [])));
             const stockSummaries = stockRows.map(rows => summarizePrices(rows));
+            // 估值：以结束日向前回退查找最近可用 daily_basic（最多回退10日）
+            const { date: basicDate, map: basicMap } = await getNearestDailyBasicMap(end, 10);
+            // 财务指标：为每只股票获取最近披露的 ROE/ROA/净利率（按公告日或报告期倒序取最近）
+            const finaSnapshots = await Promise.all(allConstituents.map(c => getFinaIndicatorLatest(normalizeIndexCode(c.ts_code), end).catch(() => null)));
             // 组装输出
             const pct = (v) => v == null ? 'N/A' : (v * 100).toFixed(2) + '%';
             const num = (v) => v == null ? 'N/A' : String(Number(v.toFixed(4)));
-            let out = `# ${normIndex} 指数区间与成分股摘要 (CSI专用)\n\n` +
+            let out = `# ${normIndex} 指数区间与成分股摘要\n\n` +
                 `仅支持中证指数公司(CSI)指数。查询区间: ${start} - ${end}\n\n` +
                 `## 指数价格摘要\n` +
                 `- 起始开盘: ${num(indexSummary.open_at_start)}\n` +
@@ -206,12 +276,17 @@ export const csiIndexConstituents = {
                 `- 结束收盘: ${num(indexSummary.close_at_end)}\n` +
                 `- 区间涨跌幅: ${pct(indexRet)}\n\n` +
                 `## 成分股列表（按权重降序）\n`;
-            out += `| 代码 | 权重(%) | 起始开盘 | 区间最低 | 区间最高 | 结束收盘 | 区间涨跌幅 |\n`;
-            out += `|-----|---------|-----------|-----------|-----------|-----------|-----------|\n`;
+            out += `| 代码 | 权重(%) | 起始开盘 | 区间最低 | 区间最高 | 结束收盘 | 区间涨跌幅 | PE(TTM) | PB | 股息率(%) | ROE(%) | ROA(%) | 净利率(%) | 每股经营现金流 | 资产负债率(%) | 营收同比(%) |\n`;
+            out += `|-----|---------|-----------|-----------|-----------|-----------|-----------|---------|----|-----------|--------|--------|-----------|--------------|--------------|-----------|\n`;
             allConstituents.forEach((c, i) => {
                 const s = stockSummaries[i];
                 const r = calcReturn(s.open_at_start, s.close_at_end);
-                out += `| ${normalizeIndexCode(c.ts_code)} | ${num(c.weight)} | ${num(s.open_at_start)} | ${num(s.low_min)} | ${num(s.high_max)} | ${num(s.close_at_end)} | ${pct(r)} |\n`;
+                const code = normalizeIndexCode(c.ts_code);
+                const val = basicMap[code] || basicMap[c.ts_code] || null;
+                const fmt = (v, digits = 4) => v == null ? 'N/A' : String(Number(v.toFixed(digits)));
+                const f = finaSnapshots[i];
+                const fmtPct = (v, digits = 2) => v == null ? 'N/A' : String(Number(v.toFixed(digits)));
+                out += `| ${code} | ${num(c.weight)} | ${num(s.open_at_start)} | ${num(s.low_min)} | ${num(s.high_max)} | ${num(s.close_at_end)} | ${pct(r)} | ${fmt(val?.pe_ttm)} | ${fmt(val?.pb)} | ${val?.dividend_yield_pct == null ? 'N/A' : Number(val.dividend_yield_pct.toFixed(2))} | ${fmtPct(f?.roe_pct)} | ${fmtPct(f?.roa_pct)} | ${fmtPct(f?.netprofit_margin_pct)} | ${fmt(f?.ocfps)} | ${fmtPct(f?.debt_to_assets_pct)} | ${fmtPct(f?.revenue_yoy_pct)} |\n`;
             });
             return {
                 content: [{ type: 'text', text: out }]

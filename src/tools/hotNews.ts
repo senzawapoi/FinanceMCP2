@@ -118,13 +118,22 @@ export const hotNews = {
   description: '7x24热点：从Tushare新闻接口获取最新的财经、政治、科技、体育、娱乐、军事、社会、国际等新闻',
   parameters: {
     type: 'object',
-    properties: {}
+    properties: {
+      limit: {
+        type: 'number',
+        description: '返回条数，默认100，上限1500。接口按此数量向Tushare请求后再进行内容相似度去重',
+        minimum: 1,
+        maximum: 1500
+      }
+    }
   },
-  async run(_args?: {}) {
+  async run(_args?: { limit?: number }) {
     try {
       const logs: string[] = [];
-      logs.push('[START] hot_news_7x24 获取最新批次（不传任何筛选参数）');
-      const raw = await fetchTushareNewsBatch(1500, logs);
+      const rawLimit = typeof _args?.limit === 'number' && isFinite(_args.limit) ? Math.floor(_args.limit) : 100;
+      const limit = Math.min(1500, Math.max(1, rawLimit));
+      logs.push(`[START] hot_news_7x24 获取最新批次（limit=${limit}）`);
+      const raw = await fetchTushareNewsBatch(limit, logs);
       const deduped = deduplicateByContent(raw, 0.8);
       logs.push(`[INFO] 去重后条数: ${deduped.length}`);
 

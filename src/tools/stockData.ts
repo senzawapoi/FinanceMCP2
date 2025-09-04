@@ -155,6 +155,7 @@ export const stockData = {
               start_date: actualStartDate,
               end_date: actualEndDate
             };
+            // 统一将 amount 列名标注为（万元）
           } else if (!args.start_date && !args.end_date) {
             // 如果都没指定，使用默认的end_date作为trade_date
             params.params = {
@@ -404,6 +405,13 @@ export const stockData = {
           'convertible_bond': '可转债',
           'options': '期权'
         };
+
+        // 金额（amount）统一以“万元”为单位展示：amount(千) -> amount/10(万)
+        const formatAmountWan = (val: any): string => {
+          const num = Number(val);
+          if (val == null || val === '' || isNaN(num)) return 'N/A';
+          return (num / 10).toFixed(2);
+        };
         
         // 格式化输出（根据不同市场类型构建表格格式）
         let formattedData = '';
@@ -507,7 +515,8 @@ export const stockData = {
           formattedData = `| 交易日期 | 品种名称 | 利率(%) | 成交金额(万元) |\n`;
           formattedData += `|---------|---------|---------|---------------|\n`;
           stockData.forEach((data: Record<string, any>) => {
-            formattedData += `| ${data.trade_date} | ${data.name || 'N/A'} | ${data.rate || 'N/A'} | ${data.amount || 'N/A'} |\n`;
+            const amtWan = formatAmountWan(data.amount);
+            formattedData += `| ${data.trade_date} | ${data.name || 'N/A'} | ${data.rate || 'N/A'} | ${amtWan} |\n`;
           });
         } else if (marketType === 'convertible_bond') {
           // 可转债数据表格展示（追加技术指标列）
@@ -526,7 +535,21 @@ export const stockData = {
           formattedData = `| ${headers.join(' | ')} |\n`;
           formattedData += `|${headers.map(() => '--------').join('|')}|\n`;
           stockData.forEach((data: Record<string, any>, index: number) => {
-            const baseRow = [data.trade_date, data.open || 'N/A', data.high || 'N/A', data.low || 'N/A', data.close || 'N/A', data.change || 'N/A', data.pct_chg || 'N/A', data.vol || 'N/A', data.amount || 'N/A', data.bond_value || 'N/A', data.bond_over_rate || 'N/A', data.cb_value || 'N/A', data.cb_over_rate || 'N/A'];
+            const baseRow = [
+              data.trade_date,
+              data.open || 'N/A',
+              data.high || 'N/A',
+              data.low || 'N/A',
+              data.close || 'N/A',
+              data.change || 'N/A',
+              data.pct_chg || 'N/A',
+              data.vol || 'N/A',
+              formatAmountWan(data.amount),
+              data.bond_value || 'N/A',
+              data.bond_over_rate || 'N/A',
+              data.cb_value || 'N/A',
+              data.cb_over_rate || 'N/A'
+            ];
             const indicatorRow: string[] = [];
             if (hasIndicators) {
               if (indicators.macd) {
@@ -572,7 +595,20 @@ export const stockData = {
           formattedData = `| ${headers.join(' | ')} |\n`;
           formattedData += `|${headers.map(() => '--------').join('|')}|\n`;
           stockData.forEach((data: Record<string, any>, index: number) => {
-            const baseRow = [data.trade_date, data.exchange || 'N/A', data.pre_settle || 'N/A', data.pre_close || 'N/A', data.open || 'N/A', data.high || 'N/A', data.low || 'N/A', data.close || 'N/A', data.settle || 'N/A', data.vol || 'N/A', data.amount || 'N/A', data.oi || 'N/A'];
+            const baseRow = [
+              data.trade_date,
+              data.exchange || 'N/A',
+              data.pre_settle || 'N/A',
+              data.pre_close || 'N/A',
+              data.open || 'N/A',
+              data.high || 'N/A',
+              data.low || 'N/A',
+              data.close || 'N/A',
+              data.settle || 'N/A',
+              data.vol || 'N/A',
+              formatAmountWan(data.amount),
+              data.oi || 'N/A'
+            ];
             const indicatorRow: string[] = [];
             if (hasIndicators) {
               if (indicators.macd) {
@@ -619,6 +655,7 @@ export const stockData = {
               'vol': '成交量',
               'amount': '成交额'
             };
+            fieldNameMap['amount'] = '成交额(万元)';
             
             // 如果有技术指标，添加技术指标列
             const indicatorHeaders: string[] = [];
@@ -646,13 +683,19 @@ export const stockData = {
             }
             
             // 组合所有表头
-            const allHeaders = [...displayFields.map(field => fieldNameMap[field] || field), ...indicatorHeaders];
+            const allHeaders = [
+              ...displayFields.map(field => field === 'amount' ? '成交额(万元)' : (fieldNameMap[field] || field)),
+              ...indicatorHeaders
+            ];
             formattedData = `| ${allHeaders.join(' | ')} |\n`;
             formattedData += `|${allHeaders.map(() => '--------').join('|')}|\n`;
             
             // 生成数据行
             stockData.forEach((data: Record<string, any>, index: number) => {
-              const basicRow = displayFields.map(field => data[field] || 'N/A');
+              const basicRow = displayFields.map(field => {
+                if (field === 'amount') return formatAmountWan(data.amount);
+                return data[field] || 'N/A';
+              });
               
               // 添加技术指标数据
               const indicatorRow: string[] = [];
